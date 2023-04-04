@@ -122,6 +122,8 @@ response = requests.post(
 
 ## Accessing models via API
 
+You can also access the online models via API. To do so, you can use the `inference_client` package:
+
 ```python
 from inference_client import Client
 
@@ -142,7 +144,9 @@ output = model.generate(
     num_return_sequences=1,
 )
 ```
- 
+
+By this way, you can access the models without deploying them to your own machine.
+
 ## Advanced Usage
 
 ## Model Offloading
