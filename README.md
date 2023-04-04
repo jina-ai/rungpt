@@ -42,6 +42,8 @@ We also provide some advanced features to allow you to host your models cost-eff
 
 - **Quantization**: you can quantize the model to reduce the cost of inference.
 
+For more details, please see the [documentation](https://opengpt.readthedocs.io/en/latest/).
+
 ## Serving Models
 
 You can serve your models with OpenGPT. To do so, you can use the `serve` command:
