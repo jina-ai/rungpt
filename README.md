@@ -119,6 +119,29 @@ response = requests.post(
     },
 )
 ```
+
+## Accessing models via API
+
+```python
+from inference_client import Client
+
+client = Client(token='<your access token>')
+
+model = client.create_model('facebook/llama-9b')
+
+prompt = "The quick brown fox jumps over the lazy dog."
+
+output = model.generate(
+    prompt,
+    max_length=100,
+    temperature=0.9,
+    top_k=50,
+    top_p=0.95,
+    repetition_penalty=1.2,
+    do_sample=True,
+    num_return_sequences=1,
+)
+```
  
 ## Advanced Usage
 
