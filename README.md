@@ -64,6 +64,19 @@ response = requests.post(
         "num_return_sequences": 1,
     },
 )
+
+
+# SSE support
+from aiohttp_sse_client import client as sse_client
+
+async with sse_client.EventSource(
+    'http://localhost:5000/stream/generate?prompt=The+quick+brown+fox+jumps+over+the+lazy+dog.&max_length=100&temperature=0.9&top_k=50&top_p=0.95&repetition_penalty=1.2&do_sample=True&num_return_sequences=1'
+) as event_source:
+    try:
+        async for event in event_source:
+            print(event)
+    except ConnectionError:
+        pass
 ```
 
 Note that the server will only accept requests from the same machine. If you want to accept requests from other machines, you can use the `--host` flag to specify the host to bind to.
