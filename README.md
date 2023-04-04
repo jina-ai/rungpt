@@ -145,7 +145,7 @@ from inference_client import Client
 
 client = Client(token='<your access token>')
 
-model = client.create_model('facebook/llama-9b')
+model = client.get_model('facebook/llama-9b')
 
 prompt = "The quick brown fox jumps over the lazy dog."
 
