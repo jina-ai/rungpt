@@ -2,6 +2,8 @@
 
 OpenGPT is a simple, open-source, and easy-to-use GPT-style text generator. 
 
+**Warning**: This is an idea that I had and I wanted to try it out. 
+
 
 ## Installation
 
