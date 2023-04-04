@@ -105,6 +105,22 @@ response = requests.post(
 )
 ```
  
+## Advanced Usage
+
+You can also apply the model offloading techniques (based on [FlexTensor](https://github.com/numb3r3/flex-tensor)) to OpenGPT. To do so, you can use the `--offload-percents` flag:
+
+```bash
+opengpt serve facebook/llama-9b --device cuda --precision fp16 --port 5000 --offload-percents 10,90,50,50,0,100
+```
+
+This will offload parts of the model to the CPU. You can also use the `--offload-strategy` flag to specify the offloading strategy:
+
+```bash
+opengpt serve facebook/llama-9b --device cuda --precision fp16 --port 5000 --offload-strategy "cpu,cpu,cpu,cpu,cpu,cpu"
+```
+
+
+
 
 ## Documentation
 
