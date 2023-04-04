@@ -36,6 +36,12 @@ output = model.generate(
 )
 ```
 
+We also provide some advanced features to allow you to host your models cost-effectively:
+
+- **Offloading**: you can offload parts of the model to CPU to reduce the cost of inference.
+
+- **Quantization**: you can quantize the model to reduce the cost of inference.
+
 ## Serving Models
 
 You can serve your models with OpenGPT. To do so, you can use the `serve` command:
