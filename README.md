@@ -102,6 +102,14 @@ opengpt deploy facebook/llama-9b --device cuda --precision fp16 --provider jina 
 
 - AWS
 
+To deploy to AWS, you need to install extra dependencies: 
+
+```bash
+pip install opegpt[aws]
+```
+
+And you need to specify the region:
+
 ```bash
 opengpt deploy facebook/llama-9b --device cuda --precision fp16 --provider aws --region us-east-1 --name opengpt --replicas 2
 ```
