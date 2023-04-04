@@ -157,7 +157,7 @@ By this way, you can access the models without deploying them to your own machin
 
 ## Advanced Usage
 
-## Model Offloading
+### Model Offloading
 
 You can also apply the model offloading techniques (based on [FlexTensor](https://github.com/numb3r3/flex-tensor)) to OpenGPT. To do so, you can use the `--offload-percents` flag:
 
@@ -171,7 +171,7 @@ This will offload parts of the model to the CPU. You can also use the `--offload
 opengpt serve facebook/llama-9b --device cuda --precision fp16 --port 5000 --offload-strategy "cpu,cpu,cpu,cpu,cpu,cpu"
 ```
 
-## Model Quantization
+### Model Quantization
 
 You can also apply the model quantization techniques.
 
