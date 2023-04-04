@@ -1,12 +1,5 @@
 # OpenGPT
 
-OpenGPT is a simple, open-source, and easy-to-use GPT-style text generator. 
-
-
-
-
-## About OpenGPT
-
 OpenGPT is an open-source cloud-native of large multi-modal models (LMMs).
 
 **Warning**: This is an idea that I had and I wanted to try it out. 
