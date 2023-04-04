@@ -19,7 +19,13 @@ class SSEGateway(Gateway):
 
             async def generate_text():
                 """Generate text."""
-                async for message in self._generate_text(request):
+                async for message in self._generate(request):
                     yield message
 
             return await self._stream(generate_text())
+
+    async def _generate(self, request):
+        """Generate text."""
+        docs = DocumentArray([{"text": request.args["text"][0]}])
+        await self._post("/generate", docs)
+        return docs
