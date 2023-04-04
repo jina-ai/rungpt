@@ -1,6 +1,7 @@
 """The model adapter for OpenGPT models.
 
-The model adapter is a wrapper around the model that provides a light-weight way to enrich the model with additional functionality.
+The model adapter is a wrapper around the model that provides a light-weight way to
+enrich the model with additional functionality.
 """
 import torch
 from torch import nn
