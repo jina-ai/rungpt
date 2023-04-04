@@ -1,0 +1,49 @@
+repos:
+-   repo: https://github.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+    -   id: flake8
+        exclude: ^(.git|__pycache__|docs/source/conf.py|old|build|dist|tests|open_gpt/resources/)
+        args:
+          - --max-complexity=10
+          - --max-line-length=127
+          - --select=E9,F63,F7,F82
+#- repo: https://github.com/terrencepreilly/darglint
+#  rev: v1.5.8
+#  hooks:
+#  - id: darglint
+#    files: open_gpt/
+#    exclude: ^(docs/|open_gpt/resources/)
+#    args:
+#    - --message-template={path}:{line} {msg_id} {msg}
+#    - -s=sphinx
+#    - -z=full
+#    - -v=2
+- repo: https://github.com/pycqa/pydocstyle
+  rev: 5.1.1  # pick a git hash / tag to point to
+  hooks:
+  -   id: pydocstyle
+      files: client/
+      exclude: ^(docs/|open_gpt/resources/)
+      args:
+      - --select=D101,D102,D103
+- repo: https://github.com/ambv/black
+  rev: 22.3.0
+  hooks:
+  - id: black
+    types: [python]
+    exclude: ^(docs/|open_gpt/resources/)
+    args:
+      - -S
+- repo: https://github.com/asottile/blacken-docs
+  rev: v1.12.1
+  hooks:
+  -   id: blacken-docs
+      args:
+        - -S
+- repo: https://github.com/pycqa/isort
+  rev: 5.12.0
+  hooks:
+    - id: isort
+      args: ["--profile", "black"]
+
