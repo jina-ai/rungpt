@@ -181,6 +181,17 @@ You can also apply the model quantization techniques.
 opengpt serve facebook/llama-9b --device cuda --precision fp16 --port 5000 --quantize 8bit
 ```
 
+## Fine-tuning Models
+
+We currently support fine-tuning models by using the `finetune` command:
+
+```bash
+opengpt finetune facebook/llama-9b --dataset wikitext-2 --device cuda --precision fp16 --batch-size 32 --learning-rate 1e-4 --epochs 10
+```
+
+Specifically, we implement the following fine-tuning methods:
+- [LLaMA-Adapter: Efficient Fine-tuning of LLaMA](https://github.com/ZrrSkywalker/LLaMA-Adapter): Fine-tuning model to follow instructions within 1 Hour and 1.2M Parameters
+- [low-rank adaptation (LoRA)](https://arxiv.org/pdf/2106.09685.pdf): Low-Rank Adaptation for Efficient Language Model Fine-Tuning
 
 ## Documentation
 
