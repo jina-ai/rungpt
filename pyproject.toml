@@ -22,7 +22,7 @@ classifiers = [
     "License :: OSI Approved :: Apache Software",
     "Operating System :: OS Independent"
 ]
-packages = [{ include = "open_gpt" }]
+packages = [{ include = "opengpt" }]
 exclude = ["tests/**/*"]
 
 # README file(s) are used as the package description
@@ -41,7 +41,16 @@ python = ">=3.8"
 torch = ">=1.9.0" # a meta device requires torch >= 1.9.0
 click = "^8.1.3"
 numpy = "^1.21.2"
+einops = "^0.6.0"
 transformers = "^4.12.5"
+open_clip_torch = "^2.16.0"
+
+# A list of all of the optional dependencies, some of which are included in the
+# below `extras`. They can be opted into by apps.
+open-flamingo = { version = "^0.0.2", optional = true }
+
+[tool.poetry.extras]
+flamingo = ["open-flamingo"]
 
 # Dependency groups are supported for organizing your dependencies
 [tool.poetry.group.dev.dependencies]
