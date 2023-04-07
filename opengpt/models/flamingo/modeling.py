@@ -46,6 +46,8 @@ class FlamingoModel(nn.Module):
         vision_inputs: 'torch.Tensor',
         text_inputs: 'torch.Tensor',
         attention_mask: Optional['torch.Tensor'] = None,
+        labels: Optional['torch.Tensor'] = None,
+        past_key_values: Optional['torch.Tensor'] = None,
     ):
         """
 
@@ -54,27 +56,25 @@ class FlamingoModel(nn.Module):
                 Currently only F=1 is supported (single-frame videos)
         :param text_inputs: language text input with shape (batch_size, sequence_length)
         :param attention_mask: attention mask, 1 for tokens that are not masked, 0 for masked tokens. Defaults to None.
+        :param labels: labels for computing the language modeling loss. Defaults to None.
+        :param past_key_values: cached past key and values for fast decoding. Defaults to None.
         """
 
         self._vision_encode(vision_inputs)
 
-        vision_inputs = rearrange(vision_inputs, 'b c h w -> b (h w) c')
-        vision_inputs = self.perceiver(vision_inputs)
+        output = self.language_model(
+            input_ids=text_inputs,
+            attention_mask=attention_mask,
+            labels=labels,
+            past_key_values=past_key_values,
+            use_cache=False,
+        )
 
-        # logits = self.language_model(
-        #     vision_x=vision_x,
-        #     lang_x=text_inputs,
-        #     attention_mask=attention_mask,
-        #     labels=labels,
-        #     use_cached_vision_x=use_cached_vision_x,
-        #     clear_conditioned_layers=clear_conditioned_layers,
-        #     past_key_values=past_key_values,
-        #     use_cache=use_cache,
-        # )
-        #
-        # return logits
+        self.language_model.clear_conditioned_layers()
 
-    def _vision_encode(self, vision_inputs: 'torch.Tensor'):
+        return output
+
+    def _vision_encode(self, vision_inputs: 'torch.Tensor') -> 'torch.Tensor':
         """
         Compute media tokens from vision input by passing it through vision encoder and conditioning language model.
 
@@ -101,3 +101,5 @@ class FlamingoModel(nn.Module):
 
         for layer in self.lang_encoder._get_decoder_layers():
             layer.condition_vis_x(vision_x)
+
+        return vision_x
