@@ -2,9 +2,23 @@
 
 OpenGPT is an open-source cloud-native of large multi-modal models (LMMs).
 
+OpenGPT is an open-source cloud-native large multi-modal models (LMMs) serving solution. 
+It is designed to simplify the deployment and management of large language models, on a distributed cluster of GPUs.
+
 **Warning**: This is an idea that I had and I wanted to try it out. 
 The design has not been implemented yet. 
 **The content of README.md is just a placeholder to remind me of what I want to do.**
+
+## Features
+
+OpenGPT provides the following features to make it easy to deploy and serve large multi-modal models (LMMs) in production:
+
+- Support for multi-modal models
+- Scalable architecture for handling high traffic loads
+- Optimized for low-latency inference
+- Automatic model partitioning and distribution across multiple GPUs
+- Centralized model management and monitoring
+- REST API for easy integration with existing applications
 
 You can learn more about OpenGPT’s [architecture in our documentation](https://opengpt.readthedocs.io/en/latest/).
 
@@ -142,6 +156,51 @@ response = requests.post(
 )
 ```
 
+## Kubernetes
+
+To deploy OpenGPT on your Kubernetes cluster, follow these steps:
+
+1. Install the OpenGPT operator on your Kubernetes cluster using Helm:
+
+    ```bash
+    helm install opengpt ./helm/opengpt --namespace opengpt
+    ```
+
+2. Create a custom resource for your GPT model:
+    
+    ```YAML
+    apiVersion: opengpt.io/v1alpha1
+    kind: GptModel
+    metadata:
+      name: my-gpt-model
+      namespace: opengpt
+    spec:
+      modelPath: s3://my-bucket/my-model
+      modelName: my-model
+      maxBatchSize: 16
+      inputShape:
+        - 1024
+        - 1024
+        - 3
+      outputShape:
+        - 1024
+        - 1024
+        - 3
+
+    ```
+   
+3. Apply the custom resource to your cluster:
+
+    ```bash
+   kubectl apply -f my-gpt-model.yaml
+    ```
+
+4. Monitor the status of your GPT model using the OpenGPT dashboard:
+
+    ```bash
+   kubectl port-forward -n opengpt svc/opengpt-dashboard 8080:80
+    ```
+
 ## Accessing models via API
 
 You can also access the online models via API. To do so, you can use the `inference_client` package:
@@ -210,3 +269,12 @@ Specifically, we implement the following fine-tuning methods:
 ## Documentation
 
 For more information, check out the [documentation](https://opengpt.readthedocs.io/en/latest/).
+
+
+## Contributing
+
+We welcome contributions from the community! To contribute, please submit a pull request following our contributing guidelines.
+
+## License
+
+OpenGPT is licensed under the Apache License, Version 2.0. See LICENSE for the full license text.
