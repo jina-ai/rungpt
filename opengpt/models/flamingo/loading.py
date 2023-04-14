@@ -2,7 +2,7 @@ import open_clip
 from open_flamingo.src.flamingo_lm import FlamingoLMMixin
 from open_flamingo.src.utils import extend_instance
 
-from ..hf_model import load_model_and_tokenizer
+from ..llama.loading import load_model_and_tokenizer
 from .modeling import FlamingoModel
 
 
