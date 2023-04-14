@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 import torch
+from loguru import logger
 
 
 def list_models():
@@ -35,6 +36,8 @@ def create_model_and_transforms(
     # TODO: Add support for loading config based on model name
     model_config = {}
 
+    logger.debug(f'Loading model: {model_name}')
+
     if model_name == 'OpenFlamingo-9B':
         from .models.flamingo.loading import load_model_and_transforms
 
@@ -44,5 +47,13 @@ def create_model_and_transforms(
             'tokenizer_name_or_path': 'llama_7B',
         }
         return load_model_and_transforms(**model_config)
+    elif model_name.startswith('facebook/llama'):
+        from .models.llama.loading import load_model_and_tokenizer
+
+        model_config = {
+            'model_name_or_path': 'llama_7B',
+            'tokenizer_name_or_path': 'llama_7B',
+        }
+        return load_model_and_tokenizer(**model_config)
     else:
         raise ValueError(f'Unknown model name: {model_name}')
