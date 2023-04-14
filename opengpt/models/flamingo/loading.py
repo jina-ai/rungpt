@@ -20,6 +20,7 @@ def load_model_and_transforms(
     tokenizer_name_or_path: str,
     decoder_layers_attr_name: str = None,
     device: Optional[Union[str, 'torch.device']] = 'cpu',
+    precision: Union[str, 'torch.dtype'] = 'fp32',
     **kwargs,
 ):
     """Load a Flamingo model and its associated image and text processors.
@@ -30,29 +31,33 @@ def load_model_and_transforms(
     :param tokenizer_name_or_path: The name or path of the tokenizer to use.
     :param decoder_layers_attr_name: The name of the attribute that specifies the decoder layers.
     :param device: The device to load the model on.
+    :param precision: The precision to use for the model.
     """
-
     from accelerate.hooks import (
         AlignDevicesHook,
         add_hook_to_module,
         attach_align_device_hook_on_blocks,
         remove_hook_from_module,
     )
+    from accelerate.utils.memory import release_memory
 
     # load the vision model
     model_name, *pretrained = clip_model_name.split("::")
     pretrained = pretrained[0] if len(pretrained) == 1 else 'openai'
     clip_model, _, image_processor = open_clip.create_model_and_transforms(
-        model_name, pretrained=pretrained, device=device, precision='fp16'
+        model_name, pretrained=pretrained, precision=precision
     )
     # set the vision encoder to output the visual features
     clip_model.visual.output_tokens = True
 
     # remove text encoder to save footprint and memory
     if hasattr(clip_model, 'text'):
-        del clip_model.text
+        release_memory(clip_model.text)
     elif hasattr(clip_model, 'transformer'):
-        del clip_model.transformer
+        release_memory(clip_model.transformer)
+
+    # dispatch the model to the device
+    clip_model.visual.to(device)
 
     execution_device = next(iter(clip_model.parameters())).device
     add_hook_to_module(clip_model, AlignDevicesHook(io_same_device=True), append=True)
