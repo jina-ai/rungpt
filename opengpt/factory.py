@@ -33,12 +33,16 @@ def create_model_and_transforms(
     :param kwargs: Additional arguments to pass to the model.
     :return: The model.
     """
+
+    if not device:
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     # TODO: Add support for loading config based on model name
     model_config = {}
 
     logger.debug(f'Loading model: {model_name}')
 
-    if model_name == 'OpenFlamingo-9B':
+    if model_name.startswith('openflamingo/OpenFlamingo'):
         from .models.flamingo.loading import load_model_and_transforms
 
         model_config = {
@@ -46,7 +50,7 @@ def create_model_and_transforms(
             'lang_model_name_or_path': 'llama_7B',
             'tokenizer_name_or_path': 'llama_7B',
         }
-        return load_model_and_transforms(**model_config)
+        return load_model_and_transforms(model_name, device=device, **model_config)
     elif model_name.startswith('facebook/llama'):
         from .models.llama.loading import load_model_and_tokenizer
 
