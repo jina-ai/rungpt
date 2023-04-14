@@ -11,7 +11,11 @@ import time
 
 import psutil
 import torch
-from accelerate.utils import compute_module_sizes
+from accelerate.utils import compute_module_sizes as _compute_module_sizes
+
+
+def compute_module_sizes(model):
+    return _compute_module_sizes(model)
 
 
 class PeakCPUMemory:
