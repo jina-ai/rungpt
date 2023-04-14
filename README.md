@@ -1,13 +1,9 @@
 # OpenGPT
 
-OpenGPT is an open-source cloud-native of large multi-modal models (LMMs).
-
-OpenGPT is an open-source cloud-native large multi-modal models (LMMs) serving solution. 
+`OpenGPT` is an open-source _cloud-native_ large **multi-modal models** (LMMs) serving solution. 
 It is designed to simplify the deployment and management of large language models, on a distributed cluster of GPUs.
 
-**Warning**: This is an idea that I had and I wanted to try it out. 
-The design has not been implemented yet. 
-**The content of README.md is just a placeholder to remind me of what I want to do.**
+> The content of README.md is just a placeholder to remind me of what I want to do.
 
 ## Features
 
@@ -40,7 +36,7 @@ pip install opengpt
 ```python
 import opengpt
 
-model = opengpt.create_model('facebook/llama-9b', device='cuda', precision='fp16')
+model = opengpt.create_model('facebook/llama-7b', device='cuda', precision='fp16')
 
 prompt = "The quick brown fox jumps over the lazy dog."
 
