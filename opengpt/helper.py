@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Optional, Union
 
 import torch
@@ -26,3 +27,8 @@ def get_envs():
     from torch.utils import collect_env
 
     return collect_env.get_pretty_env_info()
+
+
+def utcnow() -> datetime:
+    """Return the current utc date and time with tzinfo set to UTC."""
+    return datetime.now(timezone.utc)
