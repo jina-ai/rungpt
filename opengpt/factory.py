@@ -66,5 +66,12 @@ def create_model_and_transforms(
         return load_model_and_tokenizer(
             model_name, device=device, dtype=infer_dtype(precision), **model_config
         )
+    elif model_name.startswith('EleutherAI/pythia'):
+        from .helper import infer_dtype
+        from .models.pythia.loading import load_model_and_tokenizer
+
+        return load_model_and_tokenizer(
+            model_name, device=device, dtype=infer_dtype(precision), **model_config
+        )
     else:
         raise ValueError(f'Unknown model name: {model_name}')
