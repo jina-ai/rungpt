@@ -59,5 +59,12 @@ def create_model_and_transforms(
             'tokenizer_name_or_path': 'llama_7B',
         }
         return load_model_and_tokenizer(**model_config)
+    elif model_name.startswith('google/flan'):
+        from .helper import infer_dtype
+        from .models.flan.loading import load_model_and_tokenizer
+
+        return load_model_and_tokenizer(
+            model_name, device=device, dtype=infer_dtype(precision), **model_config
+        )
     else:
         raise ValueError(f'Unknown model name: {model_name}')
