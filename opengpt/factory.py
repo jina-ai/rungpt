@@ -22,7 +22,7 @@ def load_state_dict(model: torch.nn.Module, checkpoint: Union[str, 'Path']):
 def create_model_and_transforms(
     model_name: str,
     device: Optional[Union[str, torch.device]] = None,
-    precision: Optional[str] = 'fp32',
+    precision: Optional[str] = None,
     **kwargs,
 ):
     """Create a model of the given name.
@@ -37,6 +37,14 @@ def create_model_and_transforms(
     if not device:
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+    device = torch.device(device)
+
+    if not precision:
+        if device.type == 'cuda':
+            precision = 'fp16'
+        else:
+            precision = 'fp32'
+
     # TODO: Add support for loading config based on model name
     model_config = {}
 
@@ -50,7 +58,9 @@ def create_model_and_transforms(
             'lang_model_name_or_path': 'llama_7B',
             'tokenizer_name_or_path': 'llama_7B',
         }
-        return load_model_and_transforms(model_name, device=device, **model_config)
+        return load_model_and_transforms(
+            model_name, device=device, precision=precision, **model_config
+        )
     elif model_name.startswith('facebook/llama'):
         from .models.llama.loading import load_model_and_tokenizer
 

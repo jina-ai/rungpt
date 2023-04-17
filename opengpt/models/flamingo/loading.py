@@ -59,6 +59,7 @@ def load_model_and_transforms(
     # dispatch the model to the device
     clip_model.visual.to(device)
 
+    # device alignment hook for the vision model
     execution_device = next(iter(clip_model.parameters())).device
     add_hook_to_module(clip_model, AlignDevicesHook(io_same_device=True), append=True)
 
