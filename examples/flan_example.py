@@ -9,7 +9,7 @@ from opengpt.profile import (
 )
 
 start_measures = start_measure()
-model, tokenizer, *_ = create_model_and_transforms(model_name='google/flan-t5-small')
+model, tokenizer, *_ = create_model_and_transforms(model_name='google/flan-t5-xl')
 end_measures = end_measure(start_measures)
 log_measures(end_measures, "Model loading")
 
