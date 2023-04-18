@@ -41,7 +41,7 @@ for prompt in PROMPTS:
     inputs = tokenizer(prompt, return_tensors="pt")
     tokens = inputs["input_ids"][0].tolist()
     before_generate = time.time()
-    outputs = model.generate(**inputs)
+    outputs = model.gpt_neox.generate(**inputs)
     after_generate = time.time()
     outputs = outputs[0].tolist()
     num_gen_tokens = (
