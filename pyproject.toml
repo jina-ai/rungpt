@@ -19,10 +19,9 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Operating System :: OS Independent"
 ]
 packages = [{ include = "open_gpt" }]
-exclude = ["tests/**/*"]
+exclude = ["tests/**/*", "docs/**/*", "examples/**/*"]
 
 # README file(s) are used as the package description
 readme = ["README.md", "LICENSE"]
