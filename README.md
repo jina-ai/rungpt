@@ -28,7 +28,7 @@ You can view our roadmap with features that are planned, started, and completed 
 Install the package with pip:
 
 ```bash
-pip install open_gpt
+pip install open_gpts
 ```
 
 ## Quickstart
