@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "open_gpt"
-version = "0.0.1"
+version = "0.0.1rc1"
 description = "An open-source implementation of large-scale language model (LLM)."
 
 license = "Apache-2.0"
