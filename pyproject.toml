@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "opengpt"
+name = "open_gpt"
 version = "0.0.1"
 description = "An open-source implementation of large-scale language model (LLM)."
 
@@ -22,7 +22,7 @@ classifiers = [
     "License :: OSI Approved :: Apache Software",
     "Operating System :: OS Independent"
 ]
-packages = [{ include = "opengpt" }]
+packages = [{ include = "open_gpt" }]
 exclude = ["tests/**/*"]
 
 # README file(s) are used as the package description
