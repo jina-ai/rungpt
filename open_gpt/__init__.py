@@ -12,7 +12,7 @@ def get_version() -> str:
     """Return the module version number specified in pyproject.toml.
     :return: The version number.
     """
-    return importlib_metadata.version(__package__)
+    return importlib_metadata.version(__package__ + '_torch')
 
 
 __version__ = get_version()
