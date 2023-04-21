@@ -5,15 +5,17 @@ from einops import rearrange
 from open_flamingo.src.helpers import PerceiverResampler
 from torch import nn
 
+from ...helper import auto_dtype_and_device
+
 
 class FlamingoModel(nn.Module):
     def __init__(
         self,
         vision_encoder: 'nn.Module',
         language_model: 'nn.Module',
+        device: Optional[Union[str, 'torch.device']] = None,
+        dtype: Optional[Union[str, 'torch.dtype']] = None,
         model_config: dict = {},
-        device: Optional[Union[str, 'torch.device']] = 'cpu',
-        dtype: Optional[Union[str, 'torch.dtype']] = 'torch.float32',
         **kwargs,
     ):
         """An open source version of DeepMind's Flamingo model!
@@ -28,16 +30,23 @@ class FlamingoModel(nn.Module):
         """
         super().__init__()
 
-        self.model_config = model_config
+        self.dtype, self.device = auto_dtype_and_device(
+            dtype=self.dtype, device=self.device
+        )
 
+        self.model_config = model_config
         self.vision_encoder = vision_encoder
         self.language_model = language_model
 
-        self.perceiver = PerceiverResampler(dim=self.model_config['image_size'])
-        if str(dtype) == 'torch.float16':
-            self.perceiver.half()
+        # self.vision_encoder.to(device=device)
+        # self.language_model.to(device=device)
 
-        self.perceiver.to(device)
+        self.perceiver = PerceiverResampler(dim=self.model_config['image_size'])
+        if str(self.dtype) == 'torch.float16':
+            self.perceiver.half()
+        elif str(self.dtype) == 'torch.int8':
+            raise NotImplementedError('int8 is not supported yet')
+        self.perceiver.to(self.device)
 
         self.media_token_id = model_config['media_token_id']
         self.end_chunk_token_id = model_config['end_chunk_token_id']
@@ -48,8 +57,8 @@ class FlamingoModel(nn.Module):
             cross_attn_every_n_layers=model_config['cross_attn_every_n_layers'],
             use_media_placement_augmentation=False,
             dtype=dtype,
+            device=device,
         )
-        self.language_model.gated_cross_attn_layers.to(device)
 
     def forward(
         self,
@@ -124,20 +133,15 @@ class FlamingoModel(nn.Module):
         :return: text_inputs with generated tokens appended to it (batch_size, sequence_length)
         """
 
-        vision_inputs = vision_inputs.to(dtype=torch.float16)
-        vision_inputs = vision_inputs.cuda()
-        text_inputs = text_inputs.cuda()
+        vision_inputs = vision_inputs.to(dtype=self.dtype, device=self.device)
         if attention_mask is not None:
-            attention_mask = attention_mask.cuda()
+            attention_mask = attention_mask.to(self.device)
+        text_inputs = text_inputs.to(self.device)
 
         if num_beams > 1:
             vision_inputs = vision_inputs.repeat_interleave(num_beams, dim=0)
 
-        print(f'===> vision inputs device: {vision_inputs.device}')
-
-        vision_x = self._vision_encode(vision_inputs=vision_inputs)
-
-        print(f'====> encode vision done {vision_x.device}...')
+        _vision_x = self._vision_encode(vision_inputs=vision_inputs)
 
         if not self.language_model.initialized_flamingo:
             raise ValueError(
@@ -151,9 +155,6 @@ class FlamingoModel(nn.Module):
             layer.condition_media_locations(media_locations)
             layer.condition_attend_previous(attend_previous)
 
-        print(f'===> start generation ...')
-        print(f'===> text device: {text_inputs.device}')
-        print(f'===> attention_mask device: {attention_mask.device}')
         output = self.language_model.generate(
             text_inputs,
             attention_mask=attention_mask,
@@ -192,10 +193,6 @@ class FlamingoModel(nn.Module):
         B, T, F = vision_inputs.shape[:3]
         assert F == 1, "Only single frame supported"
 
-        # device = next(iter(self.vision_encoder.parameters())).device
-        # print(f'===> encoder device: {device}')
-        vision_inputs = vision_inputs.to('cuda')
-
         vision_x = rearrange(vision_inputs, "B T F c h w -> (B T F) c h w")
 
         with torch.no_grad():
@@ -204,10 +201,6 @@ class FlamingoModel(nn.Module):
         vision_x = rearrange(vision_x, "(B T F) v d -> B T F v d", B=B, T=T, F=F)
 
         vision_x = self.perceiver(vision_x)  # reshapes to (B, T, n, d)
-
-        # device = next(iter(self.language_model.parameters())).device
-
-        vision_x = vision_x.to('cuda')
 
         for layer in self.language_model._get_decoder_layers():
             layer.condition_vis_x(vision_x)

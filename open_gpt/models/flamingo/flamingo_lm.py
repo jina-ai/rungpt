@@ -1,8 +1,12 @@
 import random
+from typing import Optional, Union
 
+import torch
 import torch.nn as nn
 from open_flamingo.src.helpers import GatedCrossAttentionBlock
 from open_flamingo.src.utils import getattr_recursive, setattr_recursive
+
+from ...helper import auto_dtype_and_device
 
 
 class FlamingoLayer(nn.Module):
@@ -76,7 +80,8 @@ class FlamingoLMMixin(nn.Module):
         vis_hidden_size,
         cross_attn_every_n_layers,
         use_media_placement_augmentation,
-        dtype=None,
+        device: Optional[Union[str, 'torch.device']] = None,
+        dtype: Optional[Union[str, 'torch.dtype']] = None,
     ):
         """
         Initialize Flamingo by adding a new gated cross attn to the decoder. Store the media token id for computing the media locations.
@@ -106,8 +111,10 @@ class FlamingoLMMixin(nn.Module):
         self.use_media_placement_augmentation = use_media_placement_augmentation
         self.initialized_flamingo = True
 
-        if dtype is not None and str(dtype) == 'torch.float16':
+        dtype, device = auto_dtype_and_device(dtype, device)
+        if str(dtype) == 'torch.float16':
             self.gated_cross_attn_layers.half()
+        self.gated_cross_attn_layers.to(device)
 
     def forward(self, *input, **kwargs):
         """Condition the Flamingo layers on the media locations before forward()"""

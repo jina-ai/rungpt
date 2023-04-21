@@ -4,6 +4,8 @@ from typing import Optional, Union
 import torch
 from loguru import logger
 
+from .helper import cast_torch_dtype
+
 
 def list_models():
     """List the available models."""
@@ -37,6 +39,8 @@ def create_model_and_transforms(
     if not device:
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+    cast_dtype = cast_torch_dtype(precision)
+
     # TODO: Add support for loading config based on model name
     model_config = {}
 
@@ -50,7 +54,9 @@ def create_model_and_transforms(
             'lang_model_name_or_path': 'llama_7B',
             'tokenizer_name_or_path': 'llama_7B',
         }
-        return load_model_and_transforms(model_name, device=device, **model_config)
+        return load_model_and_transforms(
+            model_name, device=device, dtype=cast_dtype, **model_config
+        )
     elif model_name.startswith('facebook/llama'):
         from .models.llama.loading import load_model_and_tokenizer
 
@@ -58,7 +64,9 @@ def create_model_and_transforms(
             'model_name_or_path': 'llama_7B',
             'tokenizer_name_or_path': 'llama_7B',
         }
-        return load_model_and_tokenizer(**model_config)
+        return load_model_and_tokenizer(
+            model_name, device=device, dtype=cast_dtype, **model_config
+        )
     elif model_name.startswith('google/flan'):
         from .helper import infer_dtype
         from .models.flan.loading import load_model_and_tokenizer

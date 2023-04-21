@@ -1,50 +1,45 @@
-from typing import TYPE_CHECKING, Optional, Union
+from typing import Optional, Union
 
 import open_clip
-
-# from open_flamingo.src.flamingo_lm import FlamingoLMMixin
+import torch
 from open_flamingo.src.utils import extend_instance
-
-from ..llama.loading import load_model_and_tokenizer
-from .flamingo_lm import FlamingoLMMixin
-from .modeling import FlamingoModel
-
-if TYPE_CHECKING:
-    import torch
 
 
 def load_model_and_transforms(
     model_name_or_path: str,
-    clip_model_name: str,
+    vision_model_name_or_path: str,
     lang_model_name_or_path: str,
-    tokenizer_name_or_path: str,
-    decoder_layers_attr_name: str = None,
-    device: Optional[Union[str, 'torch.device']] = 'cpu',
+    tokenizer_name_or_path: Optional[str] = None,
+    decoder_layers_attr_name: Optional[str] = None,
+    device: 'torch.device' = torch.device('cuda'),
+    dtype: 'torch.dtype' = torch.float16,
     **kwargs,
 ):
     """Load a Flamingo model and its associated image and text processors.
 
     :param model_name_or_path: The name or path of the model to load.
-    :param clip_model_name: The name of the CLIP model to use.
+    :param vision_model_name_or_path: The name or path of the vision model to use.
     :param lang_model_name_or_path: The name or path of the language model to use.
-    :param tokenizer_name_or_path: The name or path of the tokenizer to use.
+    :param tokenizer_name_or_path: The name or path of the tokenizer to use. If not specified, the tokenizer associated with the model will be used.
     :param decoder_layers_attr_name: The name of the attribute that specifies the decoder layers.
     :param device: The device to load the model on.
+    :param dtype: The dtype to load the model with.
     """
 
-    from accelerate.hooks import (
-        AlignDevicesHook,
-        add_hook_to_module,
-        attach_align_device_hook_on_blocks,
+    from ...helper import cast_precision
+    from ..llama.loading import (
+        load_model_and_tokenizer as load_llama_model_and_tokenizer,
     )
+    from .flamingo_lm import FlamingoLMMixin
+    from .modeling import FlamingoModel
 
     # load the vision model
-    model_name, *pretrained = clip_model_name.split("::")
+    precision = cast_precision(dtype)
+    model_name, *pretrained = vision_model_name_or_path.split("::")
     pretrained = pretrained[0] if len(pretrained) == 1 else 'openai'
     clip_model, _, image_processor = open_clip.create_model_and_transforms(
-        model_name, pretrained=pretrained, device='cuda', precision='fp16'
+        model_name, pretrained=pretrained, device=device, precision=precision
     )
-    clip_model.to('cuda')
     # set the vision encoder to output the visual features
     clip_model.visual.output_tokens = True
 
@@ -67,17 +62,12 @@ def load_model_and_transforms(
     # )
 
     # load the language model
-    lang_model, tokenizer = load_model_and_tokenizer(
+    lang_model, tokenizer = load_llama_model_and_tokenizer(
         model_name_or_path=lang_model_name_or_path,
         tokenizer_name_or_path=tokenizer_name_or_path,
+        device=device,
+        dtype=dtype,
     )
-
-    # # Hotfix for the flamingo forward issue due to the HF accelerate hooks
-
-    # device_map = lang_model.hf_device_map
-    # offload = {name: device in ['cpu', 'disk'] for name, device in device_map.items()}
-
-    # lang_model = remove_hook_from_module(lang_model, recurse=True)
 
     # add Flamingo special tokens to the tokenizer
     tokenizer.add_special_tokens(
@@ -102,24 +92,12 @@ def load_model_and_transforms(
         "media_token_id": tokenizer.encode("<image>")[-1],
     }
 
-    # execution_device = next(iter(lang_model.parameters())).device
-    # add_hook_to_module(lang_model, AlignDevicesHook(io_same_device=True), append=True)
-    #
-    # attach_align_device_hook_on_blocks(
-    #     lang_model,
-    #     execution_device=execution_device,
-    #     offload=None,
-    #     offload_buffers=False,
-    #     weights_map=None,
-    #     preload_module_classes=None,
-    # )
-
     model = FlamingoModel(
         clip_model,
         lang_model,
         model_config=flamingo_config,
         device=device,
-        dtype='torch.float16',
+        dtype=dtype,
     )
 
     # Freeze all parameters
@@ -137,7 +115,6 @@ def load_model_and_transforms(
     )
 
     # grab model checkpoint from huggingface hub
-    import torch
     from huggingface_hub import hf_hub_download
 
     # checkpoint_path = hf_hub_download(model_name_or_path, "checkpoint.pt")
