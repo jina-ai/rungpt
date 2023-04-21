@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "open_gpt_torch"
-version = "0.0.1rc2"
+version = "0.0.1rc3"
 description = "An open-source implementation of large-scale language model (LLM)."
 
 license = "Apache-2.0"
