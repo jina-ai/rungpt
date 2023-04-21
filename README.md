@@ -34,9 +34,9 @@ pip install open_gpts
 ## Quickstart
 
 ```python
-import open_gpts
+import open_gpt
 
-model = open_gpts.create_model('facebook/llama-7b', device='cuda', precision='fp16')
+model = open_gpt.create_model('facebook/llama-7b', device='cuda', precision='fp16')
 
 prompt = "The quick brown fox jumps over the lazy dog."
 

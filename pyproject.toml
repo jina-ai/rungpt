@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "open_gpts"
-version = "0.0.1rc1"
+name = "open_gpt_torch"
+version = "0.0.1rc2"
 description = "An open-source implementation of large-scale language model (LLM)."
 
 license = "Apache-2.0"
@@ -20,7 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-packages = [{ include = "open_gpts" }]
+packages = [{ include = "open_gpt" }]
 exclude = ["tests/**/*", "docs/**/*", "examples/**/*"]
 
 # README file(s) are used as the package description

@@ -1,7 +1,7 @@
 import time
 
-from open_gpts.factory import create_model_and_transforms
-from open_gpts.profile import (
+from open_gpt.factory import create_model_and_transforms
+from open_gpt.profile import (
     compute_module_sizes,
     end_measure,
     log_measures,
