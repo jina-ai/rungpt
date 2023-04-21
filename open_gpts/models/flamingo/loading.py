@@ -36,15 +36,15 @@ def load_model_and_transforms(
         AlignDevicesHook,
         add_hook_to_module,
         attach_align_device_hook_on_blocks,
-        remove_hook_from_module,
     )
 
     # load the vision model
     model_name, *pretrained = clip_model_name.split("::")
     pretrained = pretrained[0] if len(pretrained) == 1 else 'openai'
     clip_model, _, image_processor = open_clip.create_model_and_transforms(
-        model_name, pretrained=pretrained, device=device, precision='fp16'
+        model_name, pretrained=pretrained, device='cuda', precision='fp16'
     )
+    clip_model.to('cuda')
     # set the vision encoder to output the visual features
     clip_model.visual.output_tokens = True
 
@@ -54,17 +54,17 @@ def load_model_and_transforms(
     elif hasattr(clip_model, 'transformer'):
         del clip_model.transformer
 
-    execution_device = next(iter(clip_model.parameters())).device
-    add_hook_to_module(clip_model, AlignDevicesHook(io_same_device=True), append=True)
-
-    attach_align_device_hook_on_blocks(
-        clip_model,
-        execution_device=execution_device,
-        offload=None,
-        offload_buffers=False,
-        weights_map=None,
-        preload_module_classes=None,
-    )
+    # execution_device = next(iter(clip_model.parameters())).device
+    # add_hook_to_module(clip_model, AlignDevicesHook(io_same_device=True), append=True)
+    #
+    # attach_align_device_hook_on_blocks(
+    #     clip_model,
+    #     execution_device=execution_device,
+    #     offload=None,
+    #     offload_buffers=False,
+    #     weights_map=None,
+    #     preload_module_classes=None,
+    # )
 
     # load the language model
     lang_model, tokenizer = load_model_and_tokenizer(
@@ -97,7 +97,7 @@ def load_model_and_transforms(
 
     flamingo_config = {
         "image_size": open_clip.get_model_config(model_name)["vision_cfg"]["width"],
-        "cross_attn_every_n_layers": 1,
+        "cross_attn_every_n_layers": 4,
         "end_chunk_token_id": tokenizer.encode("<|endofchunk|>")[-1],
         "media_token_id": tokenizer.encode("<image>")[-1],
     }
@@ -119,6 +119,7 @@ def load_model_and_transforms(
         lang_model,
         model_config=flamingo_config,
         device=device,
+        dtype='torch.float16',
     )
 
     # Freeze all parameters
@@ -139,8 +140,8 @@ def load_model_and_transforms(
     import torch
     from huggingface_hub import hf_hub_download
 
-    checkpoint_path = hf_hub_download(model_name_or_path, "checkpoint.pt")
-    model.load_state_dict(torch.load(checkpoint_path), strict=False)
+    # checkpoint_path = hf_hub_download(model_name_or_path, "checkpoint.pt")
+    # model.load_state_dict(torch.load(checkpoint_path), strict=False)
 
     return model, tokenizer, image_processor
 
