@@ -92,6 +92,7 @@ generated_text = model.generate(
     top_p=0.9,
     no_repeat_ngram_size=2,
     temperature=0.7,
+    length_penalty=1.5,
 )
 
 print("Generated text: ", tokenizer.decode(generated_text[0]))
