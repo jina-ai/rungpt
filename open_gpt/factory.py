@@ -78,5 +78,11 @@ def create_model_and_transforms(
         return load_model_and_tokenizer(
             model_name, device=device, dtype=dtype, **model_config
         )
+    elif model_name.startswith('stabilityai/stablelm'):
+        from .models.stablelm.loading import load_model_and_tokenizer
+
+        return load_model_and_tokenizer(
+            model_name, device=device, dtype=dtype, **model_config
+        )
     else:
         raise ValueError(f'Unknown model name: {model_name}')
