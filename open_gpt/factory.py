@@ -50,7 +50,7 @@ def create_model_and_transforms(
         from .models.flamingo.loading import load_model_and_transforms
 
         model_config = {
-            'clip_model_name': 'ViT-L-14::openai',
+            'vision_model_name_or_path': 'ViT-L-14::openai',
             'lang_model_name_or_path': 'llama_7B',
             'tokenizer_name_or_path': 'llama_7B',
         }
