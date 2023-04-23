@@ -7,15 +7,17 @@ _PRECISION_TO_DTYPE = {
     'fp16': torch.float16,
     'fp32': torch.float32,
     'int8': torch.int8,
+    'torch.float32': torch.float32,
+    'torch.float16': torch.float16,
+    'torch.int8': torch.int8,
 }
 
 _DEFAULT_DTYPE = torch.float32
 
 
-def cast_torch_dtype(precision: Optional[Union[str, 'torch.dtype']]):
-    if precision is None:
-        return _DEFAULT_DTYPE
-    elif isinstance(precision, str):
+def cast_torch_dtype(precision: Union[str, 'torch.dtype']):
+    assert precision is not None
+    if isinstance(precision, str):
         return _PRECISION_TO_DTYPE.get(precision, precision)
     elif isinstance(precision, torch.dtype):
         return precision
@@ -37,18 +39,21 @@ def cast_precision(dtype: Optional[Union[str, 'torch.dtype']]):
 
 
 def auto_dtype_and_device(
-    dtype: Optional[Union[str, 'torch.dtype']] = None,
-    device: Optional[Union[str, 'torch.device']] = None,
+    precision: Union[str, 'torch.dtype'],
+    device: Union[str, 'torch.device'],
 ):
     if device is None:
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     else:
         device = torch.device(device)
 
-    if dtype is None and str(device).startswith('cuda'):
-        dtype = torch.float16
-    elif dtype is None:
-        dtype = _DEFAULT_DTYPE
+    if precision is None:
+        if device.type == 'cuda':
+            dtype = torch.float16
+        else:
+            dtype = _DEFAULT_DTYPE
+    else:
+        dtype = cast_torch_dtype(precision)
 
     return dtype, device
 

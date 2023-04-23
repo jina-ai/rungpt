@@ -4,7 +4,7 @@ from typing import Optional, Union
 import torch
 from loguru import logger
 
-from .helper import cast_torch_dtype
+from .helper import auto_dtype_and_device
 
 
 def list_models():
@@ -24,7 +24,7 @@ def load_state_dict(model: torch.nn.Module, checkpoint: Union[str, 'Path']):
 def create_model_and_transforms(
     model_name: str,
     device: Optional[Union[str, torch.device]] = None,
-    precision: Optional[str] = 'fp32',
+    precision: Optional[str] = None,
     **kwargs,
 ):
     """Create a model of the given name.
@@ -36,15 +36,14 @@ def create_model_and_transforms(
     :return: The model.
     """
 
-    if not device:
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    cast_dtype = cast_torch_dtype(precision)
+    dtype, device = auto_dtype_and_device(precision, device)
 
     # TODO: Add support for loading config based on model name
     model_config = {}
 
-    logger.debug(f'Loading model: {model_name}')
+    logger.info(
+        f'Loading "{model_name}" with precision: `{dtype}` on device: `{device}`'
+    )
 
     if model_name.startswith('openflamingo/OpenFlamingo'):
         from .models.flamingo.loading import load_model_and_transforms
@@ -55,7 +54,7 @@ def create_model_and_transforms(
             'tokenizer_name_or_path': 'llama_7B',
         }
         return load_model_and_transforms(
-            model_name, device=device, dtype=cast_dtype, **model_config
+            model_name, device=device, dtype=dtype, **model_config
         )
     elif model_name.startswith('facebook/llama'):
         from .models.llama.loading import load_model_and_tokenizer
@@ -65,21 +64,19 @@ def create_model_and_transforms(
             'tokenizer_name_or_path': 'llama_7B',
         }
         return load_model_and_tokenizer(
-            model_name, device=device, dtype=cast_dtype, **model_config
+            model_name, device=device, dtype=dtype, **model_config
         )
     elif model_name.startswith('google/flan'):
-        from .helper import infer_dtype
         from .models.flan.loading import load_model_and_tokenizer
 
         return load_model_and_tokenizer(
-            model_name, device=device, dtype=infer_dtype(precision), **model_config
+            model_name, device=device, dtype=dtype, **model_config
         )
     elif model_name.startswith('EleutherAI/pythia'):
-        from .helper import infer_dtype
         from .models.pythia.loading import load_model_and_tokenizer
 
         return load_model_and_tokenizer(
-            model_name, device=device, dtype=infer_dtype(precision), **model_config
+            model_name, device=device, dtype=dtype, **model_config
         )
     else:
         raise ValueError(f'Unknown model name: {model_name}')

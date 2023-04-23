@@ -2,6 +2,7 @@ from typing import Optional, Union
 
 import open_clip
 import torch
+from loguru import logger
 from open_flamingo.src.utils import extend_instance
 
 
@@ -77,6 +78,8 @@ def load_model_and_transforms(
         # Issue: GPT models don't have a pad token, which we use to
         # modify labels for the loss.
         tokenizer.add_special_tokens({"pad_token": "<PAD>"})
+    # For generation padding tokens should be on the left
+    tokenizer.padding_side = "left"
 
     extend_instance(lang_model, FlamingoLMMixin)
 
@@ -106,19 +109,28 @@ def load_model_and_transforms(
 
     # Unfreeze perceiver, gated_cross_attn_layers, and LM input embeddings
     model.perceiver.requires_grad_(True)
-    model.language_model.gated_cross_attn_layers.requires_grad_(True)
+    model.lang_encoder.gated_cross_attn_layers.requires_grad_(True)
     # TODO: only unfreeze the input embeddings of the additional special tokens
-    model.language_model.get_input_embeddings().requires_grad_(True)
+    model.lang_encoder.get_input_embeddings().requires_grad_(True)
 
-    print(
+    logger.debug(
         f"Flamingo model initialized with {sum(p.numel() for p in model.parameters() if p.requires_grad)} trainable parameters"
     )
 
     # grab model checkpoint from huggingface hub
+    import os
+
     from huggingface_hub import hf_hub_download
 
-    # checkpoint_path = hf_hub_download(model_name_or_path, "checkpoint.pt")
-    # model.load_state_dict(torch.load(checkpoint_path), strict=False)
+    hf_token = os.environ.get("HF_TOKEN")
+    assert (
+        hf_token is not None
+    ), "Please set HF_TOKEN environment variable to download model from HuggingFace Hub"
+
+    checkpoint_path = hf_hub_download(
+        model_name_or_path, "checkpoint.pt", token=hf_token
+    )
+    model.load_state_dict(torch.load(checkpoint_path), strict=False)
 
     return model, tokenizer, image_processor
 

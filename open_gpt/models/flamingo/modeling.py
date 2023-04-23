@@ -2,6 +2,7 @@ from typing import Callable, Optional, Union
 
 import torch
 from einops import rearrange
+from loguru import logger
 from open_flamingo.src.helpers import PerceiverResampler
 from torch import nn
 
@@ -30,16 +31,11 @@ class FlamingoModel(nn.Module):
         """
         super().__init__()
 
-        self.dtype, self.device = auto_dtype_and_device(
-            dtype=self.dtype, device=self.device
-        )
+        self.dtype, self.device = auto_dtype_and_device(dtype, device)
 
         self.model_config = model_config
         self.vision_encoder = vision_encoder
-        self.language_model = language_model
-
-        # self.vision_encoder.to(device=device)
-        # self.language_model.to(device=device)
+        self.lang_encoder = language_model
 
         self.perceiver = PerceiverResampler(dim=self.model_config['image_size'])
         if str(self.dtype) == 'torch.float16':
@@ -51,7 +47,11 @@ class FlamingoModel(nn.Module):
         self.media_token_id = model_config['media_token_id']
         self.end_chunk_token_id = model_config['end_chunk_token_id']
 
-        self.language_model.init_flamingo(
+        logger.debug(
+            f"media_token_id: {self.media_token_id}, end_chunk_token_id: {self.end_chunk_token_id}"
+        )
+
+        self.lang_encoder.init_flamingo(
             media_token_id=self.media_token_id,
             vis_hidden_size=model_config['image_size'],
             cross_attn_every_n_layers=model_config['cross_attn_every_n_layers'],
@@ -81,7 +81,7 @@ class FlamingoModel(nn.Module):
 
         self._vision_encode(vision_inputs)
 
-        output = self.language_model(
+        output = self.lang_encoder(
             input_ids=text_inputs,
             attention_mask=attention_mask,
             labels=labels,
@@ -89,7 +89,7 @@ class FlamingoModel(nn.Module):
             use_cache=False,
         )
 
-        self.language_model.clear_conditioned_layers()
+        self.lang_encoder.clear_conditioned_layers()
 
         return output
 
@@ -108,7 +108,7 @@ class FlamingoModel(nn.Module):
         length_penalty: float = 1.0,
         num_return_sequences: int = 1,
         do_sample: bool = False,
-        early_stopping: bool = False,
+        early_stopping: bool = True,
     ):
         """
         Generate text conditioned on vision and language inputs.
@@ -143,7 +143,7 @@ class FlamingoModel(nn.Module):
 
         _vision_x = self._vision_encode(vision_inputs=vision_inputs)
 
-        if not self.language_model.initialized_flamingo:
+        if not self.lang_encoder.initialized_flamingo:
             raise ValueError(
                 "Flamingo layers are not initialized. Please call `init_flamingo` first."
             )
@@ -151,11 +151,11 @@ class FlamingoModel(nn.Module):
         media_locations = text_inputs == self.media_token_id
         attend_previous = False
 
-        for layer in self.language_model.get_decoder().layers:
+        for layer in self.lang_encoder.get_decoder().layers:
             layer.condition_media_locations(media_locations)
             layer.condition_attend_previous(attend_previous)
 
-        output = self.language_model.generate(
+        output = self.lang_encoder.generate(
             text_inputs,
             attention_mask=attention_mask,
             eos_token_id=self.end_chunk_token_id,
@@ -172,7 +172,7 @@ class FlamingoModel(nn.Module):
             early_stopping=early_stopping,
         )
 
-        self.language_model.clear_conditioned_layers()
+        self.lang_encoder.clear_conditioned_layers()
         return output
 
     def _vision_encode(self, vision_inputs: 'torch.Tensor') -> 'torch.Tensor':
@@ -202,7 +202,7 @@ class FlamingoModel(nn.Module):
 
         vision_x = self.perceiver(vision_x)  # reshapes to (B, T, n, d)
 
-        for layer in self.language_model._get_decoder_layers():
+        for layer in self.lang_encoder._get_decoder_layers():
             layer.condition_vis_x(vision_x)
 
         return vision_x
