@@ -84,5 +84,11 @@ def create_model_and_transforms(
         return load_model_and_tokenizer(
             model_name, device=device, dtype=dtype, **model_config
         )
+    elif model_name.startswith('fnlp/moss-moon'):
+        from .models.moss.loading import load_model_and_tokenizer
+
+        return load_model_and_tokenizer(
+            model_name, device=device, dtype=dtype, **model_config, **kwargs
+        )
     else:
         raise ValueError(f'Unknown model name: {model_name}')
