@@ -6,7 +6,7 @@ from loguru._defaults import LOGURU_FORMAT
 
 def setup_logging(debug: bool):
     """
-    Setup the log formatter for AnnLite.
+    Setup the log formatter
     """
 
     log_level = 'INFO'
