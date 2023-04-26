@@ -1,21 +1,23 @@
+import os
 import sys
 
 from loguru import logger
-from loguru._defaults import LOGURU_FORMAT
 
 
-def setup_logging(debug: bool):
-    """
-    Setup the log formatter
-    """
-
-    log_level = 'INFO'
-    if debug:
-        log_level = 'DEBUG'
+def setup_logger():
+    logging_level = os.environ.get("OPENGPT_LOG_LEVEL", "INFO")
 
     logger.remove()
     logger.add(
         sys.stdout,
         colorize=True,
-        level=log_level,
+        format=(
+            "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | "
+            "<level>{level: <8}</level> | <level>{message}</level>"
+        ),
+        level=logging_level,
     )
+    logger.level("WARNING", color="<fg #d3d3d3>")
+
+
+logger = setup_logger()
