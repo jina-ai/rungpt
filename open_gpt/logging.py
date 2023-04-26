@@ -1,6 +1,7 @@
 import os
 import sys
 
+import loguru
 from loguru import logger
 
 
@@ -18,6 +19,7 @@ def setup_logger():
         level=logging_level,
     )
     logger.level("WARNING", color="<fg #d3d3d3>")
+    return logger
 
 
 logger = setup_logger()
