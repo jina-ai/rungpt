@@ -69,4 +69,4 @@ Sphinx = "^5.1.1"
 
 # Python-style entrypoints and scripts are easily expressed
 [tool.poetry.scripts]
-open_gpt = "open_gpt.cli.application:main"
+opengpt = "open_gpt.cli.application:main"
