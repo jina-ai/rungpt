@@ -38,6 +38,7 @@ def load_model_and_tokenizer(
             model = AutoModelForCausalLM.from_config(
                 config, torch_dtype=dtype, trust_remote_code=True
             )
+            # make sure token embedding weights are still tied if needed
             model.tie_weights()
 
             model = load_checkpoint_and_dispatch(
