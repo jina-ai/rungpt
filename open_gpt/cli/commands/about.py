@@ -1,9 +1,4 @@
-from typing import TYPE_CHECKING
-
 from cleo.commands.command import Command
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 class AboutCommand(Command):
