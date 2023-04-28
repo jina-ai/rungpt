@@ -3,7 +3,19 @@ from typing import List, Optional, Union
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from ..factory import create_model_and_transforms
+from ..helper import auto_dtype_and_device
 from ..logging import logger
+
+
+def create_model(model_name_or_path: str, **kwargs) -> 'OpenGPTModel':
+    """Create a model of the given name.
+
+    :param model_name_or_path: The name or path of the model to create.
+    :param kwargs: Additional arguments to pass to the model.
+    :return: The model.
+    """
+    return OpenGPTModel(model_name_or_path, **kwargs)
 
 
 class OpenGPTModel:
@@ -18,19 +30,23 @@ class OpenGPTModel:
     ):
         """Load a model and tokenizer from HuggingFace."""
 
-        from ...helper import auto_dtype_and_device
+        self.dtype, self.device = auto_dtype_and_device(dtype, device)
 
-        dtype, device = auto_dtype_and_device(dtype, device)
+        if self.device.type == 'cuda' and device_map is None:
+            device_map = 'balanced'
 
-        tokenizer = AutoTokenizer.from_pretrained(
-            tokenizer_name_or_path or model_name_or_path
-        )
-
-        model = AutoModelForCausalLM.from_pretrained(
+        self.model, self.tokenizer, *_ = create_model_and_transforms(
             model_name_or_path,
-            torch_dtype=dtype,
+            tokenizer_name_or_path=tokenizer_name_or_path,
+            dtype=self.dtype,
+            device=self.device,
+            device_map=device_map,
         )
-        model.to(device)
 
-        self.model = model
-        self.tokenizer = tokenizer
+        self.model.eval()
+
+    def generate(self, **kwargs):
+        """Generate a sequence from the model."""
+
+        with torch.inference_mode():
+            return self.model.generate(**kwargs)

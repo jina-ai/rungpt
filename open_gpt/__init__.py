@@ -43,3 +43,5 @@ def get_version() -> str:
 
 
 __version__ = get_version()
+
+from .models.modeling import create_model
