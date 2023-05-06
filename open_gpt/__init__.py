@@ -1,7 +1,6 @@
 import logging as _logging
 import os as _os
 import sys
-import warnings as _warnings
 
 _logging.captureWarnings(True)
 
