@@ -7,8 +7,8 @@ import torch
 from docarray import DocumentArray
 from jina import Executor, requests
 
-from open_gpt.factory import create_model_and_transforms
 from open_gpt.logging import logger
+from open_gpt.models.loading import create_model_and_transforms
 
 
 class CausualLMExecutor(Executor):

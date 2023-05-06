@@ -1,24 +1,20 @@
-from typing import List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from torch import nn
 
-from ..factory import create_model_and_transforms
 from ..helper import auto_dtype_and_device
-from ..logging import logger
+from .loading import create_model_and_transforms
+
+if TYPE_CHECKING:
+    from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-def create_model(model_name_or_path: str, **kwargs) -> 'OpenGPTModel':
-    """Create a model of the given name.
+class BaseModel(nn.Module):
 
-    :param model_name_or_path: The name or path of the model to create.
-    :param kwargs: Additional arguments to pass to the model.
-    :return: The model.
-    """
-    return OpenGPTModel(model_name_or_path, **kwargs)
+    model: 'AutoModelForCausalLM'
+    tokenizer: 'AutoTokenizer'
 
-
-class OpenGPTModel:
     def __init__(
         self,
         model_name_or_path: str,
@@ -28,25 +24,41 @@ class OpenGPTModel:
         device_map: Optional[Union[str, List[int]]] = None,
         **kwargs
     ):
-        """Load a model and tokenizer from HuggingFace."""
+        """Create a model of the given name."""
 
-        self.dtype, self.device = auto_dtype_and_device(dtype, device)
+        super().__init__()
 
-        if self.device.type == 'cuda' and device_map is None:
+        self._dtype, self._device = auto_dtype_and_device(dtype, device)
+
+        if self._device.type == 'cuda' and device_map is None:
             device_map = 'balanced'
+        self._device_map = device_map
 
+        self.load_model_and_transforms(
+            model_name_or_path, tokenizer_name_or_path=tokenizer_name_or_path
+        )
+
+    def load_model_and_transforms(
+        self, model_name_or_path: str, tokenizer_name_or_path: Optional[str] = None
+    ):
         self.model, self.tokenizer, *_ = create_model_and_transforms(
             model_name_or_path,
             tokenizer_name_or_path=tokenizer_name_or_path,
-            dtype=self.dtype,
-            device=self.device,
-            device_map=device_map,
+            dtype=self._dtype,
+            device=self._device,
+            device_map=self._device_map,
         )
 
         self.model.eval()
 
-    def generate(self, **kwargs):
-        """Generate a sequence from the model."""
+    def generate(self, prompt: str, **kwargs):
+        """Generate text from the given prompt."""
+
+        inputs = self.tokenizer(prompt, return_tensors="pt")
+
+        for k, v in inputs.items():
+            if isinstance(v, torch.Tensor):
+                inputs[k] = v.to(self._device)
 
         with torch.inference_mode():
-            return self.model.generate(**kwargs)
+            return self.model.generate(**inputs, **kwargs)

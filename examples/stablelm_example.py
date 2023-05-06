@@ -1,6 +1,6 @@
 import time
 
-from open_gpt.factory import create_model_and_transforms
+from open_gpt.models.loading import create_model_and_transforms
 from open_gpt.profile import (
     compute_module_sizes,
     end_measure,
