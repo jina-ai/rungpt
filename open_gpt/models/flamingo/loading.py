@@ -32,7 +32,7 @@ def load_model_and_transforms(
         load_model_and_tokenizer as load_llama_model_and_tokenizer,
     )
     from .flamingo_lm import FlamingoLMMixin
-    from .modeling import FlamingoModel
+    from .flamingo_model import FlamingoModel
 
     # load the vision model
     precision = cast_precision(dtype)
@@ -68,6 +68,7 @@ def load_model_and_transforms(
         tokenizer_name_or_path=tokenizer_name_or_path,
         device=device,
         dtype=dtype,
+        device_map=None,
     )
 
     # add Flamingo special tokens to the tokenizer
