@@ -17,7 +17,12 @@ def load_model_and_tokenizer(
 
     import huggingface_hub
     from accelerate import init_empty_weights, load_checkpoint_and_dispatch
-    from transformers import AutoConfig, AutoTokenizer, GPTNeoXForCausalLM
+    from transformers import (
+        AutoConfig,
+        AutoModelForCausalLM,
+        AutoTokenizer,
+        GPTNeoXForCausalLM,
+    )
 
     from ...helper import auto_dtype_and_device
 
@@ -27,7 +32,6 @@ def load_model_and_tokenizer(
     tokenizer = AutoTokenizer.from_pretrained(
         tokenizer_name_or_path or model_name_or_path,
         revision=revision,
-        # cache_dir="./pythia-70m-deduped/step143000",
     )
 
     tokenizer.padding_side = 'left'
@@ -43,7 +47,7 @@ def load_model_and_tokenizer(
         config = AutoConfig.from_pretrained(model_name_or_path, trust_remote_code=True)
 
         with init_empty_weights():
-            model = GPTNeoXForCausalLM.from_config(
+            model = AutoModelForCausalLM.from_config(
                 config, torch_dtype=dtype, trust_remote_code=True
             )
             # make sure token embedding weights are still tied if needed
@@ -54,6 +58,7 @@ def load_model_and_tokenizer(
                 model_path,
                 device_map=device_map,
                 dtype=dtype,
+                no_split_module_classes=["GPTNeoXLayer"],
             )
     else:
 

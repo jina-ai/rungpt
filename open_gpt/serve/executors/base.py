@@ -35,6 +35,9 @@ class CausualLMExecutor(Executor):
             model_name_or_path, precision=precision, device_map=device_map, **kwargs
         )
 
+        # warmup the model to avoid the first-time slowness
+        self.model.generate(['Hello world!'])
+
     @requests
     def generate(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
         prompted_da = DocumentArray(

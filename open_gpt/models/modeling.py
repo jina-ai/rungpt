@@ -21,7 +21,7 @@ class BaseModel(nn.Module):
         tokenizer_name_or_path: Optional[str] = None,
         dtype: Optional[Union[str, torch.dtype]] = None,
         device: Optional[torch.device] = None,
-        device_map: Optional[Union[str, List[int]]] = 'balance',
+        device_map: Optional[Union[str, List[int]]] = 'auto',
         **kwargs
     ):
         """Create a model of the given name."""
@@ -30,7 +30,7 @@ class BaseModel(nn.Module):
 
         self._dtype, self._device = auto_dtype_and_device(dtype, device)
 
-        self._device_map = device_map
+        self._device_map = device_map or 'auto'
 
         self.load_model_and_transforms(
             model_name_or_path, tokenizer_name_or_path=tokenizer_name_or_path
@@ -64,4 +64,21 @@ class BaseModel(nn.Module):
                 inputs[k] = v.to(self._device)
 
         with torch.inference_mode():
-            return self.model.generate(**inputs, **kwargs)
+            outputs = self.model.generate(**inputs, **kwargs)
+
+            texts_outs = []
+            for _, generated_sequence in enumerate(outputs):
+                generated_sequence = generated_sequence.tolist()
+                prompt = prompts[_] if isinstance(prompts, list) else prompts
+                prompt_len = len(prompt)
+
+                text = self.tokenizer.decode(
+                    generated_sequence,
+                    clean_up_tokenization_spaces=True,
+                    skip_special_tokens=True,
+                )
+
+                text = text[prompt_len:] if text[:prompt_len] == prompt else text
+                texts_outs.append(text)
+
+            return texts_outs
