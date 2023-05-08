@@ -3,7 +3,8 @@
 `OpenGPT` is an open-source _cloud-native_ large **multi-modal models** (LMMs) serving solution. 
 It is designed to simplify the deployment and management of large language models, on a distributed cluster of GPUs.
 
-> The content of README.md is just a placeholder to remind me of what I want to do.
+> **Note**
+> The content of `README.md` is just a placeholder to remind me of what I want to do.
 
 ## Features
 

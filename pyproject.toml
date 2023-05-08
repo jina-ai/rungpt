@@ -57,6 +57,8 @@ flamingo = ["open-flamingo"]
 
 # Dependency groups are supported for organizing your dependencies
 [tool.poetry.group.dev.dependencies]
+ruff = "^0.0.262"
+mypy = "^1.2.0"
 pre-commit = ">=2.15.0"
 pytest = "^7.1.2"
 pytest-cov = "^3.0"
