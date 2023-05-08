@@ -19,7 +19,20 @@ def create_model(
     :param device_map: The device map to use. Can be one of ``"balanced"``, ``"single"`` or a list of device IDs.
     :param kwargs: Additional keyword arguments to pass to the model.
     """
-    if model_name.startswith('EleutherAI/pythia'):
+
+    if model_name.startswith('facebook/llama') or model_name.startswith(
+        'decapoda-research/llama'
+    ):
+        from .models.llama.modeling import LlamaModel
+
+        return LlamaModel(
+            model_name,
+            device=device,
+            precision=precision,
+            device_map=device_map,
+            **kwargs,
+        )
+    elif model_name.startswith('EleutherAI/pythia'):
         from .models.pythia.modeling import PythiaModel
 
         return PythiaModel(

@@ -22,7 +22,7 @@ class BaseModel(nn.Module):
         dtype: Optional[Union[str, torch.dtype]] = None,
         device: Optional[torch.device] = None,
         device_map: Optional[Union[str, List[int]]] = 'auto',
-        **kwargs
+        **kwargs,
     ):
         """Create a model of the given name."""
 
@@ -57,6 +57,9 @@ class BaseModel(nn.Module):
             padding=True,
             return_tensors="pt",
         )
+
+        print(f'===> generate kwargs: {kwargs}')
+        print(f'===> input keys: {inputs.keys()}')
 
         # Move inputs to the correct device
         for k, v in inputs.items():

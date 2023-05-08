@@ -26,6 +26,11 @@ def load_model_and_tokenizer(
         tokenizer_name_or_path or model_name_or_path, trust_remote_code=True
     )
 
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.unk_token
+        tokenizer.pad_token_id = tokenizer.unk_token_id
+    tokenizer.padding_side = "left"
+
     if device_map:
         import huggingface_hub
         from accelerate import init_empty_weights, load_checkpoint_and_dispatch

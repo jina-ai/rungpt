@@ -8,10 +8,14 @@ def create_flow(
 ):
     from .executors import CausualLMExecutor
 
+    # normalize the model name
+
+    norm_name = model_name_or_path.split('/')[-1]
+
     return Flow(protocol=protocol, port=port, cors=True).add(
         uses=CausualLMExecutor,
         uses_with={'model_name_or_path': model_name_or_path},
-        name='causal_lm',
+        name=norm_name,
         replicas=replicas,
         timeout_ready=-1,
     )
