@@ -7,8 +7,8 @@ import torch
 from docarray import DocumentArray
 from jina import Executor, requests
 
+from open_gpt.factory import create_model
 from open_gpt.logging import logger
-from open_gpt.models.loading import create_model_and_transforms
 
 
 class CausualLMExecutor(Executor):
@@ -31,14 +31,20 @@ class CausualLMExecutor(Executor):
         self._minibatch_size = minibatch_size
         self._thread_pool = ThreadPool(processes=num_workers)
 
-        logger.info(f'==> loading model of `{model_name_or_path}` ...')
-        self.model, self.tokenizer, *_ = create_model_and_transforms(
+        self.model = create_model(
             model_name_or_path, precision=precision, device_map=device_map, **kwargs
         )
 
     @requests
     def generate(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
-        num_captions = int(parameters.get('num_captions', 1))
         prompted_da = DocumentArray(
             [d for d in docs if d.tags.get('prompt') is not None]
         )
+        prompts = [d.tags['prompt'] for d in prompted_da]
+
+        if prompts:
+            result = self.model.generate(prompts, **parameters)
+            for d, r in zip(prompted_da, result):
+                d.tags['generated_text'] = r
+        else:
+            logger.warning('No prompts found in the request.')

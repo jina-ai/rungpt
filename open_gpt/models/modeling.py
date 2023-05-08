@@ -21,7 +21,7 @@ class BaseModel(nn.Module):
         tokenizer_name_or_path: Optional[str] = None,
         dtype: Optional[Union[str, torch.dtype]] = None,
         device: Optional[torch.device] = None,
-        device_map: Optional[Union[str, List[int]]] = None,
+        device_map: Optional[Union[str, List[int]]] = 'balance',
         **kwargs
     ):
         """Create a model of the given name."""
@@ -30,8 +30,6 @@ class BaseModel(nn.Module):
 
         self._dtype, self._device = auto_dtype_and_device(dtype, device)
 
-        if self._device.type == 'cuda' and device_map is None:
-            device_map = 'balanced'
         self._device_map = device_map
 
         self.load_model_and_transforms(
@@ -51,11 +49,16 @@ class BaseModel(nn.Module):
 
         self.model.eval()
 
-    def generate(self, prompt: str, **kwargs):
+    def generate(self, prompts: Union[str, List[str]], **kwargs):
         """Generate text from the given prompt."""
 
-        inputs = self.tokenizer(prompt, return_tensors="pt")
+        inputs = self.tokenizer(
+            [prompts] if isinstance(prompts, str) else prompts,
+            padding=True,
+            return_tensors="pt",
+        )
 
+        # Move inputs to the correct device
         for k, v in inputs.items():
             if isinstance(v, torch.Tensor):
                 inputs[k] = v.to(self._device)
