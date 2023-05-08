@@ -14,6 +14,7 @@ class BaseModel(nn.Module):
 
     model: 'AutoModelForCausalLM'
     tokenizer: 'AutoTokenizer'
+    no_split_module_classes: List[str] = None
 
     def __init__(
         self,
@@ -39,15 +40,23 @@ class BaseModel(nn.Module):
     def load_model_and_transforms(
         self, model_name_or_path: str, tokenizer_name_or_path: Optional[str] = None
     ):
-        self.model, self.tokenizer, *_ = create_model_and_transforms(
+        from .loading import load_model_and_tokenizer
+
+        self.model, self.tokenizer = load_model_and_tokenizer(
             model_name_or_path,
             tokenizer_name_or_path=tokenizer_name_or_path,
             dtype=self._dtype,
             device=self._device,
             device_map=self._device_map,
+            no_split_module_classes=self.no_split_module_classes,
         )
 
         self.model.eval()
+
+        if self.tokenizer.pad_token_id is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+            self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+        self.tokenizer.padding_side = "left"
 
     def generate(self, prompts: Union[str, List[str]], **kwargs):
         """Generate text from the given prompt."""
@@ -57,9 +66,6 @@ class BaseModel(nn.Module):
             padding=True,
             return_tensors="pt",
         )
-
-        print(f'===> generate kwargs: {kwargs}')
-        print(f'===> input keys: {inputs.keys()}')
 
         # Move inputs to the correct device
         for k, v in inputs.items():
