@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import torch
 from loguru import logger
@@ -10,6 +10,7 @@ def load_model_and_tokenizer(
     tokenizer_name_or_path: Optional[str] = None,
     device: Optional[torch.device] = None,
     dtype: Optional[Union[str, torch.dtype]] = None,
+    device_map: Optional[Union[str, List[int]]] = None,
     **kwargs
 ):
     """Load a model and tokenizer from HuggingFace."""

@@ -29,7 +29,26 @@ def create_model(
             device_map=device_map,
             **kwargs,
         )
+    elif model_name.startswith('stabilityai/stablelm'):
+        from .models.stablelm.modeling import StableLMModel
 
+        return StableLMModel(
+            model_name,
+            device=device,
+            precision=precision,
+            device_map=device_map,
+            **kwargs,
+        )
+    elif model_name.startswith('fnlp/moss'):
+        from .models.moss.modeling import MossModel
+
+        return MossModel(
+            model_name,
+            device=device,
+            precision=precision,
+            device_map=device_map,
+            **kwargs,
+        )
     else:
         from .models.modeling import BaseModel
 
