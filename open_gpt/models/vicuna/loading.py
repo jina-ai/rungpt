@@ -86,6 +86,10 @@ def load_model_and_tokenizer(
     # adapted from `fastchat.model.apply_delta`
     for name, param in tqdm(model.state_dict().items(), desc="Applying delta"):
         assert name in delta.state_dict()
-        param.data += delta.state_dict()[name]
+        param.data += delta.state_dict()[name].to(param.dtype).to(param.device)
+
+    # clean up delta to save memory
+    delta = None
+    torch.cuda.empty_cache()
 
     return model, tokenizer

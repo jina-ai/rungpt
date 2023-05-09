@@ -2,12 +2,10 @@ from typing import List, Optional, Union
 
 import torch
 
-from open_gpt.models.modeling import BaseModel
+from open_gpt.models.llama.modeling import LlamaModel
 
 
-class VicunaModel(BaseModel):
-    no_split_module_classes = ["LlamaDecoderLayer"]
-
+class VicunaModel(LlamaModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
