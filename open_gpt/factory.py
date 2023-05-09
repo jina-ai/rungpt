@@ -32,6 +32,19 @@ def create_model(
             device_map=device_map,
             **kwargs,
         )
+    elif model_name.startswith('lmsys/vicuna'):
+        assert not model_name.endswith(
+            'v0'
+        ), 'You are using an outdated model, please use the newer version ``v1.1+``'
+        from .models.vicuna.modeling import VicunaModel
+
+        return VicunaModel(
+            model_name,
+            device=device,
+            precision=precision,
+            device_map=device_map,
+            **kwargs,
+        )
     elif model_name.startswith('EleutherAI/pythia'):
         from .models.pythia.modeling import PythiaModel
 

@@ -47,6 +47,7 @@ einops = "^0.6.0"
 transformers = "^4.28.0"
 open_clip_torch = "^2.16"
 accelerate = "^0.18.0"
+tqdm = "^4.62.3"
 
 # A list of all of the optional dependencies, some of which are included in the
 # below `extras`. They can be opted into by apps.
@@ -54,6 +55,7 @@ open-flamingo = { version = "^0.0", optional = true }
 
 [tool.poetry.extras]
 flamingo = ["open-flamingo"]
+
 
 # Dependency groups are supported for organizing your dependencies
 [tool.poetry.group.dev.dependencies]

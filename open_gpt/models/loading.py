@@ -28,7 +28,10 @@ def load_model_and_tokenizer(
 
     if tokenizer.pad_token is None:
         # Issue: GPT models don't have a pad token
-        tokenizer.add_special_tokens({"pad_token": "<PAD>"})
+        # tokenizer.add_special_tokens({"pad_token": "<PAD>"})
+        tokenizer.pad_token = tokenizer.eos_token
+        tokenizer.pad_token_id = tokenizer.eos_token_id
+
     # For generation padding tokens should be on the left
     tokenizer.padding_side = "left"
 

@@ -2,9 +2,10 @@ from typing import Callable, Optional, Union
 
 import torch
 from einops import rearrange
-from loguru import logger
 from open_flamingo.src.helpers import PerceiverResampler
 from torch import nn
+
+from open_gpt.logging import logger
 
 from ...helper import auto_dtype_and_device
 

@@ -1,6 +1,5 @@
 from typing import List, Optional, Union
 
-import requests
 import torch
 from PIL import Image
 

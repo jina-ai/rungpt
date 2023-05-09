@@ -2,8 +2,9 @@ from typing import List, Optional, Union
 
 import open_clip
 import torch
-from loguru import logger
 from open_flamingo.src.utils import extend_instance
+
+from open_gpt.logging import logger
 
 
 def load_model_and_transforms(
