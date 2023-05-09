@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import open_clip
 import torch
@@ -14,6 +14,8 @@ def load_model_and_transforms(
     decoder_layers_attr_name: Optional[str] = None,
     device: 'torch.device' = torch.device('cuda'),
     dtype: 'torch.dtype' = torch.float16,
+    device_map: Optional[Union[str, List[int]]] = None,
+    no_split_module_classes: Optional[List[str]] = None,
     **kwargs,
 ):
     """Load a Flamingo model and its associated image and text processors.
@@ -28,11 +30,13 @@ def load_model_and_transforms(
     """
 
     from ...helper import cast_precision
-    from ..llama.loading import (
-        load_model_and_tokenizer as load_llama_model_and_tokenizer,
-    )
+
+    # from ..llama.loading import (
+    #     load_model_and_tokenizer as load_llama_model_and_tokenizer,
+    # )
+    from ..loading import load_model_and_tokenizer as load_llama_model_and_tokenizer
     from .flamingo_lm import FlamingoLMMixin
-    from .flamingo_model import FlamingoModel
+    from .flamingo_model import FlamingoLMModel
 
     # load the vision model
     precision = cast_precision(dtype)
@@ -50,37 +54,20 @@ def load_model_and_transforms(
     elif hasattr(clip_model, 'transformer'):
         del clip_model.transformer
 
-    # execution_device = next(iter(clip_model.parameters())).device
-    # add_hook_to_module(clip_model, AlignDevicesHook(io_same_device=True), append=True)
-    #
-    # attach_align_device_hook_on_blocks(
-    #     clip_model,
-    #     execution_device=execution_device,
-    #     offload=None,
-    #     offload_buffers=False,
-    #     weights_map=None,
-    #     preload_module_classes=None,
-    # )
-
     # load the language model
     lang_model, tokenizer = load_llama_model_and_tokenizer(
         model_name_or_path=lang_model_name_or_path,
         tokenizer_name_or_path=tokenizer_name_or_path,
         device=device,
         dtype=dtype,
-        device_map=None,
+        device_map=None,  # TODO: fix this to support multi-gpu
+        no_split_module_classes=no_split_module_classes,
     )
 
     # add Flamingo special tokens to the tokenizer
     tokenizer.add_special_tokens(
         {"additional_special_tokens": ["<|endofchunk|>", "<image>"]}
     )
-    if tokenizer.pad_token is None:
-        # Issue: GPT models don't have a pad token, which we use to
-        # modify labels for the loss.
-        tokenizer.add_special_tokens({"pad_token": "<PAD>"})
-    # For generation padding tokens should be on the left
-    tokenizer.padding_side = "left"
 
     extend_instance(lang_model, FlamingoLMMixin)
 
@@ -96,7 +83,7 @@ def load_model_and_transforms(
         "media_token_id": tokenizer.encode("<image>")[-1],
     }
 
-    model = FlamingoModel(
+    model = FlamingoLMModel(
         clip_model,
         lang_model,
         model_config=flamingo_config,

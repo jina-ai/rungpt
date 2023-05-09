@@ -62,6 +62,16 @@ def create_model(
             device_map=device_map,
             **kwargs,
         )
+    elif model_name.startswith('openflamingo/OpenFlamingo'):
+        from .models.flamingo.modeling import FlamingoModel
+
+        return FlamingoModel(
+            model_name,
+            device=device,
+            precision=precision,
+            device_map=device_map,
+            **kwargs,
+        )
     else:
         from .models.modeling import BaseModel
 

@@ -9,7 +9,7 @@ from torch import nn
 from ...helper import auto_dtype_and_device
 
 
-class FlamingoModel(nn.Module):
+class FlamingoLMModel(nn.Module):
     def __init__(
         self,
         vision_encoder: 'nn.Module',

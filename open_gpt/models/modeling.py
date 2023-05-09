@@ -4,7 +4,6 @@ import torch
 from torch import nn
 
 from ..helper import auto_dtype_and_device
-from .loading import create_model_and_transforms
 
 if TYPE_CHECKING:
     from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -22,7 +21,7 @@ class BaseModel(nn.Module):
         tokenizer_name_or_path: Optional[str] = None,
         dtype: Optional[Union[str, torch.dtype]] = None,
         device: Optional[torch.device] = None,
-        device_map: Optional[Union[str, List[int]]] = 'auto',
+        device_map: Optional[Union[str, List[int]]] = None,
         **kwargs,
     ):
         """Create a model of the given name."""
@@ -31,7 +30,7 @@ class BaseModel(nn.Module):
 
         self._dtype, self._device = auto_dtype_and_device(dtype, device)
 
-        self._device_map = device_map or 'auto'
+        self._device_map = device_map or 'balanced'
 
         self.load_model_and_transforms(
             model_name_or_path, tokenizer_name_or_path=tokenizer_name_or_path
@@ -52,11 +51,6 @@ class BaseModel(nn.Module):
         )
 
         self.model.eval()
-
-        if self.tokenizer.pad_token_id is None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
-            self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-        self.tokenizer.padding_side = "left"
 
     def generate(self, prompts: Union[str, List[str]], **kwargs):
         """Generate text from the given prompt."""

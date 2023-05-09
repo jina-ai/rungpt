@@ -16,6 +16,11 @@ class FlamingoLayer(nn.Module):
         self.decoder_layer = decoder_layer
         self.vis_x = None
         self.media_locations = None
+        self.device = self.decoder_layer.parameters().__next__().device
+
+        # This is a hack to gaurantee that the gated_cross_attn_layer is on the same device as the decoder_layer
+        if self.gated_cross_attn_layer is not None:
+            self.gated_cross_attn_layer.to(self.device)
 
     def is_conditioned(self) -> bool:
         """Check whether the layer is conditioned."""
@@ -23,10 +28,14 @@ class FlamingoLayer(nn.Module):
 
     # Used this great idea from this implementation of Flamingo (https://github.com/dhansmair/flamingo-mini/)
     def condition_vis_x(self, vis_x):
-        self.vis_x = vis_x
+        self.vis_x = vis_x.to(self.device) if vis_x is not None else vis_x
 
     def condition_media_locations(self, media_locations):
-        self.media_locations = media_locations
+        self.media_locations = (
+            media_locations.to(self.device)
+            if media_locations is not None
+            else media_locations
+        )
 
     def condition_attend_previous(self, attend_previous):
         self.attend_previous = attend_previous
@@ -48,6 +57,7 @@ class FlamingoLayer(nn.Module):
         if self.media_locations is None:
             raise ValueError("media_locations must be conditioned before forward pass")
 
+        lang_x = lang_x.to(self.device)
         lang_x = self.gated_cross_attn_layer(
             lang_x,
             self.vis_x,
@@ -114,7 +124,7 @@ class FlamingoLMMixin(nn.Module):
         dtype, device = auto_dtype_and_device(dtype, device)
         if str(dtype) == 'torch.float16':
             self.gated_cross_attn_layers.half()
-        self.gated_cross_attn_layers.to(device)
+        # self.gated_cross_attn_layers.to(device)
 
     def forward(self, *input, **kwargs):
         """Condition the Flamingo layers on the media locations before forward()"""
