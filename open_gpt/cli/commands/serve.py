@@ -14,7 +14,7 @@ class ServeCommand(Command):
             None,
             "The protocol to serve the model on.",
             flag=False,
-            default="grpc",
+            default="http",
         ),
         option(
             "port", "p", "The port to serve the model on.", flag=False, default=51000
@@ -32,7 +32,7 @@ class ServeCommand(Command):
         <comment>opengpt serve facebook/llama-7b</comment>"""
 
     def handle(self) -> int:
-        from open_gpt.serve.flow import create_flow
+        from open_gpt.factory import create_flow
 
         with create_flow(
             self.argument('model_name'),

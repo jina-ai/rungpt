@@ -28,6 +28,9 @@ OpenGPT provides the following features to make it easy to deploy and serve larg
 - Centralized model management and monitoring
 - REST API for easy integration with existing applications
 
+## Updates
+
+- **2023-05-12**: 🎉 We have released the first version `v0.0.1` of OpenGPT. You can install it with `pip install open_gpt_torch`.
 
 ## Supported Models
 
@@ -45,6 +48,8 @@ OpenGPT supports the following models out of the box:
 
   - [OpenFlamingo](https://huggingface.co/...)
   - [MiniGPT4](https://huggingface.co/...) (WIP)
+
+For more details about the supported models, please see the [Model Zoo](./MODEL_ZOO.md).
 
 
 ## Roadmap
@@ -135,7 +140,7 @@ async with sse_client.EventSource(
 
 Note that the server will only accept requests from the same machine. If you want to accept requests from other machines, you can use the `--host` flag to specify the host to bind to.
 
-## Deployment
+## Deployment in Production
 
 You can also deploy the server to a cloud provider like Jina Cloud or AWS.
 To do so, you can use `deploy` command:

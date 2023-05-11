@@ -38,16 +38,28 @@ class FlamingoExecutor(Executor):
         # warmup the model to avoid the first-time slowness
         # self.model.generate(['Hello world!'])
 
-    @requests
+    @requests(on='/generate')
     def generate(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
-        prompted_da = DocumentArray(
-            [d for d in docs if d.tags.get('prompt') is not None]
-        )
-        prompts = [d.tags['prompt'] for d in prompted_da]
+        """Generate text based on the input text."""
+        from .utils import blob2image
 
-        if prompts:
-            result = self.model.generate(prompts, **parameters)
-            for d, r in zip(prompted_da, result):
-                d.tags['generated_text'] = r
-        else:
-            logger.warning('No prompts found in the request.')
+        for doc in docs:
+            prompt = doc.tags.get('prompt', '') or doc.text
+            if not prompt:
+                logger.warning('No prompt found in the request.')
+                continue
+
+            images = []
+
+            for c in doc.chunks:
+                if c.blob:
+                    images.append(blob2image(c.blob))
+                elif c.uri:
+                    c.load_uri_to_blob()
+                    images.append(blob2image(c.blob))
+                    c.pop('blob')
+                else:
+                    logger.warning('No image found in the request.')
+
+            result = self.model.generate(prompt, inplace_images=images, **parameters)
+            doc.tags['generated_text'] = result
