@@ -31,7 +31,7 @@ class FlamingoModel(BaseModel):
 
         self.model.eval()
 
-    def generate(self, prompt: str, interleave_images: List[bytes] = [], **kwargs):
+    def generate(self, prompt: str, inplace_images: List[bytes] = [], **kwargs):
         """Generate text from the given prompt."""
 
         assert isinstance(prompt, str), "Prompt must be a string."
@@ -40,7 +40,7 @@ class FlamingoModel(BaseModel):
         with torch.inference_mode():
             vision_x = []
 
-            for image in interleave_images:
+            for image in inplace_images:
                 vision_x.append(self.image_processor(Image.open(image)).unsqueeze(0))
             vision_x = torch.cat(vision_x, dim=0)
             vision_x = vision_x.unsqueeze(1).unsqueeze(0)
