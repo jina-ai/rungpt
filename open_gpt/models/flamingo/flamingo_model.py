@@ -1,6 +1,7 @@
 from typing import Callable, Optional, Union
 
 import torch
+from accelerate.hooks import AlignDevicesHook, add_hook_to_module
 from einops import rearrange
 from open_flamingo.src.helpers import PerceiverResampler
 from torch import nn
@@ -56,7 +57,8 @@ class FlamingoLMModel(nn.Module):
             media_token_id=self.media_token_id,
             vis_hidden_size=model_config['image_size'],
             cross_attn_every_n_layers=model_config['cross_attn_every_n_layers'],
-            use_media_placement_augmentation=False,
+            use_media_placement_augmentation=True,
+            only_attend_previous=True,
             dtype=dtype,
             device=device,
         )
@@ -134,9 +136,18 @@ class FlamingoLMModel(nn.Module):
         :return: text_inputs with generated tokens appended to it (batch_size, sequence_length)
         """
 
+        # if hasattr(self, "_hf_hook"):
+        # add a hook to make sure that the output of lang_encoder is mapped to the same device as the text_inputs
+        hook = AlignDevicesHook(
+            execution_device=self.device,
+            io_same_device=True,
+            place_submodules=False,
+        )
+        add_hook_to_module(self.lang_encoder, hook)
+
         vision_inputs = vision_inputs.to(dtype=self.dtype, device=self.device)
-        if attention_mask is not None:
-            attention_mask = attention_mask.to(self.device)
+        # if attention_mask is not None:
+        #     attention_mask = attention_mask.to(self.device)
         text_inputs = text_inputs.to(self.device)
 
         if num_beams > 1:

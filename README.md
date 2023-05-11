@@ -1,10 +1,25 @@
 # OpenGPT
 
+![](https://img.shields.io/badge/Made%20with-JinaAI-blueviolet?style=flat)
+[![PyPI](https://img.shields.io/pypi/v/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
+[![PyPI - License](https://img.shields.io/pypi/l/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
+
 `OpenGPT` is an open-source _cloud-native_ large **multi-modal models** (LMMs) serving solution. 
 It is designed to simplify the deployment and management of large language models, on a distributed cluster of GPUs.
 
 > **Note**
 > The content of `README.md` is just a placeholder to remind me of what I want to do.
+
+## Table of contents
+
+- [Features](#features)
+- [Supported models](#supported-models)
+- [Get started](#get-started)
+- [Build a model serving in one line](#build-a-model-serving-in-one-line)
+- [Cloud-native deployment](#cloud-native-deployment)
+  - [JCloud](#jcloud)
+  - [Kubernetes](#kubernetes)
+- [Roadmap](#roadmap)
 
 ## Features
 
@@ -17,14 +32,37 @@ OpenGPT provides the following features to make it easy to deploy and serve larg
 - Centralized model management and monitoring
 - REST API for easy integration with existing applications
 
-You can learn more about OpenGPT’s [architecture in our documentation](https://opengpt.readthedocs.io/en/latest/).
+## Updates
+
+- **2023-05-12**: 🎉 We have released the first version `v0.0.1` of OpenGPT. You can install it with `pip install open_gpt_torch`.
+
+## Supported Models
+
+OpenGPT supports the following models out of the box:
+
+- LLM (Large Language Model)
+
+  - [Llama](https://huggingface.co/facebook/llama-7b)
+  - [Pythia](https://huggingface.co/...)
+  - [StableLM](https://huggingface.co/...)
+  - [Vicuna](https://huggingface.co/...)
+  - [MOSS](https://huggingface.co/...)
+
+- LMM (Large Multi-modal Model)
+
+  - [OpenFlamingo](https://huggingface.co/...)
+  - [MiniGPT4](https://huggingface.co/...) (WIP)
+
+For more details about the supported models, please see the [Model Zoo](./MODEL_ZOO.md).
 
 
 ## Roadmap
 
 You can view our roadmap with features that are planned, started, and completed on the [Roadmap discussion](discussions/categories/roadmap) category.
 
-## Installation
+## Get Started
+
+### Installation
 
 Install the package with pip:
 
@@ -32,7 +70,7 @@ Install the package with pip:
 pip install open_gpt_torch
 ```
 
-## Quickstart
+### Quickstart
 
 ```python
 import open_gpt
@@ -61,7 +99,8 @@ We also provide some advanced features to allow you to host your models cost-eff
 
 For more details, please see the [documentation](https://opengpt.readthedocs.io/en/latest/).
 
-## Serving Models
+
+## Build a model serving in one line
 
 You can serve your models with OpenGPT. To do so, you can use the `serve` command:
 
@@ -106,7 +145,7 @@ async with sse_client.EventSource(
 
 Note that the server will only accept requests from the same machine. If you want to accept requests from other machines, you can use the `--host` flag to specify the host to bind to.
 
-## Deploying Models
+## Cloud-native deployment
 
 You can also deploy the server to a cloud provider like Jina Cloud or AWS.
 To do so, you can use `deploy` command:

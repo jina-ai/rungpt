@@ -21,7 +21,7 @@ class FlamingoModel(BaseModel):
         self.model, self.tokenizer, self.image_processor = load_model_and_transforms(
             model_name_or_path,
             vision_model_name_or_path='ViT-L-14::openai',
-            lang_model_name_or_path='facebook/llama_7b',
+            lang_model_name_or_path='facebook/llama-7b',
             tokenizer_name_or_path=tokenizer_name_or_path,
             dtype=self._dtype,
             device=self._device,
@@ -31,7 +31,7 @@ class FlamingoModel(BaseModel):
 
         self.model.eval()
 
-    def generate(self, prompt: str, interleave_images: List[bytes] = [], **kwargs):
+    def generate(self, prompt: str, inplace_images: List = [], **kwargs):
         """Generate text from the given prompt."""
 
         assert isinstance(prompt, str), "Prompt must be a string."
@@ -40,8 +40,12 @@ class FlamingoModel(BaseModel):
         with torch.inference_mode():
             vision_x = []
 
-            for image in interleave_images:
-                vision_x.append(self.image_processor(Image.open(image)).unsqueeze(0))
+            for image in inplace_images:
+                vision_x.append(
+                    self.image_processor(
+                        Image.open(image) if isinstance(image, str) else image
+                    ).unsqueeze(0)
+                )
             vision_x = torch.cat(vision_x, dim=0)
             vision_x = vision_x.unsqueeze(1).unsqueeze(0)
 

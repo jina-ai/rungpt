@@ -95,3 +95,26 @@ def create_model(
             device_map=device_map,
             **kwargs,
         )
+
+
+def create_flow(
+    model_name_or_path: str, protocol='http', port=51000, replicas: int = 1
+):
+    from jina import Flow
+
+    if 'flamingo' in model_name_or_path:
+        from .serve.executors.flamingo import FlamingoExecutor as Executor
+    else:
+        from serve.executors import CausualLMExecutor as Executor
+
+    # normalize the model name to be used as flow executor name
+    norm_name = model_name_or_path.split('/')[-1]
+    norm_name = norm_name.replace('-', '_').lower()
+
+    return Flow(protocol=protocol, port=port, cors=True).add(
+        uses=Executor,
+        uses_with={'model_name_or_path': model_name_or_path},
+        name=f'{norm_name}_executor',
+        replicas=replicas,
+        timeout_ready=-1,
+    )
