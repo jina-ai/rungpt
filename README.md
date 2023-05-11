@@ -11,7 +11,7 @@ It is designed to simplify the deployment and management of large language model
 - [Features](#features)
 - [Supported Models](#supported-models)
 - [Get Started](#get-started)
-- [Serving Models](#serving-models)
+- [Serving](#serving-models)
 - [Deployment](#deployment)
   - [JCloud](#docker)
   - [Kubernetes](#kubernetes)
@@ -90,7 +90,7 @@ We also provide some advanced features to allow you to host your models cost-eff
 
 For more details, please see the [documentation](https://opengpt.readthedocs.io/en/latest/).
 
-## Serving Models
+## Serving
 
 You can serve your models with OpenGPT. To do so, you can use the `serve` command:
 
