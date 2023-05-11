@@ -21,7 +21,7 @@ class FlamingoModel(BaseModel):
         self.model, self.tokenizer, self.image_processor = load_model_and_transforms(
             model_name_or_path,
             vision_model_name_or_path='ViT-L-14::openai',
-            lang_model_name_or_path='facebook/llama_7b',
+            lang_model_name_or_path='facebook/llama-7b',
             tokenizer_name_or_path=tokenizer_name_or_path,
             dtype=self._dtype,
             device=self._device,

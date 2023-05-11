@@ -31,13 +31,13 @@ def load_model_and_transforms(
     """
 
     from ...helper import cast_precision
-
-    # from ..llama.loading import (
-    #     load_model_and_tokenizer as load_llama_model_and_tokenizer,
-    # )
     from ..loading import load_model_and_tokenizer as load_llama_model_and_tokenizer
     from .flamingo_lm import FlamingoLMMixin
     from .flamingo_model import FlamingoLMModel
+
+    assert (
+        device_map is None
+    ), f"`device_map={device_map}` is not supported for Flamingo models"
 
     # load the vision model
     precision = cast_precision(dtype)
@@ -55,13 +55,21 @@ def load_model_and_transforms(
     elif hasattr(clip_model, 'transformer'):
         del clip_model.transformer
 
+    # patch to load llama models
+    if lang_model_name_or_path.startswith('facebook/llama'):
+        import os
+
+        model_size = lang_model_name_or_path.split('-')[-1]
+        if not os.path.exists(lang_model_name_or_path):
+            lang_model_name_or_path = f"decapoda-research/llama-{model_size}-hf"
+
     # load the language model
     lang_model, tokenizer = load_llama_model_and_tokenizer(
         model_name_or_path=lang_model_name_or_path,
         tokenizer_name_or_path=tokenizer_name_or_path,
         device=device,
         dtype=dtype,
-        device_map=None,  # TODO: fix this to support multi-gpu
+        device_map=device_map,
         no_split_module_classes=no_split_module_classes,
     )
 
@@ -69,6 +77,8 @@ def load_model_and_transforms(
     tokenizer.add_special_tokens(
         {"additional_special_tokens": ["<|endofchunk|>", "<image>"]}
     )
+
+    tokenizer.add_special_tokens({"pad_token": "<PAD>"})
 
     extend_instance(lang_model, FlamingoLMMixin)
 

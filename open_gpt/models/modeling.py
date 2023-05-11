@@ -30,7 +30,7 @@ class BaseModel(nn.Module):
 
         self._dtype, self._device = auto_dtype_and_device(dtype, device)
 
-        self._device_map = device_map or 'balanced'
+        self._device_map = device_map
 
         self.load_model_and_transforms(
             model_name_or_path, tokenizer_name_or_path=tokenizer_name_or_path

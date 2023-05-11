@@ -18,7 +18,7 @@ class FlamingoLayer(nn.Module):
         self.media_locations = None
         self.device = self.decoder_layer.parameters().__next__().device
 
-        # This is a hack to gaurantee that the gated_cross_attn_layer is on the same device as the decoder_layer
+        # This is a hack to guarantee that the gated_cross_attn_layer is on the same device as the decoder_layer
         if self.gated_cross_attn_layer is not None:
             self.gated_cross_attn_layer.to(self.device)
 
@@ -90,6 +90,7 @@ class FlamingoLMMixin(nn.Module):
         vis_hidden_size,
         cross_attn_every_n_layers,
         use_media_placement_augmentation,
+        only_attend_previous: bool,
         device: Optional[Union[str, 'torch.device']] = None,
         dtype: Optional[Union[str, 'torch.dtype']] = None,
     ):
@@ -120,6 +121,7 @@ class FlamingoLMMixin(nn.Module):
         self.media_token_id = media_token_id
         self.use_media_placement_augmentation = use_media_placement_augmentation
         self.initialized_flamingo = True
+        self.only_attend_previous = only_attend_previous
 
         dtype, device = auto_dtype_and_device(dtype, device)
         if str(dtype) == 'torch.float16':
@@ -136,9 +138,11 @@ class FlamingoLMMixin(nn.Module):
 
         input_ids = kwargs["input_ids"] if "input_ids" in kwargs else input[0]
         media_locations = input_ids == self.media_token_id
-        attend_previous = (
-            (random.random() < 0.5) if self.use_media_placement_augmentation else False
-        )
+        # IMPORTANT: Force `attend_previous` to True when we place training data as <image>caption<|endofchunk|>
+        # attend_previous = (
+        #     (random.random() < 0.5) if self.use_media_placement_augmentation else False
+        # )
+        attend_previous = self.only_attend_previous
 
         for layer in self.get_decoder().layers:
             layer.condition_media_locations(media_locations)
