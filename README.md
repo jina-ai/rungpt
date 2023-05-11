@@ -6,6 +6,17 @@ It is designed to simplify the deployment and management of large language model
 > **Note**
 > The content of `README.md` is just a placeholder to remind me of what I want to do.
 
+## Table of contents
+
+- [Features](#features)
+- [Supported Models](#supported-models)
+- [Get Started](#get-started)
+- [Serving Models](#serving-models)
+- [Deployment](#deployment)
+  - [JCloud](#docker)
+  - [Kubernetes](#kubernetes)
+- [Roadmap](#roadmap)
+
 ## Features
 
 OpenGPT provides the following features to make it easy to deploy and serve large multi-modal models (LMMs) in production:
@@ -17,14 +28,32 @@ OpenGPT provides the following features to make it easy to deploy and serve larg
 - Centralized model management and monitoring
 - REST API for easy integration with existing applications
 
-You can learn more about OpenGPT’s [architecture in our documentation](https://opengpt.readthedocs.io/en/latest/).
+
+## Supported Models
+
+OpenGPT supports the following models out of the box:
+
+- LLM (Large Language Model)
+
+  - [Llama](https://huggingface.co/facebook/llama-7b)
+  - [Pythia](https://huggingface.co/...)
+  - [StableLM](https://huggingface.co/...)
+  - [Vicuna](https://huggingface.co/...)
+  - [MOSS](https://huggingface.co/...)
+
+- LMM (Large Multi-modal Model)
+
+  - [OpenFlamingo](https://huggingface.co/...)
+  - [MiniGPT4](https://huggingface.co/...) (WIP)
 
 
 ## Roadmap
 
 You can view our roadmap with features that are planned, started, and completed on the [Roadmap discussion](discussions/categories/roadmap) category.
 
-## Installation
+## Get Started
+
+### Installation
 
 Install the package with pip:
 
@@ -32,7 +61,7 @@ Install the package with pip:
 pip install open_gpt_torch
 ```
 
-## Quickstart
+### Quickstart
 
 ```python
 import open_gpt
@@ -106,7 +135,7 @@ async with sse_client.EventSource(
 
 Note that the server will only accept requests from the same machine. If you want to accept requests from other machines, you can use the `--host` flag to specify the host to bind to.
 
-## Deploying Models
+## Deployment
 
 You can also deploy the server to a cloud provider like Jina Cloud or AWS.
 To do so, you can use `deploy` command:
