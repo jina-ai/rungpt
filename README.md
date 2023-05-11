@@ -9,11 +9,11 @@ It is designed to simplify the deployment and management of large language model
 ## Table of contents
 
 - [Features](#features)
-- [Supported Models](#supported-models)
-- [Get Started](#get-started)
-- [Serving](#serving-models)
-- [Deployment](#deployment)
-  - [JCloud](#docker)
+- [Supported models](#supported-models)
+- [Get started](#get-started)
+- [Build a model serving in one line](#build-a-model-serving-in-one-line)
+- [Cloud-native deployment](#cloud-native-deployment)
+  - [JCloud](#jcloud)
   - [Kubernetes](#kubernetes)
 - [Roadmap](#roadmap)
 
@@ -95,7 +95,8 @@ We also provide some advanced features to allow you to host your models cost-eff
 
 For more details, please see the [documentation](https://opengpt.readthedocs.io/en/latest/).
 
-## Serving
+
+## Build a model serving in one line
 
 You can serve your models with OpenGPT. To do so, you can use the `serve` command:
 
@@ -140,7 +141,7 @@ async with sse_client.EventSource(
 
 Note that the server will only accept requests from the same machine. If you want to accept requests from other machines, you can use the `--host` flag to specify the host to bind to.
 
-## Deployment in Production
+## Cloud-native deployment
 
 You can also deploy the server to a cloud provider like Jina Cloud or AWS.
 To do so, you can use `deploy` command:
