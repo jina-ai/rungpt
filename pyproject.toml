@@ -1,20 +1,19 @@
 [tool.poetry]
 name = "open_gpt_torch"
 version = "0.0.1rc8"
-description = "An open-source implementation of large-scale language model (LLM)."
+description = "An open-source cloud-native of large multi-modal models (LMMs) serving framework."
 
 license = "Apache-2.0"
 
 authors = [
-    "Felix Wang <felix.wang@jina.ai>"
+    "Jina AI <hello@jina.ai>"
 ]
 
-repository = "https://github.com/jina-ai/open_gpt"
-homepage = "https://open-gpt.jina.ai"
+repository = "https://github.com/jina-ai/opengpt"
+homepage = "https://github.com/jina-ai/opengpt"
 
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -27,7 +26,7 @@ exclude = ["**/*.pyc", "**/*.pyi", "tests/**/*", "docs/**/*", "examples/**/*"]
 readme = ["README.md", "LICENSE"]
 
 # Keywords (translated to tags on the package index)
-keywords = ["Pytorch", "LLM", "GPT"]
+keywords = ["Pytorch", "LMM", "GPT", "LLM", "multi-modality", "cloud-native", "model-serving", "model-inference", "llama", "vicuna", "stabellm"]
 
 [build-system]
 requires = ["poetry-core>=1.1.0"]
