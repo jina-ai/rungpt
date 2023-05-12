@@ -60,7 +60,7 @@ For more details about the supported models, please see the [Model Zoo](./MODEL_
 
 ## Roadmap
 
-You can view our roadmap with features that are planned, started, and completed on the [Roadmap discussion](discussions/categories/roadmap) category.
+You can view our roadmap with features that are planned, started, and completed on the [Roadmap discussion](https://github.com/jina-ai/opengpt/discussions/categories/roadmap) category.
 
 ## Get Started
 
