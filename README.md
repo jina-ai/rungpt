@@ -16,8 +16,6 @@ It is designed to simplify the deployment and management of large language model
 - [Get started](#get-started)
 - [Build a model serving in one line](#build-a-model-serving-in-one-line)
 - [Cloud-native deployment](#cloud-native-deployment)
-  - [JCloud](#jcloud)
-  - [Kubernetes](#kubernetes)
 - [Roadmap](#roadmap)
 
 ## Features
