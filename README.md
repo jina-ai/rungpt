@@ -1,10 +1,12 @@
-# OpenGPT
+# ☄️ OpenGPT
+
+*An open-source cloud-native large-scale multimodal model serving framework*
 
 ![](https://img.shields.io/badge/Made%20with-JinaAI-blueviolet?style=flat)
 [![PyPI](https://img.shields.io/pypi/v/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
 [![PyPI - License](https://img.shields.io/pypi/l/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
 
-`OpenGPT` is an open-source _cloud-native_ large **multi-modal models** (LMMs) serving solution. 
+`OpenGPT` is an open-source _cloud-native_ large-scale **multimodal models** (LMMs) serving framework. 
 It is designed to simplify the deployment and management of large language models, on a distributed cluster of GPUs.
 
 > **Note**
@@ -42,10 +44,10 @@ OpenGPT supports the following models out of the box:
 
 - LLM (Large Language Model)
 
-  - [Llama](https://huggingface.co/facebook/llama-7b)
+  - [Llama](https://huggingface.co/facebook/llama-7b): open and efficient foundation language models by Meta
   - [Pythia](https://huggingface.co/...)
-  - [StableLM](https://huggingface.co/...)
-  - [Vicuna](https://huggingface.co/...)
+  - [StableLM](https://huggingface.co/...): large language models by Stability AI
+  - [Vicuna](https://huggingface.co/...): a chat assistant fine-tuned from LLaMA on user-shared conversations by LMSYS
   - [MOSS](https://huggingface.co/...)
 
 - LMM (Large Multi-modal Model)
@@ -58,7 +60,7 @@ For more details about the supported models, please see the [Model Zoo](./MODEL_
 
 ## Roadmap
 
-You can view our roadmap with features that are planned, started, and completed on the [Roadmap discussion](discussions/categories/roadmap) category.
+You can view our roadmap with features that are planned, started, and completed on the [Roadmap discussion](https://github.com/jina-ai/opengpt/discussions/categories/roadmap) category.
 
 ## Get Started
 
