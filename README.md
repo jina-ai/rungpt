@@ -3,7 +3,7 @@
 *An open-source cloud-native large-scale multimodal model serving framework*
 
 <p align="center">
-<a href="https://github.com/jina-ai/opengpt"><img src="https://github.com/jina-ai/opengpt/blob/main/.github/images/logo.png?" alt="OpenGPT: An open-source cloud-native large-scale multimodal model serving framework" width="100px"></a>
+<a href="https://github.com/jina-ai/opengpt"><img src="https://github.com/jina-ai/opengpt/blob/main/.github/images/logo.png?" alt="OpenGPT: An open-source cloud-native large-scale multimodal model serving framework" width="200px"></a>
 <br>
 <br><br>
 </p>
