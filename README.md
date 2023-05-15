@@ -98,11 +98,19 @@ output = model.generate(
 )
 ```
 
-We also provide some advanced features to allow you to host your models by using multiple GPUs:
-    
+> **Warning**
+> In the above example, we use `precision='fp16'` to reduce the memory usage and speed up the inference with some loss in accuracy on text generation tasks. 
+> You can also use `precision='fp32'` instead as you like for better performance. 
+
+> **Note**
+> It usually takes a while (several minutes) for the first time to download and load the model into the memory.
+
+
+In most cases of large model serving, the model cannot fit into a single GPU. To solve this problem, we also provide a `device_map` option (supported by `accecleate` package) to automatically partition the model and distribute it across multiple GPUs:
+
 ```python
 model = open_gpt.create_model(
-    'facebook/llama-7b', device='cuda', precision='fp16', device_map='balanced'
+    'facebook/llama-7b', precision='fp16', device_map='balanced'
 )
 ```
 
