@@ -6,7 +6,7 @@
 [![PyPI](https://img.shields.io/pypi/v/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
 [![PyPI - License](https://img.shields.io/pypi/l/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
 
-`OpenGPT` is an open-source _cloud-native_ large-scale **multimodal models** (LMMs) serving framework. 
+**OpenGPT** is an open-source _cloud-native_ large-scale **_multimodal models_** (LMMs) serving framework. 
 It is designed to simplify the deployment and management of large language models, on a distributed cluster of GPUs.
 
 ## Table of contents
