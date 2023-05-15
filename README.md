@@ -12,6 +12,11 @@
 
 
 
+<p align="center">
+<a href="https://github.com/jina-ai/opengpt"><img src="https://github.com/jina-ai/opengpt/blob/main/.github/arts/logo.png?" alt="OpenGPT: An open-source cloud-native large-scale multimodal model serving framework" width="100px"></a>
+<br><br><br>
+</p>
+
 ![](https://img.shields.io/badge/Made%20with-JinaAI-blueviolet?style=flat)
 [![PyPI](https://img.shields.io/pypi/v/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
 [![PyPI - License](https://img.shields.io/pypi/l/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
@@ -41,9 +46,11 @@ OpenGPT provides the following features to make it easy to deploy and serve **la
 
 ## Updates
 
-- **2023-05-12**: 🎉 We have released the first version `v0.0.1` of OpenGPT. You can install it with `pip install open_gpt_torch`.
+- **2023-05-12**: 🎉We have released the first version `v0.0.1` of OpenGPT. You can install it with `pip install open_gpt_torch`.
 
 ## Supported Models
+
+<details>
 
 OpenGPT supports the following models out of the box:
 
@@ -62,6 +69,7 @@ OpenGPT supports the following models out of the box:
 
 For more details about the supported models, please see the [Model Zoo](./MODEL_ZOO.md).
 
+</details>
 
 ## Roadmap
 
@@ -113,6 +121,8 @@ model = open_gpt.create_model(
     'facebook/llama-7b', precision='fp16', device_map='balanced'
 )
 ```
+
+See [examples on how to use opengpt with different models.](./examples)
 
 
 ## Build a model serving in one line
