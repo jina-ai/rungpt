@@ -2,6 +2,18 @@
 
 *An open-source cloud-native large-scale multimodal model serving framework*
 
+<p align="center">
+<a href="https://github.com/jina-ai/opengpt"><img src="https://github.com/jina-ai/opengpt/blob/main/.github/images/logo.png?" alt="OpenGPT: An open-source cloud-native large-scale multimodal model serving framework" width="100px"></a>
+<br>
+<br><br>
+</p>
+
+> "A playful and whimsical vector art of a Stochastic Tigger, wearing a t-shirt with a "GPT" text printed logo, surrounded by colorful geometric shapes.  –ar 1:1 –upbeta"
+>
+> — Prompts and log is produced with  [PromptPerfect](https://promptperfect.jina.ai/) & [Stable Diffusion X](https://clipdrop.co/stable-diffusion)
+
+
+
 ![](https://img.shields.io/badge/Made%20with-JinaAI-blueviolet?style=flat)
 [![PyPI](https://img.shields.io/pypi/v/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
 [![PyPI - License](https://img.shields.io/pypi/l/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
