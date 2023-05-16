@@ -65,6 +65,10 @@ def load_model_and_tokenizer(
         )
         model.to(device)
 
+    if hasattr(model, 'generation_config'):
+        # set pad_token_id to eos_token_id because GPT does not have a PAD token
+        model.generation_config.pad_token_id = model.generation_config.eos_token_id
+
     return model, tokenizer
 
 
