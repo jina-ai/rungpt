@@ -63,6 +63,10 @@ class GenerationMixin:
             if isinstance(v, torch.Tensor):
                 inputs[k] = v.to(self._device)
 
+        # overwrite default values with kwargs
+        clean_up_tokenization_spaces = kwargs.pop('clean_up_tokenization_spaces', True)
+        skip_special_tokens = kwargs.pop("skip_special_tokens", True)
+
         with torch.inference_mode():
             outputs = self.model.generate(**inputs, **kwargs)
 
@@ -74,11 +78,11 @@ class GenerationMixin:
 
                 text = self.tokenizer.decode(
                     generated_sequence,
-                    clean_up_tokenization_spaces=True,
-                    skip_special_tokens=True,
+                    clean_up_tokenization_spaces=clean_up_tokenization_spaces,
+                    skip_special_tokens=skip_special_tokens,
                 )
 
                 text = text[prompt_len:] if text[:prompt_len] == prompt else text
-                texts_outs.append(text)
+                texts_outs.append(text.lstrip())
 
-            return texts_outs
+            return texts_outs if isinstance(prompts, list) else texts_outs[0]

@@ -53,6 +53,8 @@ class StableLMModel(BaseModel):
     text_out = model.generate_text(prompt, max_length=50)
     ```
 
+    :note: StableLM Tuned should be used with prompts formatted to <|SYSTEM|>...<|USER|>...<|ASSISTANT|>...
+
 
     ```python
     prompt = (
@@ -83,5 +85,6 @@ class StableLMModel(BaseModel):
             stopping_criteria=StoppingCriteriaList([StopOnTokens()])
             if not self.is_vicuna_model
             else None,
+            skip_special_tokens=False,
             **kwargs
         )

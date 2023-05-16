@@ -18,24 +18,16 @@ system_prompt = """<|SYSTEM|># StableLM Tuned (Alpha version)
 - StableLM will refuse to participate in anything that could harm a human.
 """
 
+prompt = f"{system_prompt}<|USER|>What's your mood today?<|ASSISTANT|>"
 
-PROMPTS = [
-    f"{system_prompt}<|USER|>Hello, my name is Toro.<|ASSISTANT|>",
-    f"{system_prompt}<|USER|>Are unicorns real? Unicorns are",
-    f"{system_prompt}<|ASSISTANT|>For the first time in several years,",
-    f"{system_prompt}<|User|>My name is Julien and I am",
-    f"{system_prompt}<|ASSISTANT|>The goal of life is",
-    f"{system_prompt}<|ASSISTANT|>Whenever I'm sad, I like to",
-]
 
 start_measures = start_measure()
 generation_times = []
 gen_tokens = []
 texts_outs = []
-for prompt in PROMPTS:
-    text_out = model.generate(
-        prompts=prompt,
-    )
-    print(f"Prompt: {prompt}\nGeneration {text_out}")
+text_out = model.generate(
+    prompts=prompt, max_new_tokens=256, do_sample=True, temperature=0.9
+)
+print(f"Prompt: {prompt}\nGeneration {text_out}")
 end_measures = end_measure(start_measures)
 log_measures(end_measures, "Model generation")
