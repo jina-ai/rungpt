@@ -30,6 +30,8 @@ class BaseModel(nn.Module, GenerationMixin):
 
         super().__init__()
 
+        self._model_name_or_path = model_name_or_path
+
         self._dtype, self._device = auto_dtype_and_device(dtype, device)
 
         self._device_map = device_map

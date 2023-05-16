@@ -55,7 +55,9 @@ def create_model(
             device_map=device_map,
             **kwargs,
         )
-    elif model_name.startswith('stabilityai/stablelm'):
+    elif model_name.startswith('stabilityai/stablelm') or model_name.startswith(
+        'CarperAI/stable-vicuna'
+    ):
         from .models.stablelm.modeling import StableLMModel
 
         return StableLMModel(

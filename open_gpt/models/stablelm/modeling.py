@@ -70,9 +70,18 @@ class StableLMModel(BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    @property
+    def is_vicuna_model(self):
+        return 'vicuna' in self._model_name_or_path
+
     def generate(self, prompts: Union[str, List[str]], **kwargs):
         """Generate text from the given prompt."""
 
+        # patch to fix the issue with StableLM not stopping on
         return super().generate(
-            prompts, stopping_criteria=StoppingCriteriaList([StopOnTokens()]), **kwargs
+            prompts,
+            stopping_criteria=StoppingCriteriaList([StopOnTokens()])
+            if not self.is_vicuna_model
+            else None,
+            **kwargs
         )
