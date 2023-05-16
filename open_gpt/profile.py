@@ -13,6 +13,11 @@ import psutil
 import torch
 from accelerate.utils import compute_module_sizes as _compute_module_sizes
 
+KB = 1 << 10
+MB = 1 << 20
+GB = 1 << 30
+T = 1e12
+
 
 def compute_module_sizes(model):
     return _compute_module_sizes(model)
@@ -86,10 +91,10 @@ def end_measure(start_measures):
     for i in range(torch.cuda.device_count()):
         measures[str(i)] = (
             torch.cuda.memory_allocated(i) - start_measures[str(i)]
-        ) / 2**20
+        ) / GB
         measures[f"{i}-peak"] = (
             torch.cuda.max_memory_allocated(i) - start_measures[str(i)]
-        ) / 2**20
+        ) / GB
 
     return measures
 
@@ -98,8 +103,8 @@ def log_measures(measures, description):
     print(f"{description}:")
     print(f"- Time: {measures['time']:.2f}s")
     for i in range(torch.cuda.device_count()):
-        print(f"- GPU {i} allocated: {measures[str(i)]:.2f}MiB")
+        print(f"- GPU {i} allocated: {measures[str(i)]:.3f}GiB")
         peak = measures[f"{i}-peak"]
-        print(f"- GPU {i} peak: {peak:.2f}MiB")
-    print(f"- CPU RAM allocated: {measures['cpu']:.2f}MiB")
-    print(f"- CPU RAM peak: {measures['cpu-peak']:.2f}MiB")
+        print(f"- GPU {i} peak: {peak:.3f}GiB")
+    print(f"- CPU RAM allocated: {measures['cpu']:.3f}GiB")
+    print(f"- CPU RAM peak: {measures['cpu-peak']:.3f}GiB")

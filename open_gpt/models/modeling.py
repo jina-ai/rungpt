@@ -4,13 +4,14 @@ import torch
 from torch import nn
 
 from ..helper import auto_dtype_and_device
+from ..logging import logger
+from .generation import GenerationMixin
 
 if TYPE_CHECKING:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-class BaseModel(nn.Module):
-
+class BaseModel(nn.Module, GenerationMixin):
     model: 'AutoModelForCausalLM'
     tokenizer: 'AutoTokenizer'
     no_split_module_classes: List[str] = None
@@ -22,19 +23,30 @@ class BaseModel(nn.Module):
         dtype: Optional[Union[str, torch.dtype]] = None,
         device: Optional[torch.device] = None,
         device_map: Optional[Union[str, List[int]]] = None,
+        eval_mode: bool = True,
         **kwargs,
     ):
         """Create a model of the given name."""
 
         super().__init__()
 
+        self._model_name_or_path = model_name_or_path
+
         self._dtype, self._device = auto_dtype_and_device(dtype, device)
 
         self._device_map = device_map
+        if not self._device_map:
+            logger.warning(
+                f'To turn on tensor parallelism, set `device_map` to a list of GPU ids rather than `None`'
+            )
+
+        self._eval_mode = eval_mode
 
         self.load_model_and_transforms(
             model_name_or_path, tokenizer_name_or_path=tokenizer_name_or_path
         )
+
+        self.post_init(**kwargs)
 
     def load_model_and_transforms(
         self, model_name_or_path: str, tokenizer_name_or_path: Optional[str] = None
@@ -50,38 +62,9 @@ class BaseModel(nn.Module):
             no_split_module_classes=self.no_split_module_classes,
         )
 
-        self.model.eval()
+        # turn the eval mode off `eval_mode=False` in training
+        if self._eval_mode:
+            self.model.eval()
 
-    def generate(self, prompts: Union[str, List[str]], **kwargs):
-        """Generate text from the given prompt."""
-
-        inputs = self.tokenizer(
-            [prompts] if isinstance(prompts, str) else prompts,
-            padding=True,
-            return_tensors="pt",
-        )
-
-        # Move inputs to the correct device
-        for k, v in inputs.items():
-            if isinstance(v, torch.Tensor):
-                inputs[k] = v.to(self._device)
-
-        with torch.inference_mode():
-            outputs = self.model.generate(**inputs, **kwargs)
-
-            texts_outs = []
-            for _, generated_sequence in enumerate(outputs):
-                generated_sequence = generated_sequence.tolist()
-                prompt = prompts[_] if isinstance(prompts, list) else prompts
-                prompt_len = len(prompt)
-
-                text = self.tokenizer.decode(
-                    generated_sequence,
-                    clean_up_tokenization_spaces=True,
-                    skip_special_tokens=True,
-                )
-
-                text = text[prompt_len:] if text[:prompt_len] == prompt else text
-                texts_outs.append(text)
-
-            return texts_outs
+    def post_init(self, **kwargs):
+        pass

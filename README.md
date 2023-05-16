@@ -3,7 +3,6 @@
 <p align="center">
 <a href="https://github.com/jina-ai/opengpt"><img src="https://github.com/jina-ai/opengpt/blob/main/.github/images/logo.png?" alt="OpenGPT: An open-source cloud-native large-scale multimodal model serving framework" width="300px"></a>
 <br>
-<br><br>
 </p>
 
 > "A playful and whimsical vector art of a Stochastic Tigger, wearing a t-shirt with a "GPT" text printed logo, surrounded by colorful geometric shapes.  –ar 1:1 –upbeta"
@@ -11,6 +10,11 @@
 > — Prompts and logo art was produced with  [PromptPerfect](https://promptperfect.jina.ai/) & [Stable Diffusion X](https://clipdrop.co/stable-diffusion)
 
 
+
+<p align="center">
+<a href="https://github.com/jina-ai/opengpt"><img src="https://github.com/jina-ai/opengpt/blob/main/.github/arts/logo.png?" alt="OpenGPT: An open-source cloud-native large-scale multimodal model serving framework" width="100px"></a>
+<br><br><br>
+</p>
 
 ![](https://img.shields.io/badge/Made%20with-JinaAI-blueviolet?style=flat)
 [![PyPI](https://img.shields.io/pypi/v/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
@@ -41,9 +45,11 @@ OpenGPT provides the following features to make it easy to deploy and serve **la
 
 ## Updates
 
-- **2023-05-12**: 🎉 We have released the first version `v0.0.1` of OpenGPT. You can install it with `pip install open_gpt_torch`.
+- **2023-05-12**: 🎉We have released the first version `v0.0.1` of OpenGPT. You can install it with `pip install open_gpt_torch`.
 
 ## Supported Models
+
+<details>
 
 OpenGPT supports the following models out of the box:
 
@@ -61,6 +67,8 @@ OpenGPT supports the following models out of the box:
   - [MiniGPT-4](https://minigpt-4.github.io/): aligns a frozen visual encoder with a frozen LLM, Vicuna, using just one projection layer. 
 
 For more details about the supported models, please see the [Model Zoo](./MODEL_ZOO.md).
+
+</details>
 
 
 ## Roadmap
@@ -98,13 +106,23 @@ output = model.generate(
 )
 ```
 
-We also provide some advanced features to allow you to host your models by using multiple GPUs:
-    
+> **Warning**
+> In the above example, we use `precision='fp16'` to reduce the memory usage and speed up the inference with some loss in accuracy on text generation tasks. 
+> You can also use `precision='fp32'` instead as you like for better performance. 
+
+> **Note**
+> It usually takes a while (several minutes) for the first time to download and load the model into the memory.
+
+
+In most cases of large model serving, the model cannot fit into a single GPU. To solve this problem, we also provide a `device_map` option (supported by `accecleate` package) to automatically partition the model and distribute it across multiple GPUs:
+
 ```python
 model = open_gpt.create_model(
-    'facebook/llama-7b', device='cuda', precision='fp16', device_map='balanced'
+    'facebook/llama-7b', precision='fp16', device_map='balanced'
 )
 ```
+
+See [examples on how to use opengpt with different models.](./examples)
 
 
 ## Build a model serving in one line
