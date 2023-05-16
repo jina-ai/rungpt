@@ -10,12 +10,6 @@
 > — Prompts and logo art was produced with  [PromptPerfect](https://promptperfect.jina.ai/) & [Stable Diffusion X](https://clipdrop.co/stable-diffusion)
 
 
-
-<p align="center">
-<a href="https://github.com/jina-ai/opengpt"><img src="https://github.com/jina-ai/opengpt/blob/main/.github/arts/logo.png?" alt="OpenGPT: An open-source cloud-native large-scale multimodal model serving framework" width="100px"></a>
-<br><br><br>
-</p>
-
 ![](https://img.shields.io/badge/Made%20with-JinaAI-blueviolet?style=flat)
 [![PyPI](https://img.shields.io/pypi/v/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
 [![PyPI - License](https://img.shields.io/pypi/l/open_gpt_torch)](https://pypi.org/project/open_gpt_torch/)
