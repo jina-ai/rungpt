@@ -58,8 +58,6 @@ class Gateway(BaseGateway, CompositeServer):
 
         super().__init__(**kwargs)
 
-        self.grpc_gateway, self.http_gateway, *_ = self.servers
-
         from fastapi import Body, status
         from fastapi.responses import JSONResponse
 
