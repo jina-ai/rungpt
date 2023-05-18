@@ -5,7 +5,7 @@ from cleo.helpers import argument, option
 class ServeCommand(Command):
     name = "serve"
 
-    description = "Start a model serving locally."
+    description = "Start a model serving."
 
     arguments = [argument("model_name", "The name of the model to serve.")]
     options = [
@@ -23,6 +23,7 @@ class ServeCommand(Command):
             flag=False,
             default=51002,
         ),
+        option('enable_cors', None, 'Enable CORS.', flag=True),
         option(
             "replicas", "r", "The number of replicas to serve.", flag=False, default=1
         ),
@@ -40,9 +41,10 @@ class ServeCommand(Command):
 
         with create_flow(
             self.argument('model_name'),
-            replicas=self.option('replicas'),
             grpc_port=self.option('grpc_port'),
             http_port=self.option('http_port'),
+            cors=self.option('enable_cors'),
+            replicas=self.option('replicas'),
         ) as flow:
             flow.block()
 

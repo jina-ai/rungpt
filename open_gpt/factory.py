@@ -101,9 +101,10 @@ def create_model(
 
 def create_flow(
     model_name_or_path: str,
-    replicas: int = 1,
     grpc_port: int = 51001,
     http_port: int = 51002,
+    cors: bool = False,
+    replicas: int = 1,
 ):
     from jina import Flow
 
@@ -116,7 +117,7 @@ def create_flow(
 
     # normalize the model name to be used as flow executor name
     norm_name = model_name_or_path.split('/')[-1]
-    norm_name = norm_name.replace('-', '_').lower()
+    norm_name = norm_name.replace('-', '_').replace('.', '_').lower()
 
     return (
         Flow()
@@ -124,7 +125,7 @@ def create_flow(
             uses=Gateway,
             port=[grpc_port, http_port],
             protocol=['grpc', 'http'],
-            cors=True,
+            cors=cors,
         )
         .add(
             uses=Executor,
