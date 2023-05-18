@@ -10,14 +10,18 @@ class ServeCommand(Command):
     arguments = [argument("model_name", "The name of the model to serve.")]
     options = [
         option(
-            "protocol",
+            'grpc_port',
             None,
-            "The protocol to serve the model on.",
+            'The gRPC port to serve the model on.',
             flag=False,
-            default="http",
+            default=51001,
         ),
         option(
-            "port", "p", "The port to serve the model on.", flag=False, default=51000
+            'http_port',
+            None,
+            'The HTTP port to serve the model on.',
+            flag=False,
+            default=51002,
         ),
         option(
             "replicas", "r", "The number of replicas to serve.", flag=False, default=1
@@ -36,9 +40,9 @@ class ServeCommand(Command):
 
         with create_flow(
             self.argument('model_name'),
-            protocol=self.option('protocol'),
-            port=self.option('port'),
             replicas=self.option('replicas'),
+            grpc_port=self.option('grpc_port'),
+            http_port=self.option('http_port'),
         ) as flow:
             flow.block()
 
