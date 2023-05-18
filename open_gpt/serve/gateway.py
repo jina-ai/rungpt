@@ -1,6 +1,7 @@
 """The serve module provides a simple way to serve a model using Jina."""
 from typing import List
 
+import jina
 from jina import DocumentArray
 from jina import Gateway as BaseGateway
 from jina.serve.runtimes.servers.composite import CompositeServer
@@ -11,23 +12,23 @@ class GenerateRequest(BaseModel):
     prompt: str = Field(..., description='The prompt to generate from.')
 
     # generation parameters
-    num_beams: int = Field(description='The number of beams to use.', nullable=True)
+    num_beams: int = Field(description='The number of beams to use.', default=None)
     max_length: int = Field(
-        description='The maximum length of the generated text.', nullable=True
+        description='The maximum length of the generated text.', default=None
     )
     temperature: float = Field(
-        description='The temperature of the generation.', nullable=True
+        description='The temperature of the generation.', default=None
     )
-    top_k: int = Field(description='The top k of the generation.', nullable=True)
-    top_p: float = Field(description='The top p of the generation.', nullable=True)
+    top_k: int = Field(description='The top k of the generation.', default=None)
+    top_p: float = Field(description='The top p of the generation.', default=None)
     repetition_penalty: float = Field(
-        description='The repetition penalty of the generation.', nullable=True
+        description='The repetition penalty of the generation.', default=None
     )
     do_sample: bool = Field(
-        description='Whether to sample from the generation.', nullable=True
+        description='Whether to sample from the generation.', default=None
     )
     num_return_sequences: int = Field(
-        description='The number of sequences to return.', nullable=True
+        description='The number of sequences to return.', default=None
     )
 
     class Config:
@@ -62,13 +63,16 @@ class Gateway(BaseGateway, CompositeServer):
         from fastapi import Body, status
         from fastapi.responses import JSONResponse
 
-        print(f'==> http: {self.http_gateway.app}')
+        def _extend_rest_function(app):
+            @app.api_route(path='/generate', methods=['POST'])
+            async def generate(payload: GenerateRequest = Body(...)):
+                """Generate text from a prompt."""
 
-        @self.http_gateway.app.post(path='/generate')
-        async def generate(request: GenerateRequest = Body(...)):
-            """Generate text from a prompt."""
+                return JSONResponse(
+                    status_code=status.HTTP_200_OK,
+                    content={'text': 'hello world'},
+                )
 
-            return JSONResponse(
-                status_code=status.HTTP_200_OK,
-                content={'text': 'hello world'},
-            )
+            return app
+
+        jina.helper.extend_rest_interface = _extend_rest_function
