@@ -31,8 +31,15 @@ class FlamingoExecutor(Executor):
         self._minibatch_size = minibatch_size
         self._thread_pool = ThreadPool(processes=num_workers)
 
+        # IMPORTANT: flamingo does not allow device_map to be set
+        # self._device_map = device_map
+        if device_map:
+            logger.warning(
+                '`device_map` is not supported in FlamingoExecutor. Ignored.'
+            )
+
         self.model = open_gpt.create_model(
-            model_name_or_path, precision=precision, device_map=device_map, **kwargs
+            model_name_or_path, precision=precision, device_map=None, **kwargs
         )
 
         # warmup the model to avoid the first-time slowness
