@@ -164,7 +164,7 @@ from open_gpt import Client
 client = Client()
 
 # connect to the model server
-model = client.get_model('grpc://0.0.0.0:51000')
+model = client.get_model(endpoint='grpc://0.0.0.0:51000')
 
 prompt = "The quick brown fox jumps over the lazy dog."
 
