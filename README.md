@@ -134,7 +134,7 @@ See [examples on how to use opengpt with different models.](./examples) 🔥
 To do so, you can use the `serve` command:
 
 ```bash
-opengpt serve facebook/llama-7b --precision fp16 --device_map balanced
+opengpt serve stabilityai/stablelm-tuned-alpha-3b --precision fp16 --device_map balanced
 ```
 
 This will start a gRPC and HTTP server listening on port `51000` and `52000` respectively. 
@@ -199,7 +199,7 @@ To do so, you can use `deploy` command:
 - Jina Cloud
 
 ```bash
-opengpt deploy facebook/llama-7b --device cuda --precision fp16 --provider jina --name opengpt --replicas 2
+opengpt deploy stabilityai/stablelm-tuned-alpha-3b --device cuda --precision fp16 --provider jina --name opengpt --replicas 2
 ```
 
 **TBD ...**
