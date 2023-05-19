@@ -34,4 +34,6 @@ def get_version() -> str:
 
 __version__ = get_version()
 
+from inference_client import Client
+
 from .factory import create_model
