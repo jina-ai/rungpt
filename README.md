@@ -125,7 +125,8 @@ In the above example, `device_map="balanced"` evenly split the model on all avai
 > **Note**
 > The `device_map` option is supported by the [accelerate](https://github.com/huggingface/accelerate) package. 
 
-See [examples on how to use opengpt with different models.](./examples)
+
+See [examples on how to use opengpt with different models.](./examples) 🔥
 
 
 ## Build a model serving in one line
