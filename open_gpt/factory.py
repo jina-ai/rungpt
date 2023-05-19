@@ -104,6 +104,7 @@ def create_flow(
     grpc_port: int = 51001,
     http_port: int = 51002,
     cors: bool = False,
+    uses_with: Optional[dict] = {},
     replicas: int = 1,
 ):
     from jina import Flow
@@ -119,6 +120,8 @@ def create_flow(
     norm_name = model_name_or_path.split('/')[-1]
     norm_name = norm_name.replace('-', '_').replace('.', '_').lower()
 
+    uses_with['model_name_or_path'] = model_name_or_path
+
     return (
         Flow()
         .config_gateway(
@@ -129,7 +132,7 @@ def create_flow(
         )
         .add(
             uses=Executor,
-            uses_with={'model_name_or_path': model_name_or_path},
+            uses_with=uses_with,
             name=f'{norm_name}_executor',
             replicas=replicas,
             timeout_ready=-1,
