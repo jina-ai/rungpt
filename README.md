@@ -84,7 +84,9 @@ pip install open_gpt_torch
 ```python
 import open_gpt
 
-model = open_gpt.create_model('facebook/llama-7b', device='cuda', precision='fp16')
+model = open_gpt.create_model(
+    'stabilityai/stablelm-tuned-alpha-3b', device='cuda', precision='fp16'
+)
 
 prompt = "The quick brown fox jumps over the lazy dog."
 
@@ -100,6 +102,8 @@ output = model.generate(
 )
 ```
 
+We use the [stabilityai/stablelm-tuned-alpha-3b](https://huggingface.co/stabilityai/stablelm-tuned-alpha-3b) as the open example model as it is relatively small and fast to download.
+
 > **Warning**
 > In the above example, we use `precision='fp16'` to reduce the memory usage and speed up the inference with some loss in accuracy on text generation tasks. 
 > You can also use `precision='fp32'` instead as you like for better performance. 
@@ -112,9 +116,14 @@ In most cases of large model serving, the model cannot fit into a single GPU. To
 
 ```python
 model = open_gpt.create_model(
-    'facebook/llama-7b', precision='fp16', device_map='balanced'
+    'stabilityai/stablelm-tuned-alpha-3b', precision='fp16', device_map='balanced'
 )
 ```
+
+In the above example, `device_map="balanced"` evenly split the model on all available GPUs, making it possible for you to serve large models.
+
+> **Note**
+> The `device_map` option is supported by the [accelerate](https://github.com/huggingface/accelerate) package. 
 
 See [examples on how to use opengpt with different models.](./examples)
 
