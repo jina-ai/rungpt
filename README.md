@@ -124,10 +124,17 @@ See [examples on how to use opengpt with different models.](./examples)
 To do so, you can use the `serve` command:
 
 ```bash
-opengpt serve facebook/llama-7b --precision fp16 --port 51000
+opengpt serve facebook/llama-7b --precision fp16 --device_map balanced
 ```
 
-This will start a server on port `51000`. You can then send requests to the server:
+This will start a gRPC and HTTP server listening on port `51000` and `52000` respectively. 
+Once the server is ready, as shown below:
+<details>
+<summary>Click to expand</summary>
+<img src="https://github.com/jina-ai/opengpt/blob/main/.github/images/serve_ready.png" width="600px">
+</details>
+
+You can then send requests to the server:
 
 ```python
 import requests
@@ -149,7 +156,6 @@ response = requests.post(
 )
 ```
 
-Note that the server will only accept requests from the same machine. If you want to accept requests from other machines, you can use the `--host` flag to specify the host to bind to.
 
 ## Cloud-native deployment
 

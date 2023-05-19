@@ -2,7 +2,7 @@
 from typing import List
 
 import jina
-from jina import DocumentArray
+from jina import Document, DocumentArray
 from jina import Gateway as BaseGateway
 from jina.serve.runtimes.servers.composite import CompositeServer
 from pydantic import BaseModel, Field
@@ -66,10 +66,30 @@ class Gateway(BaseGateway, CompositeServer):
             async def generate(payload: GenerateRequest = Body(...)):
                 """Generate text from a prompt."""
 
-                return JSONResponse(
-                    status_code=status.HTTP_200_OK,
-                    content={'text': 'hello world'},
+                parameters = payload.dict(
+                    exclude_unset=True,
+                    exclude_none=True,
+                    exclude_defaults=True,
+                    exclude={'prompt'},
                 )
+
+                async for docs, error in self.streamer.stream(
+                    docs=DocumentArray([Document(text=payload.prompt)]),
+                    exec_endpoint='/generate',
+                    parameters=parameters,
+                ):
+                    if error:
+                        return JSONResponse(
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            content={'message': error.name},
+                        )
+                    else:
+                        return JSONResponse(
+                            status_code=status.HTTP_200_OK,
+                            content={
+                                'generated_text': docs[0].tags.get('generated_text')
+                            },
+                        )
 
             return app
 
