@@ -156,6 +156,30 @@ response = requests.post(
 )
 ```
 
+What's more, we also provide a [Python client](https://github.com/jina-ai/inference-client/) (`inference-client`) for you to easily interact with the server:
+
+```python
+from open_gpt import Client
+
+client = Client()
+
+# connect to the model server
+model = client.get_model('grpc://0.0.0.0:51000')
+
+prompt = "The quick brown fox jumps over the lazy dog."
+
+output = model.generate(
+    prompt,
+    max_length=100,
+    temperature=0.9,
+    top_k=50,
+    top_p=0.95,
+    repetition_penalty=1.2,
+    do_sample=True,
+    num_return_sequences=1,
+)
+```
+
 
 ## Cloud-native deployment
 
