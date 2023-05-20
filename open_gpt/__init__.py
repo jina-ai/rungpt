@@ -34,6 +34,8 @@ def get_version() -> str:
 
 __version__ = get_version()
 
+_os.environ['NO_VERSION_CHECK'] = '1'
+
 from inference_client import Client
 
 from .factory import create_model

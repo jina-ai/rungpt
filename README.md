@@ -16,6 +16,8 @@
 
 **OpenGPT** is an open-source _cloud-native_ large-scale **_multimodal models_** (LMMs) serving framework. 
 It is designed to simplify the deployment and management of large language models, on a distributed cluster of GPUs.
+We aim to make it a one-stop solution for a centralized and accessible place to gather techniques for optimizing large-scale multimodal models and make them easy to use for everyone.
+
 
 ## Table of contents
 
@@ -137,6 +139,8 @@ To do so, you can use the `serve` command:
 opengpt serve stabilityai/stablelm-tuned-alpha-3b --precision fp16 --device_map balanced
 ```
 
+💡 **Tip**: you can inspect the available options with `opengpt serve --help`.
+
 This will start a gRPC and HTTP server listening on port `51000` and `52000` respectively. 
 Once the server is ready, as shown below:
 <details>
@@ -190,6 +194,7 @@ output = model.generate(
 )
 ```
 
+💡 **Tip**: To display the list of available commands, please use the `list` command.
 
 ## Cloud-native deployment
 
