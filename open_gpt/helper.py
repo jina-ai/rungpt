@@ -10,10 +10,9 @@ import torch.distributed as dist
 _PRECISION_TO_DTYPE = {
     'fp16': torch.float16,
     'fp32': torch.float32,
-    'int8': torch.int8,
-    'torch.float32': torch.float32,
-    'torch.float16': torch.float16,
-    'torch.int8': torch.int8,
+    'int8': torch.float16,
+    'float32': torch.float32,
+    'float16': torch.float16,
 }
 
 _DEFAULT_DTYPE = torch.float32
@@ -22,14 +21,14 @@ _DEFAULT_DTYPE = torch.float32
 def cast_torch_dtype(precision: Union[str, 'torch.dtype']):
     assert precision is not None
     if isinstance(precision, str):
-        return _PRECISION_TO_DTYPE.get(precision, precision)
+        return _PRECISION_TO_DTYPE.get(precision)
     elif isinstance(precision, torch.dtype):
         return precision
     else:
         return ValueError(f'Invalid precision: {precision}')
 
 
-def cast_precision(dtype: Optional[Union[str, 'torch.dtype']]):
+def cast_to_precision(dtype: Optional[Union[str, 'torch.dtype']]) -> str:
     if isinstance(dtype, str):
         return dtype
     elif dtype == torch.float32:

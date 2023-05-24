@@ -23,11 +23,7 @@ class LlamaModel(BaseModel):
                 inputs = self.tokenizer(
                     prompt,
                     return_tensors="pt",
-                )
-                # Move inputs to the correct device
-                for k, v in inputs.items():
-                    if isinstance(v, torch.Tensor):
-                        inputs[k] = v.to(self._device)
+                ).to(self._device)
 
                 inputs.pop('token_type_ids')
 

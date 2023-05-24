@@ -4,7 +4,6 @@ import torch
 from torch import nn
 
 from ..helper import auto_dtype_and_device
-from ..logging import logger
 from .generation import GenerationMixin
 
 if TYPE_CHECKING:
@@ -20,7 +19,7 @@ class BaseModel(nn.Module, GenerationMixin):
         self,
         model_name_or_path: str,
         tokenizer_name_or_path: Optional[str] = None,
-        dtype: Optional[Union[str, torch.dtype]] = None,
+        precision: str = 'fp32',
         device: Optional[torch.device] = None,
         device_map: Optional[Union[str, List[int]]] = None,
         eval_mode: bool = True,
@@ -32,13 +31,10 @@ class BaseModel(nn.Module, GenerationMixin):
 
         self._model_name_or_path = model_name_or_path
 
-        self._dtype, self._device = auto_dtype_and_device(dtype, device)
+        self._precision = precision
+        self._dtype, self._device = auto_dtype_and_device(precision, device)
 
         self._device_map = device_map
-        if not self._device_map:
-            logger.warning(
-                f'To turn on tensor parallelism, set `device_map` to a list of GPU ids rather than `None`'
-            )
 
         self._eval_mode = eval_mode
 
@@ -56,6 +52,7 @@ class BaseModel(nn.Module, GenerationMixin):
         self.model, self.tokenizer = load_model_and_tokenizer(
             model_name_or_path,
             tokenizer_name_or_path=tokenizer_name_or_path,
+            precision=self._precision,
             dtype=self._dtype,
             device=self._device,
             device_map=self._device_map,

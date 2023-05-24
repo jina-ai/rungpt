@@ -11,7 +11,8 @@ def load_model_and_tokenizer(
     model_name_or_path: str,
     tokenizer_name_or_path: Optional[str] = None,
     device: Optional[torch.device] = None,
-    dtype: Optional[Union[str, torch.dtype]] = None,
+    precision: Optional[str] = None,
+    dtype: Optional[torch.dtype] = None,
     device_map: Optional[Union[str, List[int]]] = None,
     no_split_module_classes: Optional[List[str]] = None,
     **kwargs,
@@ -38,8 +39,8 @@ def load_model_and_tokenizer(
     if tokenizer.pad_token is None:
         # Issue: GPT models don't have a pad token
         # tokenizer.add_special_tokens({"pad_token": "<PAD>"})
-        tokenizer.pad_token = tokenizer.eos_token
-        tokenizer.pad_token_id = tokenizer.eos_token_id
+        tokenizer.pad_token = tokenizer.unk_token
+        tokenizer.pad_token_id = tokenizer.unk_token_id
 
     # For generation padding tokens should be on the left
     tokenizer.padding_side = "left"
@@ -81,7 +82,7 @@ def load_model_and_tokenizer(
 
     logger.info(f"Loading model weights delta from {model_name_or_path}")
     delta = AutoModelForCausalLM.from_pretrained(
-        model_name_or_path, torch_dtype=torch.float16, low_cpu_mem_usage=True
+        model_name_or_path, torch_dtype=dtype, low_cpu_mem_usage=True
     )
     # adapted from `fastchat.model.apply_delta`
     for name, param in tqdm(model.state_dict().items(), desc="Applying delta"):
@@ -91,5 +92,13 @@ def load_model_and_tokenizer(
     # clean up delta to save memory
     delta = None
     torch.cuda.empty_cache()
+
+    # TODO: better way to do this?
+    if precision == 'bit8':
+        from transformers.utils.bitsandbytes import replace_8bit_linear
+
+        model = replace_8bit_linear(
+            model, threshold=6.0, modules_to_not_convert=["lm_head"]
+        )
 
     return model, tokenizer

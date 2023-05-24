@@ -54,14 +54,14 @@ class GenerationMixin:
     def generate(self, prompts: Union[str, List[str]], **kwargs):
         inputs = self.tokenizer(
             [prompts] if isinstance(prompts, str) else prompts,
-            padding=True,
+            padding='longest',
             return_tensors="pt",
-        )
+        ).to(self._device)
 
-        # Move inputs to the correct device
-        for k, v in inputs.items():
-            if isinstance(v, torch.Tensor):
-                inputs[k] = v.to(self._device)
+        # # Move inputs to the correct device
+        # for k, v in inputs.items():
+        #     if isinstance(v, torch.Tensor):
+        #         inputs[k] = v.to(self._device)
 
         # overwrite default values with kwargs
         clean_up_tokenization_spaces = kwargs.pop('clean_up_tokenization_spaces', True)
