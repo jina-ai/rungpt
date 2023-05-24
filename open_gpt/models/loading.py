@@ -2,8 +2,6 @@ from typing import List, Optional, Union
 
 import torch
 
-from open_gpt.helper import auto_dtype_and_device
-
 from ..logging import logger
 
 
