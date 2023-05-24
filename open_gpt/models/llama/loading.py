@@ -2,7 +2,7 @@ from typing import List, Optional, Union
 
 import torch
 
-from ..logging import logger
+from open_gpt.logging import logger
 
 
 def load_model_and_tokenizer(
@@ -18,20 +18,23 @@ def load_model_and_tokenizer(
     """Load a model and tokenizer from HuggingFace."""
     import os
 
-    from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
+    from transformers import AutoConfig, AutoModelForCausalLM
+    from transformers.models.llama.tokenization_llama import LlamaTokenizer
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        tokenizer_name_or_path or model_name_or_path, trust_remote_code=True
+    tokenizer = LlamaTokenizer.from_pretrained(
+        model_name_or_path or tokenizer_name_or_path
     )
 
     if tokenizer.pad_token is None:
         # Issue: GPT models don't have a pad token
+        # tokenizer.add_special_tokens({"pad_token": "<PAD>"})
         tokenizer.pad_token = tokenizer.unk_token
         tokenizer.pad_token_id = tokenizer.unk_token_id
 
     # For generation padding tokens should be on the left
     tokenizer.padding_side = "left"
 
+    logger.info(f"Loading llama base model from {model_name_or_path}")
     if device_map:
         import huggingface_hub
         from accelerate import init_empty_weights, load_checkpoint_and_dispatch
@@ -41,46 +44,25 @@ def load_model_and_tokenizer(
         else:
             model_path = model_name_or_path
 
-        config = AutoConfig.from_pretrained(model_name_or_path, trust_remote_code=True)
         with init_empty_weights():
+            config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
             model = AutoModelForCausalLM.from_config(
                 config, torch_dtype=dtype, trust_remote_code=True
             )
-            # make sure token embedding weights are still tied if needed
-            model.tie_weights()
 
-        if precision == 'bit8':
-            from jina.importer import ImportExtensions
-
-            with ImportExtensions(required=True):
-                import bitsandbytes as bnb
-
-            from transformers.utils.bitsandbytes import replace_8bit_linear
-
-            model = replace_8bit_linear(
-                model, threshold=6.0, modules_to_not_convert=["lm_head", "embed_out"]
-            )
-
-            # For some reason replace_8bit_linear creates parameters with requires_grad=True but it's irrelevant rn
-            for p in model.parameters():
-                p.requires_grad = False
+        # make sure token embedding weights are still tied if needed
+        model.tie_weights()
 
         model = load_checkpoint_and_dispatch(
             model,
             model_path,
             device_map=device_map,
             no_split_module_classes=no_split_module_classes,
-            dtype=dtype if precision != 'bit8' else None,
+            dtype=dtype,
         )
     else:
-        logger.warning(
-            f'To turn on tensor parallelism, set `device_map` to a list of GPU ids rather than `None`'
-        )
         model = AutoModelForCausalLM.from_pretrained(
-            model_name_or_path,
-            torch_dtype=dtype,
-            load_in_8bit=precision == 'bit8',
-            trust_remote_code=True,
+            model_name_or_path, torch_dtype=dtype, trust_remote_code=True
         )
         model.to(device)
 

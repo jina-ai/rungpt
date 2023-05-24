@@ -6,7 +6,7 @@ import torch
 
 def create_model(
     model_name: str,
-    precision: Optional[str] = None,
+    precision: str = 'fp32',
     device: Optional[Union[str, torch.device]] = None,
     device_map: Optional[Union[str, List[int]]] = None,
     **kwargs,
@@ -14,7 +14,7 @@ def create_model(
     """Create a model.
 
     :param model_name: The name of the model to create.
-    :param precision: The precision to use. Can be one of ``"float16"``, ``"float32"``, ``"float64"``, ``"bfloat16"``, ``"mixed"`` or ``None``.
+    :param precision: The precision to use for the model. Can be one of ``"fp16"``, ``"fp32"`` or ``"int8"``. Defaults to ``"fp32"``.
     :param device: The device to use. Can be one of ``"cpu"``, ``"cuda"``, ``"cuda:X"`` or ``None``.
     :param device_map: The device map to use. Can be one of ``"balanced"``, ``"single"`` or a list of device IDs.
     :param kwargs: Additional keyword arguments to pass to the model.

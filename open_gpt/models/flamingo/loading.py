@@ -30,7 +30,7 @@ def load_model_and_transforms(
     :param dtype: The dtype to load the model with.
     """
 
-    from ...helper import cast_precision
+    from ...helper import cast_to_precision
     from ..loading import load_model_and_tokenizer as load_llama_model_and_tokenizer
     from .flamingo_lm import FlamingoLMMixin
     from .flamingo_model import FlamingoLMModel
@@ -40,7 +40,7 @@ def load_model_and_transforms(
     ), f"`device_map={device_map}` is not supported for Flamingo models"
 
     # load the vision model
-    precision = cast_precision(dtype)
+    precision = cast_to_precision(dtype)
     model_name, *pretrained = vision_model_name_or_path.split("::")
     pretrained = pretrained[0] if len(pretrained) == 1 else 'openai'
     clip_model, _, image_processor = open_clip.create_model_and_transforms(

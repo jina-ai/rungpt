@@ -46,7 +46,6 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.dependencies]
 # Compatible Python versions
 python = ">=3.8,<4.0"
-# torch = {version = "<2.0.0+cu116", source="torch_cuda"} # a meta device requires torch >= 1.9.0
 jina = "^3.15.0"
 docarray = "^0.21.0"
 inference-client = "^0.0.4"
@@ -58,6 +57,7 @@ numpy = "^1.21.2"
 einops = "^0.6.0"
 transformers = "^4.28.0"
 open_clip_torch = "^2.16"
+bitsandbytes = "^0.38.0"
 accelerate = "^0.18.0"
 tqdm = "^4.62.3"
 

@@ -2,7 +2,6 @@ import dataclasses
 from typing import TYPE_CHECKING, List, Optional, Union, overload
 
 import torch
-from transformers import GenerationConfig
 
 if TYPE_CHECKING:
     from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -54,14 +53,9 @@ class GenerationMixin:
     def generate(self, prompts: Union[str, List[str]], **kwargs):
         inputs = self.tokenizer(
             [prompts] if isinstance(prompts, str) else prompts,
-            padding=True,
+            padding='longest',
             return_tensors="pt",
-        )
-
-        # Move inputs to the correct device
-        for k, v in inputs.items():
-            if isinstance(v, torch.Tensor):
-                inputs[k] = v.to(self._device)
+        ).to(self._device)
 
         # overwrite default values with kwargs
         clean_up_tokenization_spaces = kwargs.pop('clean_up_tokenization_spaces', True)
