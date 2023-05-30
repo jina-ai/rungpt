@@ -87,6 +87,16 @@ def create_model(
             device_map=device_map,
             **kwargs,
         )
+    elif model_name.startswith('RWKV/rwkv'):
+        from .models.rwkv.modeling import RWKVModel
+
+        return RWKVModel(
+            model_name,
+            device=device,
+            precision=precision,
+            device_map=device_map,
+            **kwargs,
+        )
     else:
         from .models.modeling import BaseModel
 
