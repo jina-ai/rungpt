@@ -2,7 +2,7 @@ from typing import List, Optional, Union
 
 import torch
 
-from open_gpt.logging import logger
+from open_gpt.logs import logger
 
 
 def load_model_and_tokenizer(
@@ -16,9 +16,7 @@ def load_model_and_tokenizer(
     **kwargs,
 ):
     """Load a model and tokenizer from HuggingFace."""
-    import os
-
-    from transformers import AutoConfig, AutoModelForCausalLM
+    from transformers import AutoModelForCausalLM
     from transformers.models.llama.tokenization_llama import LlamaTokenizer
 
     tokenizer = LlamaTokenizer.from_pretrained(
@@ -35,35 +33,32 @@ def load_model_and_tokenizer(
     tokenizer.padding_side = "left"
 
     logger.info(f"Loading llama base model from {model_name_or_path}")
-    if device_map:
-        import huggingface_hub
-        from accelerate import init_empty_weights, load_checkpoint_and_dispatch
+    quantization_config = None
+    if precision == 'bit8':
+        from transformers import BitsAndBytesConfig
 
-        if not os.path.exists(model_name_or_path):
-            model_path = huggingface_hub.snapshot_download(model_name_or_path)
-        else:
-            model_path = model_name_or_path
-
-        with init_empty_weights():
-            config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
-            model = AutoModelForCausalLM.from_config(
-                config, torch_dtype=dtype, trust_remote_code=True
-            )
-
-        # make sure token embedding weights are still tied if needed
-        model.tie_weights()
-
-        model = load_checkpoint_and_dispatch(
-            model,
-            model_path,
-            device_map=device_map,
-            no_split_module_classes=no_split_module_classes,
-            dtype=dtype,
+        quantization_config = BitsAndBytesConfig(
+            load_in_8bit=True,
+            llm_int8_enable_fp32_cpu_offload=True,
+            llm_int8_skip_modules=["lm_head", "LlamaDecoderLayer"],
         )
-    else:
-        model = AutoModelForCausalLM.from_pretrained(
-            model_name_or_path, torch_dtype=dtype, trust_remote_code=True
+    elif precision == 'bit4':
+        from transformers import BitsAndBytesConfig
+
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type='nf4',
         )
-        model.to(device)
+
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name_or_path,
+        torch_dtype=dtype or torch.float16,
+        quantization_config=quantization_config,
+        device_map={'': device or 0} if (device_map is None) else device_map,
+        low_cpu_mem_usage=True,
+        trust_remote_code=True,
+    )
 
     return model, tokenizer

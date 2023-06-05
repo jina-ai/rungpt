@@ -8,7 +8,7 @@ from docarray import DocumentArray
 from jina import Executor, requests
 
 import open_gpt
-from open_gpt.logging import logger
+from open_gpt.logs import logger
 
 
 class FlamingoExecutor(Executor):

@@ -3,7 +3,7 @@ import os
 import gradio as gr
 import mdtex2html
 
-from ...logging import logger
+from ...logs import logger
 from .gradio_chatbot import Chatbot
 from .gradio_css import code_highlight_css
 

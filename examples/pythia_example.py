@@ -17,8 +17,11 @@ PROMPTS = [
 
 
 start_measures = start_measure()
+# model = open_gpt.create_model(
+#     'EleutherAI/pythia-12b-deduped', precision='fp16', device_map='balanced'
+# )
 model = open_gpt.create_model(
-    'EleutherAI/pythia-12b-deduped', precision='fp16', device_map='balanced'
+    'EleutherAI/pythia-12b-deduped', precision='bit8', device_map='balanced'
 )
 end_measures = end_measure(start_measures)
 log_measures(end_measures, "Model loading")

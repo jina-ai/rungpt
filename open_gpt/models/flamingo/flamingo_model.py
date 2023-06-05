@@ -6,7 +6,7 @@ from einops import rearrange
 from open_flamingo.src.helpers import PerceiverResampler
 from torch import nn
 
-from open_gpt.logging import logger
+from open_gpt.logs import logger
 
 from ...helper import auto_dtype_and_device
 

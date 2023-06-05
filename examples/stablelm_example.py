@@ -2,9 +2,14 @@ import open_gpt
 from open_gpt.profile import end_measure, log_measures, start_measure
 
 start_measures = start_measure()
+# model = open_gpt.create_model(
+#     model_name='stabilityai/stablelm-tuned-alpha-7b',
+#     precision='fp16',
+#     device_map='balanced',
+# )
 model = open_gpt.create_model(
     model_name='stabilityai/stablelm-tuned-alpha-7b',
-    precision='fp16',
+    precision='bit8',
     device_map='balanced',
 )
 end_measures = end_measure(start_measures)
