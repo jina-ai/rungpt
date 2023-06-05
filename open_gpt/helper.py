@@ -11,6 +11,8 @@ _PRECISION_TO_DTYPE = {
     'fp16': torch.float16,
     'fp32': torch.float32,
     'int8': torch.float16,
+    'bit8': torch.float16,
+    'bit4': torch.float16,
     'float32': torch.float32,
     'float16': torch.float16,
 }

@@ -49,8 +49,6 @@ class MossModel(BaseModel):
 
     """
 
-    no_split_module_classes = ["MossBlock"]
-
     meta_instruction = (
         "You are an AI assistant whose name is MOSS.\n"
         "- MOSS is a conversational language model that is developed by Fudan University. "

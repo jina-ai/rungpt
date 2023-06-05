@@ -55,7 +55,9 @@ class GenerationMixin:
             [prompts] if isinstance(prompts, str) else prompts,
             padding='longest',
             return_tensors="pt",
-        ).to(self._device)
+        )
+        inputs.pop("token_type_ids", None)
+        inputs = inputs.to(self._device)
 
         # overwrite default values with kwargs
         clean_up_tokenization_spaces = kwargs.pop('clean_up_tokenization_spaces', True)

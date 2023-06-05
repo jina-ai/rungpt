@@ -1,5 +1,3 @@
-from typing import Optional
-
 from open_gpt.models.modeling import BaseModel
 
 
@@ -11,7 +9,7 @@ class PythiaModel(BaseModel):
 
     See https://github.com/EleutherAI/pythia for more information.
 
-    The quick way to use Vicuna via :meth:`open_gpt.create_model`:
+    The quick way to use Pythia via :meth:`open_gpt.create_model`:
 
     ```python
     import open_gpt
@@ -21,8 +19,3 @@ class PythiaModel(BaseModel):
     )
     ```
     """
-
-    no_split_module_classes = ["GPTNeoXLayer"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)

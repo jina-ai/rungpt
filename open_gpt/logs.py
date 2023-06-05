@@ -5,7 +5,7 @@ from loguru import logger
 
 
 def setup_logger():
-    logging_level = os.environ.get("OPENGPT_LOG_LEVEL", "INFO")
+    logging_level = os.environ.get("LOG_LEVEL", "INFO")
 
     logger.remove()
     logger.add(

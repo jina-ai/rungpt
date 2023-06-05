@@ -67,11 +67,6 @@ class StableLMModel(BaseModel):
     ```
     """
 
-    no_split_module_classes = ["GPTNeoXLayer"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     @property
     def is_vicuna_model(self):
         return 'vicuna' in self._model_name_or_path

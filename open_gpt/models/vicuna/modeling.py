@@ -34,13 +34,9 @@ class VicunaModel(LlamaModel):
 
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def load_model_and_transforms(
         self, model_name_or_path: str, tokenizer_name_or_path: Optional[str] = None
     ):
-
         from .loading import load_model_and_tokenizer
 
         self.model, self.tokenizer = load_model_and_tokenizer(

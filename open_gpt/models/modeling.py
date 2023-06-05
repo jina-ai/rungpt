@@ -13,13 +13,12 @@ if TYPE_CHECKING:
 class BaseModel(nn.Module, GenerationMixin):
     model: 'AutoModelForCausalLM'
     tokenizer: 'AutoTokenizer'
-    no_split_module_classes: List[str] = None
 
     def __init__(
         self,
         model_name_or_path: str,
         tokenizer_name_or_path: Optional[str] = None,
-        precision: str = 'fp32',
+        precision: str = 'fp16',
         device: Optional[torch.device] = None,
         device_map: Optional[Union[str, List[int]]] = None,
         eval_mode: bool = True,
@@ -56,7 +55,6 @@ class BaseModel(nn.Module, GenerationMixin):
             dtype=self._dtype,
             device=self._device,
             device_map=self._device_map,
-            no_split_module_classes=self.no_split_module_classes,
         )
 
         # turn the eval mode off `eval_mode=False` in training
