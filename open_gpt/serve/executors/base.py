@@ -8,7 +8,7 @@ from docarray import DocumentArray
 from jina import Executor, requests
 
 from open_gpt.factory import create_model
-from open_gpt.logging import logger
+from open_gpt.logs import logger
 
 
 class CausualLMExecutor(Executor):

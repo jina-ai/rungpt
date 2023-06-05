@@ -4,7 +4,7 @@ import open_clip
 import torch
 from open_flamingo.src.utils import extend_instance
 
-from open_gpt.logging import logger
+from open_gpt.logs import logger
 
 
 def load_model_and_transforms(

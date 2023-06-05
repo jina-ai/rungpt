@@ -4,7 +4,7 @@ import torch
 from tqdm import tqdm
 
 from open_gpt.helper import auto_dtype_and_device
-from open_gpt.logging import logger
+from open_gpt.logs import logger
 
 
 def load_model_and_tokenizer(

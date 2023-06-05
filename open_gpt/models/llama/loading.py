@@ -2,7 +2,7 @@ from typing import List, Optional, Union
 
 import torch
 
-from open_gpt.logging import logger
+from open_gpt.logs import logger
 
 
 def load_model_and_tokenizer(
