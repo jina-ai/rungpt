@@ -23,10 +23,19 @@ def load_model_and_tokenizer(
     import huggingface_hub
     import torch
 
-    assert precision not in [
-        'bit8',
-        'bit4',
-    ], 'bit8 and bit4 are not supported for Vicuna models.'
+    if precision in ['bit4', 'bit8']:
+        from packaging import version
+
+        from open_gpt import importlib_metadata
+
+        trf_version = importlib_metadata.version("transformers")
+        if 'dev' in trf_version:
+            trf_version = '.'.join(trf_version.split('.')[:-1])
+        supports_kbit = version.parse(trf_version) >= version.parse("4.30.0")
+        assert supports_kbit, (
+            f"Vicuna model k-bit quantization requires transformers >= v4.30.0, you have transformers=={trf_version}.\n"
+            f"You can install the latest transformers with `pip install git+https://github.com/huggingface/transformers`."
+        )
 
     from ..llama.loading import (
         load_model_and_tokenizer as llama_load_model_and_tokenizer,
@@ -35,10 +44,6 @@ def load_model_and_tokenizer(
     model_size = model_name_or_path.split('-')[-3]
 
     llama_model_name_or_path = f"decapoda-research/llama-{model_size}-hf"
-
-    logger.info(
-        f"Loading llama-{model_size} base model from {llama_model_name_or_path}"
-    )
 
     model, tokenizer = llama_load_model_and_tokenizer(
         llama_model_name_or_path,
@@ -95,5 +100,75 @@ def load_model_and_tokenizer(
         # Make sure memory is freed before we load the next state dict.
         del state_dict
         gc.collect()
+
+    # TODO: This is a hack to quantize the model after loading the weights, and the codes are adapted from
+    # https://github.com/huggingface/transformers/blob/main/src/transformers/modeling_utils.py#L2680
+    if precision in ['bit4', 'bit8']:
+        from transformers import BitsAndBytesConfig
+        from transformers.utils.bitsandbytes import (
+            get_keys_to_not_convert,
+            replace_with_bnb_linear,
+        )
+
+        logger.info(f"Quantizing model to {precision} precision")
+
+        model.is_quantized = True
+        keep_in_fp32_modules = getattr(model, '_keep_in_fp32_modules', None) or []
+
+        if precision == 'bit8':
+            model.is_loaded_in_8bit = True
+            quantization_config = BitsAndBytesConfig(
+                load_in_8bit=True,
+                llm_int8_enable_fp32_cpu_offload=True,
+                llm_int8_skip_modules=["lm_head"],
+            )
+        else:
+            model.is_loaded_in_4bit = True
+            quantization_config = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_compute_dtype=torch.bfloat16,
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_quant_type='nf4',
+                llm_int8_skip_modules=["lm_head", "LlamaDecoderLayer"],
+            )
+
+        llm_int8_skip_modules = quantization_config.llm_int8_skip_modules
+        load_in_8bit_fp32_cpu_offload = (
+            quantization_config.llm_int8_enable_fp32_cpu_offload
+        )
+
+        # We keep some modules such as the lm_head in their original dtype for numerical stability reasons
+        if llm_int8_skip_modules is None:
+            modules_to_not_convert = get_keys_to_not_convert(model) or []
+        else:
+            modules_to_not_convert = llm_int8_skip_modules
+
+        if not isinstance(modules_to_not_convert, list):
+            modules_to_not_convert = [modules_to_not_convert]
+
+        modules_to_not_convert.extend(keep_in_fp32_modules)
+
+        # Extend the modules to not convert to keys that are supposed to be offloaded to `cpu` or `disk`
+        if isinstance(device_map, dict) and len(device_map.keys()) > 1:
+            logger.debug(f"device_map: {device_map}")
+            keys_on_cpu = [
+                key for key, value in device_map.items() if value in ["disk", "cpu"]
+            ]
+
+            if len(keys_on_cpu) > 0 and not load_in_8bit_fp32_cpu_offload:
+                raise ValueError(
+                    "If you want to offload some keys to `cpu` or `disk`, you need to set "
+                    "`llm_int8_enable_fp32_cpu_offload=True`. Note that these modules will not be "
+                    " converted to 8-bit but kept in 32-bit."
+                )
+
+            modules_to_not_convert.extend(keys_on_cpu)
+
+        model = replace_with_bnb_linear(
+            model,
+            modules_to_not_convert=modules_to_not_convert,
+            quantization_config=quantization_config,
+        )
+        model.config.quantization_config = quantization_config
 
     return model, tokenizer

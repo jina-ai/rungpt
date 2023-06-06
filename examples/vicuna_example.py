@@ -18,7 +18,7 @@ PROMPTS = [
 
 start_measures = start_measure()
 model = open_gpt.create_model(
-    'lmsys/vicuna-7b-delta-v1.1', precision='fp16', device_map='balanced'
+    'lmsys/vicuna-7b-delta-v1.1', precision='bit8', device_map='balanced'
 )
 end_measures = end_measure(start_measures)
 log_measures(end_measures, "Model loading")

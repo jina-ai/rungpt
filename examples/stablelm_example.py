@@ -9,7 +9,7 @@ start_measures = start_measure()
 # )
 model = open_gpt.create_model(
     model_name='stabilityai/stablelm-tuned-alpha-7b',
-    precision='bit8',
+    precision='bit4',
     device_map='balanced',
 )
 end_measures = end_measure(start_measures)

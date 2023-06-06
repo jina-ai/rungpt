@@ -43,7 +43,19 @@ def load_model_and_tokenizer(
             llm_int8_skip_modules=["lm_head", "LlamaDecoderLayer"],
         )
     elif precision == 'bit4':
+        from packaging import version
         from transformers import BitsAndBytesConfig
+
+        from open_gpt import importlib_metadata
+
+        trf_version = importlib_metadata.version("transformers")
+        if 'dev' in trf_version:
+            trf_version = '.'.join(trf_version.split('.')[:-1])
+        supports_kbit = version.parse(trf_version) >= version.parse("4.30.0")
+        assert supports_kbit, (
+            f"Vicuna model k-bit quantization requires transformers >= v4.30.0, you have transformers=={trf_version}.\n"
+            f"You can install the latest transformers with `pip install git+https://github.com/huggingface/transformers`."
+        )
 
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
