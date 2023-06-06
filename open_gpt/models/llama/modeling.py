@@ -21,6 +21,7 @@ class LlamaModel(BaseModel):
             model_name_or_path,
             tokenizer_name_or_path=tokenizer_name_or_path,
             dtype=self._dtype,
+            precision=self._precision,
             device=self._device,
             device_map=self._device_map,
         )
