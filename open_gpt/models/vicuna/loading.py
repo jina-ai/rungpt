@@ -129,6 +129,7 @@ def load_model_and_tokenizer(
                 bnb_4bit_compute_dtype=torch.bfloat16,
                 bnb_4bit_use_double_quant=True,
                 bnb_4bit_quant_type='nf4',
+                llm_int8_enable_fp32_cpu_offload=True,
                 llm_int8_skip_modules=["lm_head", "LlamaDecoderLayer"],
             )
 
@@ -150,7 +151,6 @@ def load_model_and_tokenizer(
 
         # Extend the modules to not convert to keys that are supposed to be offloaded to `cpu` or `disk`
         if isinstance(device_map, dict) and len(device_map.keys()) > 1:
-            logger.debug(f"device_map: {device_map}")
             keys_on_cpu = [
                 key for key, value in device_map.items() if value in ["disk", "cpu"]
             ]
