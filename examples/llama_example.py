@@ -16,10 +16,11 @@ PROMPTS = [
 ]
 
 
-# start_measures = start_measure()
+start_measures = start_measure()
 # model = open_gpt.create_model(
 #     'decapoda-research/llama-7b-hf', precision='float16', device_map='balanced'
 # )
+
 # test lora
 model = open_gpt.create_model(
     'decapoda-research/llama-7b-hf',
@@ -41,6 +42,7 @@ model = open_gpt.create_model(
     peft_model_id_or_path='./my-qlora',
     device_map='balanced',
 )
+
 # model = open_gpt.create_model(
 #     'yahma/llama-7b-hf', precision='bit8', device_map='balanced'
 # )
@@ -49,8 +51,8 @@ model = open_gpt.create_model(
 #     precision='bit8',
 #     device_map='balanced',
 # )
-# end_measures = end_measure(start_measures)
-# log_measures(end_measures, "Model loading")
+end_measures = end_measure(start_measures)
+log_measures(end_measures, "Model loading")
 
 PROMPTS = [
     "Hello, my name is",
@@ -61,22 +63,22 @@ PROMPTS = [
     "Whenever I'm sad, I like to",
 ]
 
-# start_measures = start_measure()
+start_measures = start_measure()
 for prompt in PROMPTS:
     generated_text = model.generate(
         prompts=prompt, max_new_tokens=50, do_sample=True, temperature=0.9
     )
     print(f'==> {prompt} {generated_text}')
-# end_measures = end_measure(start_measures)
-# log_measures(end_measures, "Model generation (single)")
+end_measures = end_measure(start_measures)
+log_measures(end_measures, "Model generation (single)")
 
 
 # batch style
-# start_measures = start_measure()
-# generated_text = model.generate(
-#     prompts=PROMPTS, max_new_tokens=50, do_sample=True, temperature=0.9
-# )
-# for s, p in zip(generated_text, PROMPTS):
-#     print(f'==> {p} {s}')
-# end_measures = end_measure(start_measures)
-# log_measures(end_measures, "Model generation (batch)")
+start_measures = start_measure()
+generated_text = model.generate(
+    prompts=PROMPTS, max_new_tokens=50, do_sample=True, temperature=0.9
+)
+for s, p in zip(generated_text, PROMPTS):
+    print(f'==> {p} {s}')
+end_measures = end_measure(start_measures)
+log_measures(end_measures, "Model generation (batch)")
