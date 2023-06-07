@@ -14,7 +14,10 @@ class FlamingoModel(BaseModel):
         super().__init__(*args, **kwargs)
 
     def load_model_and_transforms(
-        self, model_name_or_path: str, tokenizer_name_or_path: Optional[str] = None
+        self,
+        model_name_or_path: str,
+        peft_model_id_or_path: Optional[str] = None,
+        tokenizer_name_or_path: Optional[str] = None,
     ):
         from .loading import load_model_and_transforms
 
@@ -22,6 +25,7 @@ class FlamingoModel(BaseModel):
             model_name_or_path,
             vision_model_name_or_path='ViT-L-14::openai',
             lang_model_name_or_path='facebook/llama-7b',
+            peft_model_id_or_path=peft_model_id_or_path,
             tokenizer_name_or_path=tokenizer_name_or_path,
             dtype=self._dtype,
             device=self._device,

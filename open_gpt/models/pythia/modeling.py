@@ -18,4 +18,17 @@ class PythiaModel(BaseModel):
         'EleutherAI/pythia-12b-deduped', precision='fp16', device_map='balanced'
     )
     ```
+
+    If you want to use LORA for inference, you can do:
+
+    ```python
+    import open_gpt
+
+    model = open_gpt.create_model(
+        'EleutherAI/pythia-12b-deduped',
+        precision='bit8',
+        peft_model_id_or_path='LORA_MODEL_ID',
+        device_map='balanced',
+    )
+    ```
     """

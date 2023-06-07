@@ -8,6 +8,7 @@ from open_gpt.logs import logger
 
 def load_model_and_tokenizer(
     model_name_or_path: str,
+    peft_model_id_or_path: Optional[str] = None,
     tokenizer_name_or_path: Optional[str] = None,
     device: Optional[torch.device] = None,
     precision: Optional[str] = None,
@@ -47,6 +48,7 @@ def load_model_and_tokenizer(
 
     model, tokenizer = llama_load_model_and_tokenizer(
         llama_model_name_or_path,
+        peft_model_id_or_path=peft_model_id_or_path,
         tokenizer_name_or_path=tokenizer_name_or_path,
         device=device,
         precision='fp16',
@@ -55,7 +57,10 @@ def load_model_and_tokenizer(
         **kwargs,
     )
 
-    logger.info(f"Loading model weights delta from {model_name_or_path}")
+    logger.info(
+        f"Loading model weights delta from {model_name_or_path}, "
+        f"loading LORA weights from {peft_model_id_or_path}"
+    )
     if not os.path.exists(model_name_or_path):
         model_path = huggingface_hub.snapshot_download(model_name_or_path)
     else:

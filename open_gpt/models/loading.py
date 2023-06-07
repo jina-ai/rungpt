@@ -7,10 +7,10 @@ from open_gpt.logs import logger
 
 def load_model_and_tokenizer(
     model_name_or_path: str,
+    peft_model_id_or_path: Optional[str] = None,
     tokenizer_name_or_path: Optional[str] = None,
     device: Optional[str] = None,
     precision: Optional[str] = None,
-    peft_model_id_or_path: Optional[str] = None,
     dtype: Optional[torch.dtype] = None,
     device_map: Optional[Union[str, List[int]]] = None,
     **kwargs,

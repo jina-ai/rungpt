@@ -43,6 +43,7 @@ def create_model(
 
         return VicunaModel(
             model_name,
+            peft_model_id_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -53,6 +54,7 @@ def create_model(
 
         return PythiaModel(
             model_name,
+            peft_model_id_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -65,6 +67,7 @@ def create_model(
 
         return StableLMModel(
             model_name,
+            peft_model_id_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -75,6 +78,7 @@ def create_model(
 
         return MossModel(
             model_name,
+            peft_model_id_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -85,6 +89,7 @@ def create_model(
 
         return FlamingoModel(
             model_name,
+            peft_model_id_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -95,6 +100,7 @@ def create_model(
 
         return RWKVModel(
             model_name,
+            peft_model_id_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -105,6 +111,7 @@ def create_model(
 
         return BaseModel(
             model_name,
+            peft_model_id_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -117,6 +124,7 @@ def create_flow(
     grpc_port: int = 51001,
     http_port: int = 51002,
     cors: bool = False,
+    peft_model_id_or_path: Optional[str] = None,
     uses_with: Optional[dict] = {},
     replicas: int = 1,
 ):
@@ -134,6 +142,7 @@ def create_flow(
     norm_name = norm_name.replace('-', '_').replace('.', '_').lower()
 
     uses_with['model_name_or_path'] = model_name_or_path
+    uses_with['peft_model_id_or_path'] = peft_model_id_or_path
 
     return (
         Flow()

@@ -17,6 +17,7 @@ class BaseModel(nn.Module, GenerationMixin):
     def __init__(
         self,
         model_name_or_path: str,
+        peft_model_id_or_path: Optional[str] = None,
         tokenizer_name_or_path: Optional[str] = None,
         precision: str = 'fp16',
         device: Optional[torch.device] = None,
@@ -29,6 +30,7 @@ class BaseModel(nn.Module, GenerationMixin):
         super().__init__()
 
         self._model_name_or_path = model_name_or_path
+        self._peft_model_id_or_path = peft_model_id_or_path
 
         self._precision = precision
         self._dtype, self._device = auto_dtype_and_device(precision, device)
@@ -44,12 +46,16 @@ class BaseModel(nn.Module, GenerationMixin):
         self.post_init(**kwargs)
 
     def load_model_and_transforms(
-        self, model_name_or_path: str, tokenizer_name_or_path: Optional[str] = None
+        self,
+        model_name_or_path: str,
+        peft_model_id_or_path: Optional[str] = None,
+        tokenizer_name_or_path: Optional[str] = None,
     ):
         from .loading import load_model_and_tokenizer
 
         self.model, self.tokenizer = load_model_and_tokenizer(
             model_name_or_path,
+            peft_model_id_or_path=peft_model_id_or_path,
             tokenizer_name_or_path=tokenizer_name_or_path,
             precision=self._precision,
             dtype=self._dtype,
