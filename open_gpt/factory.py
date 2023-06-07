@@ -7,6 +7,7 @@ import torch
 def create_model(
     model_name: str,
     precision: str = 'fp32',
+    peft_model_id_or_path: Optional[str] = None,
     device: Optional[Union[str, torch.device]] = None,
     device_map: Optional[Union[str, List[int]]] = None,
     **kwargs,
@@ -14,6 +15,7 @@ def create_model(
     """Create a model.
 
     :param model_name: The name of the model to create.
+    :param peft_model_id_or_path: The name of LORA model used.
     :param precision: The precision to use for the model. Can be one of ``"fp16"``, ``"fp32"`` or ``"int8"``. Defaults to ``"fp32"``.
     :param device: The device to use. Can be one of ``"cpu"``, ``"cuda"``, ``"cuda:X"`` or ``None``.
     :param device_map: The device map to use. Can be one of ``"balanced"``, ``"single"`` or a list of device IDs.
@@ -27,6 +29,7 @@ def create_model(
 
         return LlamaModel(
             model_name,
+            peft_model_id_or_path,
             device=device,
             precision=precision,
             device_map=device_map,

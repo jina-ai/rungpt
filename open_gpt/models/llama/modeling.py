@@ -12,13 +12,17 @@ class LlamaModel(BaseModel):
         super().__init__(*args, **kwargs)
 
     def load_model_and_transforms(
-        self, model_name_or_path: str, tokenizer_name_or_path: Optional[str] = None
+        self,
+        model_name_or_path: str,
+        peft_model_id_or_path: Optional[str] = None,
+        tokenizer_name_or_path: Optional[str] = None,
     ):
 
         from .loading import load_model_and_tokenizer
 
         self.model, self.tokenizer = load_model_and_tokenizer(
             model_name_or_path,
+            peft_model_id_or_path=peft_model_id_or_path,
             tokenizer_name_or_path=tokenizer_name_or_path,
             dtype=self._dtype,
             precision=self._precision,
