@@ -75,7 +75,7 @@ plugins:
 #        'tutorials/stable-diffusion.md': 'examples/stable-diffusion.md'
 #        'tutorials/tensorboard.md': 'examples/tensorboard.md'
 #        'tutorials/wandb.md': 'examples/wandb.md'
-  - typeset
+#  - typeset
 
 # Extensions
 markdown_extensions:
