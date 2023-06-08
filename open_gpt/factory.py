@@ -29,7 +29,7 @@ def create_model(
 
         return LlamaModel(
             model_name,
-            adapter_name_or_path,
+            adapter_name_or_path=adapter_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -41,6 +41,8 @@ def create_model(
         ), 'You are using an outdated model, please use the newer version ``v1.1+``'
         from .models.vicuna.modeling import VicunaModel
 
+        assert adapter_name_or_path is None, 'Vicuna does not support adapter'
+
         return VicunaModel(
             model_name,
             device=device,
@@ -50,6 +52,8 @@ def create_model(
         )
     elif model_name.startswith('EleutherAI/pythia'):
         from .models.pythia.modeling import PythiaModel
+
+        assert adapter_name_or_path is None, 'Pythia does not support adapter'
 
         return PythiaModel(
             model_name,
@@ -63,6 +67,8 @@ def create_model(
     ):
         from .models.stablelm.modeling import StableLMModel
 
+        assert adapter_name_or_path is None, 'StableLM does not support adapter'
+
         return StableLMModel(
             model_name,
             device=device,
@@ -72,6 +78,8 @@ def create_model(
         )
     elif model_name.startswith('fnlp/moss'):
         from .models.moss.modeling import MossModel
+
+        assert adapter_name_or_path is None, 'Moss does not support adapter'
 
         return MossModel(
             model_name,
@@ -83,6 +91,8 @@ def create_model(
     elif model_name.startswith('openflamingo/OpenFlamingo'):
         from .models.flamingo.modeling import FlamingoModel
 
+        assert adapter_name_or_path is None, 'Flamingo does not support adapter'
+
         return FlamingoModel(
             model_name,
             device=device,
@@ -92,6 +102,8 @@ def create_model(
         )
     elif model_name.startswith('RWKV/rwkv'):
         from .models.rwkv.modeling import RWKVModel
+
+        assert adapter_name_or_path is None, 'RWKV does not support adapter'
 
         return RWKVModel(
             model_name,
@@ -105,6 +117,7 @@ def create_model(
 
         return BaseModel(
             model_name,
+            adapter_name_or_path=adapter_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,

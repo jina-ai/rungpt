@@ -14,19 +14,10 @@ def load_model_and_tokenizer(
     device_map: Optional[Union[str, List[int]]] = None,
     **kwargs,
 ):
-    """Load a model, tokenizer, adapter model from HuggingFace / local.
+    """Load model and tokenizer from HuggingFace / local.
 
     :param model_name_or_path: The model id or path to load the model from.
     :param tokenizer_name_or_path: The tokenizer id or path to load the tokenizer from.
-    :param adapter_name_or_path: The adapter model name or path to load the adapter model from.
-    (`str` or `os.PathLike`)
-    The name of the adapter configuration to use. Can be either:
-    - A string, the `model id` of a adapter configuration hosted inside a model repo on the Hugging Face
-      Hub.
-    - A path to a directory containing a adapter configuration file saved using the `save_pretrained`
-      method (`./my_adapter_config_directory/`).
-
-
     """
 
     from transformers import AutoModelForCausalLM

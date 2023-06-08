@@ -40,7 +40,9 @@ class BaseModel(nn.Module, GenerationMixin):
         self._eval_mode = eval_mode
 
         self.load_model_and_transforms(
-            model_name_or_path, tokenizer_name_or_path=tokenizer_name_or_path
+            model_name_or_path,
+            adapter_name_or_path=adapter_name_or_path,
+            tokenizer_name_or_path=tokenizer_name_or_path,
         )
 
         self.post_init(**kwargs)
