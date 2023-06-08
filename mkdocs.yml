@@ -23,7 +23,7 @@ theme:
     repo: custom/github
     edit: material/pencil
   font:
-    text: Source Sans Pro
+    text: Poppins
     code: IBM Plex Mono
   palette:
     - media: "(prefers-color-scheme: light)"
