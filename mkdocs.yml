@@ -57,25 +57,12 @@ theme:
 
 # Plugins
 plugins:
-#  - blog:
-#      blog_dir: blog
-#      blog_toc: true
-#  - social:
-#      cards_layout_options:
-#        background_color: "black"
-#        color: "#FFFFFF"
-#        font_family: Roboto
   - search
   - redirects:
       redirect_maps:
         'quickstart.md': 'docs/index.md'
         'docs/quick-start.md': 'docs/index.md'
         'docs/installation/index.md': 'docs/index.md'
-#        'tutorials/dolly.md': 'examples/dolly.md'
-#        'tutorials/stable-diffusion.md': 'examples/stable-diffusion.md'
-#        'tutorials/tensorboard.md': 'examples/tensorboard.md'
-#        'tutorials/wandb.md': 'examples/wandb.md'
-#  - typeset
 
 # Extensions
 markdown_extensions:
@@ -112,6 +99,7 @@ extra_css:
   - assets/stylesheets/extra.css
   - assets/stylesheets/termynal.css
   - assets/stylesheets/landing.css
+  - assets/stylesheets/font.css
 extra_javascript:
   - assets/javascripts/extra.js
   - assets/javascripts/termynal.js
@@ -128,10 +116,10 @@ extra:
       link: https://pypi.org/project/open-gpt-torch
 #    - icon: /fontawesome/brands/docker
 #      link: https://hub.docker.com/r/jina-ai/opengpt
-#    - icon: /fontawesome/brands/slack
-#      link: https://join.slack.com/t/dstackai/shared_invite/zt-xdnsytie-D4qU9BvJP8vkbkHXdi6clQ
-#    - icon: /fontawesome/brands/twitter
-#      link: https://twitter.com/dstackai
+    - icon: /fontawesome/brands/discord
+      link: https://discord.gg/yaNVaaGSXZ
+    - icon: /fontawesome/brands/twitter
+      link: https://twitter.com/JinaAI_
   status:
     new: Recently added
 # Page tree
@@ -140,21 +128,14 @@ nav:
   - Docs:
       - Getting started:
           - Quick start: docs/index.md
-#          - Installation:
-#              - Docker: docs/deployment/docker.md
-#              - Hugging Face Spaces: docs/deployment/hf-spaces.md
-#              - Clouds: docs/deployment/clouds.md
       - Guides:
-#          - Dev environments: docs/guides/dev-environments.md
-#          - Tasks: docs/guides/tasks.md
-#          - Artifacts: docs/guides/artifacts.md
           - Projects: docs/guides/projects.md
       - Reference:
           - CLI:
               - opengpt serve: docs/reference/cli/start.md
               - opengpt deploy: docs/reference/cli/start.md
   - Examples: https://github.com/jina-ai/opengpt/blob/main/examples
-#  - Slack: https://join.slack.com/t/dstackai/shared_invite/zt-xdnsytie-D4qU9BvJP8vkbkHXdi6clQ
+  - Discord: https://discord.gg/yaNVaaGSXZ
   - Blog:
       - blog/index.md
-#  - Twitter: https://twitter.com/jina-ai/
+  - Twitter: https://twitter.com/JinaAI_
