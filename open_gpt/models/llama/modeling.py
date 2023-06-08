@@ -30,6 +30,6 @@ class LlamaModel(BaseModel):
         )
 
         if adapter_name_or_path:
-            self.load_adapter()
+            self.load_adapter(adapter_name_or_path)
 
         self.model.eval()

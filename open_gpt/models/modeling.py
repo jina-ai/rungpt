@@ -62,8 +62,8 @@ class BaseModel(nn.Module, GenerationMixin):
             device_map=self._device_map,
         )
 
-        if self._adapter_name_or_path is not None:
-            self.load_adapter()
+        if adapter_name_or_path is not None:
+            self.load_adapter(adapter_name_or_path)
 
         # turn the eval mode off `eval_mode=False` in training
         if self._eval_mode:
@@ -72,12 +72,12 @@ class BaseModel(nn.Module, GenerationMixin):
     def post_init(self, **kwargs):
         pass
 
-    def load_adapter(self):
+    def load_adapter(self, adapter_name_or_path: str):
         from peft import PeftModel
 
         self.model = PeftModel.from_pretrained(
             self.model,
-            self._adapter_name_or_path,
+            adapter_name_or_path,
             device_map={'': self._device or 0}
             if (self._device_map is None)
             else self._device_map,
