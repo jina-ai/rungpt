@@ -23,5 +23,7 @@ jobs:
           pip install pillow cairosvg
           sudo apt-get install -y libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
           pip install mkdocs-material mkdocs-material-extensions mkdocs-redirects --upgrade
+          pwd
+          ls ../
           mkdocs gh-deploy --config-file ../opengpt/mkdocs.yml --force
         working-directory: ./opengpt.github.io
