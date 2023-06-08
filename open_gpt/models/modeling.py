@@ -17,6 +17,7 @@ class BaseModel(nn.Module, GenerationMixin):
     def __init__(
         self,
         model_name_or_path: str,
+        adapter_name_or_path: Optional[str] = None,
         tokenizer_name_or_path: Optional[str] = None,
         precision: str = 'fp16',
         device: Optional[torch.device] = None,
@@ -29,6 +30,7 @@ class BaseModel(nn.Module, GenerationMixin):
         super().__init__()
 
         self._model_name_or_path = model_name_or_path
+        self._adapter_name_or_path = adapter_name_or_path
 
         self._precision = precision
         self._dtype, self._device = auto_dtype_and_device(precision, device)
@@ -38,13 +40,18 @@ class BaseModel(nn.Module, GenerationMixin):
         self._eval_mode = eval_mode
 
         self.load_model_and_transforms(
-            model_name_or_path, tokenizer_name_or_path=tokenizer_name_or_path
+            model_name_or_path,
+            adapter_name_or_path=adapter_name_or_path,
+            tokenizer_name_or_path=tokenizer_name_or_path,
         )
 
         self.post_init(**kwargs)
 
     def load_model_and_transforms(
-        self, model_name_or_path: str, tokenizer_name_or_path: Optional[str] = None
+        self,
+        model_name_or_path: str,
+        adapter_name_or_path: Optional[str] = None,
+        tokenizer_name_or_path: Optional[str] = None,
     ):
         from .loading import load_model_and_tokenizer
 
@@ -57,9 +64,23 @@ class BaseModel(nn.Module, GenerationMixin):
             device_map=self._device_map,
         )
 
+        if adapter_name_or_path is not None:
+            self.load_adapter(adapter_name_or_path)
+
         # turn the eval mode off `eval_mode=False` in training
         if self._eval_mode:
             self.model.eval()
 
     def post_init(self, **kwargs):
         pass
+
+    def load_adapter(self, adapter_name_or_path: str):
+        from peft import PeftModel
+
+        self.model = PeftModel.from_pretrained(
+            self.model,
+            adapter_name_or_path,
+            device_map={'': self._device or 0}
+            if (self._device_map is None)
+            else self._device_map,
+        )

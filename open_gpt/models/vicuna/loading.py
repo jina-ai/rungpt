@@ -150,6 +150,7 @@ def load_model_and_tokenizer(
         modules_to_not_convert.extend(keep_in_fp32_modules)
 
         # Extend the modules to not convert to keys that are supposed to be offloaded to `cpu` or `disk`
+
         if isinstance(device_map, dict) and len(device_map.keys()) > 1:
             keys_on_cpu = [
                 key for key, value in device_map.items() if value in ["disk", "cpu"]

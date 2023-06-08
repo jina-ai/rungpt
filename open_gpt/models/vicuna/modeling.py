@@ -31,11 +31,13 @@ class VicunaModel(LlamaModel):
         'lmsys/vicuna-7b-delta-v1.1', precision='fp16', device_map='balanced'
     )
     ```
-
     """
 
     def load_model_and_transforms(
-        self, model_name_or_path: str, tokenizer_name_or_path: Optional[str] = None
+        self,
+        model_name_or_path: str,
+        tokenizer_name_or_path: Optional[str] = None,
+        **kwargs
     ):
         from .loading import load_model_and_tokenizer
 

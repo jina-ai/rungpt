@@ -14,7 +14,10 @@ class FlamingoModel(BaseModel):
         super().__init__(*args, **kwargs)
 
     def load_model_and_transforms(
-        self, model_name_or_path: str, tokenizer_name_or_path: Optional[str] = None
+        self,
+        model_name_or_path: str,
+        tokenizer_name_or_path: Optional[str] = None,
+        **kwargs
     ):
         from .loading import load_model_and_transforms
 

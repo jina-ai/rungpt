@@ -7,6 +7,7 @@ import torch
 def create_model(
     model_name: str,
     precision: str = 'fp32',
+    adapter_name_or_path: Optional[str] = None,
     device: Optional[Union[str, torch.device]] = None,
     device_map: Optional[Union[str, List[int]]] = None,
     **kwargs,
@@ -14,6 +15,7 @@ def create_model(
     """Create a model.
 
     :param model_name: The name of the model to create.
+    :param adapter_name_or_path: The name of adapter model used.
     :param precision: The precision to use for the model. Can be one of ``"fp16"``, ``"fp32"`` or ``"int8"``. Defaults to ``"fp32"``.
     :param device: The device to use. Can be one of ``"cpu"``, ``"cuda"``, ``"cuda:X"`` or ``None``.
     :param device_map: The device map to use. Can be one of ``"balanced"``, ``"single"`` or a list of device IDs.
@@ -27,6 +29,7 @@ def create_model(
 
         return LlamaModel(
             model_name,
+            adapter_name_or_path=adapter_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -38,6 +41,8 @@ def create_model(
         ), 'You are using an outdated model, please use the newer version ``v1.1+``'
         from .models.vicuna.modeling import VicunaModel
 
+        assert adapter_name_or_path is None, 'Vicuna does not support adapter'
+
         return VicunaModel(
             model_name,
             device=device,
@@ -47,6 +52,8 @@ def create_model(
         )
     elif model_name.startswith('EleutherAI/pythia'):
         from .models.pythia.modeling import PythiaModel
+
+        assert adapter_name_or_path is None, 'Pythia does not support adapter'
 
         return PythiaModel(
             model_name,
@@ -60,6 +67,8 @@ def create_model(
     ):
         from .models.stablelm.modeling import StableLMModel
 
+        assert adapter_name_or_path is None, 'StableLM does not support adapter'
+
         return StableLMModel(
             model_name,
             device=device,
@@ -69,6 +78,8 @@ def create_model(
         )
     elif model_name.startswith('fnlp/moss'):
         from .models.moss.modeling import MossModel
+
+        assert adapter_name_or_path is None, 'Moss does not support adapter'
 
         return MossModel(
             model_name,
@@ -80,6 +91,8 @@ def create_model(
     elif model_name.startswith('openflamingo/OpenFlamingo'):
         from .models.flamingo.modeling import FlamingoModel
 
+        assert adapter_name_or_path is None, 'Flamingo does not support adapter'
+
         return FlamingoModel(
             model_name,
             device=device,
@@ -89,6 +102,8 @@ def create_model(
         )
     elif model_name.startswith('RWKV/rwkv'):
         from .models.rwkv.modeling import RWKVModel
+
+        assert adapter_name_or_path is None, 'RWKV does not support adapter'
 
         return RWKVModel(
             model_name,
@@ -102,6 +117,7 @@ def create_model(
 
         return BaseModel(
             model_name,
+            adapter_name_or_path=adapter_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -114,6 +130,7 @@ def create_flow(
     grpc_port: int = 51001,
     http_port: int = 51002,
     cors: bool = False,
+    adapter_name_or_path: Optional[str] = None,
     uses_with: Optional[dict] = {},
     replicas: int = 1,
 ):
@@ -131,6 +148,7 @@ def create_flow(
     norm_name = norm_name.replace('-', '_').replace('.', '_').lower()
 
     uses_with['model_name_or_path'] = model_name_or_path
+    uses_with['adapter_name_or_path'] = adapter_name_or_path
 
     return (
         Flow()

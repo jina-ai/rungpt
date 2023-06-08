@@ -58,8 +58,9 @@ einops = "^0.6.0"
 transformers = "^4.29.0"
 open_clip_torch = ">2.16.0"
 bitsandbytes = ">=0.39.0"
-accelerate = ">0.19.0"
+accelerate = ">=0.20.1"
 tqdm = "^4.62.3"
+peft = "^0.3.0"
 
 # A list of all of the optional dependencies, some of which are included in the
 # below `extras`. They can be opted into by apps.

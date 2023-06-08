@@ -16,6 +16,7 @@ class CausualLMExecutor(Executor):
         self,
         model_name_or_path: str = '',
         minibatch_size: int = 1,
+        adapter_name_or_path: Optional[str] = None,
         device_map: Optional[Union[str, List[int]]] = None,
         precision: Optional[str] = None,
         num_workers: int = 4,
@@ -28,11 +29,16 @@ class CausualLMExecutor(Executor):
         ), '`model_name_or_path` must be provided to initialize the model and tokenizer.'
 
         self._model_name_or_path = model_name_or_path
+        self._adapter_name_or_path = adapter_name_or_path
         self._minibatch_size = minibatch_size
         self._thread_pool = ThreadPool(processes=num_workers)
 
         self.model = create_model(
-            model_name_or_path, precision=precision, device_map=device_map, **kwargs
+            model_name_or_path,
+            precision=precision,
+            adapter_name_or_path=adapter_name_or_path,
+            device_map=device_map,
+            **kwargs,
         )
 
         # warmup the model to avoid the first-time slowness

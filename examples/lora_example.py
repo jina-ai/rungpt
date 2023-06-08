@@ -11,12 +11,31 @@ from open_gpt.profile import (
 PROMPTS = generate_plain_prompts()
 
 start_measures = start_measure()
-# model = open_gpt.create_model(
-#     'EleutherAI/pythia-12b-deduped', precision='fp16', device_map='balanced'
-# )
+
+# llama + LoRA
 model = open_gpt.create_model(
-    'EleutherAI/pythia-12b-deduped', precision='bit8', device_map='balanced'
+    'decapoda-research/llama-7b-hf',
+    precision='bit8',
+    adapter_name_or_path='jinaai/alpaca-lora',
+    device_map='balanced',
 )
+
+# llama + LoRA using local ckpt file
+# model = open_gpt.create_model(
+#     'decapoda-research/llama-7b-hf',
+#     precision='bit8',
+#     adapter_name_or_path='./my-lora',
+#     device_map='balanced',
+# )
+
+# llama + QLoRA using local ckpt file
+# model = open_gpt.create_model(
+#     'decapoda-research/llama-7b-hf',
+#     precision='bit4',
+#     adapter_name_or_path='./my-qlora',
+#     device_map='balanced',
+# )
+
 end_measures = end_measure(start_measures)
 log_measures(end_measures, "Model loading")
 

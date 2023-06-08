@@ -12,10 +12,14 @@ def load_model_and_tokenizer(
     precision: Optional[str] = None,
     dtype: Optional[torch.dtype] = None,
     device_map: Optional[Union[str, List[int]]] = None,
-    no_split_module_classes: Optional[List[str]] = None,
     **kwargs,
 ):
-    """Load a model and tokenizer from HuggingFace."""
+    """Load model and tokenizer from HuggingFace / local.
+
+    :param model_name_or_path: The model id or path to load the model from.
+    :param tokenizer_name_or_path: The tokenizer id or path to load the tokenizer from.
+    """
+
     from transformers import AutoModelForCausalLM
     from transformers.models.llama.tokenization_llama import LlamaTokenizer
 
