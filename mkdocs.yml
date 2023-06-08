@@ -130,6 +130,9 @@ nav:
           - Quick start: docs/index.md
       - Guides:
           - Projects: docs/guides/projects.md
+      - Deployment
+          - Docker: docs/deployment/docker.md
+          - Kubernetes: docs/deployment/clouds.md
       - Reference:
           - CLI:
               - opengpt serve: docs/reference/cli/start.md
