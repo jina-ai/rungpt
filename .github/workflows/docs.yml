@@ -9,12 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          path: dstack
+          path: opengpt
       - uses: actions/checkout@v2
         with:
-          repository: dstackai/dstackai.github.io
-          path: ./dstackai.github.io
-          token: ${{ secrets.GH_TOKEN }}
+          repository: numb3r3/opengpt.github.io.git
+          path: ./opengpt.github.io
+          token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-python@v2
         with:
           python-version: 3.x
@@ -22,6 +22,6 @@ jobs:
           pip install pillow cairosvg
           sudo apt-get install -y libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
           pip install mkdocs-material mkdocs-material-extensions mkdocs-redirects --upgrade
-          pip install git+https://${{ secrets.GH_TOKEN }}@github.com/squidfunk/mkdocs-material-insiders.git
+          pip install git+https://${{ secrets.GITHUB_TOKEN }}@github.com/squidfunk/mkdocs-material-insiders.git
           mkdocs gh-deploy --config-file ../opengpt/mkdocs.yml --force
-        working-directory: ./dstackai.github.io
+        working-directory: ./opengpt.github.io
