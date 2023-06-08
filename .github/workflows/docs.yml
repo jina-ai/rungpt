@@ -13,6 +13,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           repository: numb3r3/opengpt.github.io.git
+          ref: 'main'
           path: ./opengpt.github.io
           token: ${{ secrets.GH_TEST_TOKEN }}
       - uses: actions/setup-python@v2
