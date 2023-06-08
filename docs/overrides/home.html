@@ -1,19 +1,20 @@
 {% extends "main.html" %}
 
+
 {% block scripts %}
 {{ super() }}
-<script>
-    window.$crisp = [];
-    window.CRISP_WEBSITE_ID = "ce56e3b2-a23e-4d3f-9e80-e08c61a2b3cb";
-    (function () {
-        let d = document;
-        let s = d.createElement("script");
-        s.src = "https://client.crisp.chat/l.js";
-        s.async = 1;
-        d.getElementsByTagName("head")[0].appendChild(s);
-        $crisp.push(["do", "chat:hide"]);
-    })();
-</script>
+<!--<script>-->
+<!--    window.$crisp = [];-->
+<!--    window.CRISP_WEBSITE_ID = "XXXX";-->
+<!--    (function () {-->
+<!--        let d = document;-->
+<!--        let s = d.createElement("script");-->
+<!--        s.src = "https://client.crisp.chat/l.js";-->
+<!--        s.async = 1;-->
+<!--        d.getElementsByTagName("head")[0].appendChild(s);-->
+<!--        $crisp.push(["do", "chat:hide"]);-->
+<!--    })();-->
+<!--</script>-->
 {% endblock %}
 
 {% block content %}
@@ -21,12 +22,10 @@
     <div class="md-grid md-typeset">
         <div class="tx-landing__hero">
             <div class="tx-landing__hero_text">
-                <h1>Develop ML faster. Use any cloud.</h1>
-                <p>dstack makes it very easy for ML engineers to run cost-effectively dev environments and ML tasks
-                    on any cloud.
-                </p>
+                <h1>Run LLM faster and easier. Use any cloud.</h1>
+                <p>opengpt allows you to run your large-scale multi-modal models on any cloud, with a single command.</p>
 
-                <p>dstack is open-source, self-hosted, and supports all major cloud providers,
+                <p>opengpt is open-source, self-hosted, and supports all major cloud providers,
                     including AWS, GCP, and Azure.</p>
 
                 <a href="/docs" class="md-button md-button--primary">
@@ -34,8 +33,8 @@
                             d="m13.13 22.19-1.63-3.83c1.57-.58 3.04-1.36 4.4-2.27l-2.77 6.1M5.64 12.5l-3.83-1.63 6.1-2.77C7 9.46 6.22 10.93 5.64 12.5M19.22 4c.28 0 .53 0 .74.05.17 1.39-.02 4.25-3.3 7.53-1.7 1.71-3.73 3.02-6.01 3.89l-2.15-2.1c.92-2.31 2.23-4.34 3.92-6.03C15.18 4.58 17.64 4 19.22 4m0-2c-1.98 0-4.98.69-8.22 3.93-2.19 2.19-3.5 4.6-4.35 6.71-.28.75-.09 1.57.46 2.13l2.13 2.12c.38.38.89.61 1.42.61.23 0 .47-.06.7-.15A19.1 19.1 0 0 0 18.07 13c5.66-5.66 3.54-10.61 3.54-10.61S20.7 2 19.22 2m-4.68 7.46c-.78-.78-.78-2.05 0-2.83s2.05-.78 2.83 0c.77.78.78 2.05 0 2.83-.78.78-2.05.78-2.83 0m-5.66 7.07-1.41-1.41 1.41 1.41M6.24 22l3.64-3.64c-.34-.09-.67-.24-.97-.45L4.83 22h1.41M2 22h1.41l4.77-4.76-1.42-1.41L2 20.59V22m0-2.83 4.09-4.08c-.21-.3-.36-.62-.45-.97L2 17.76v1.41Z"></path></svg></span>
                     Get started</a>
 
-                <!--<a href="https://join.slack.com/t/dstackai/shared_invite/zt-xdnsytie-D4qU9BvJP8vkbkHXdi6clQ"
-                   class="md-button">Join on Slack</a>-->
+                <a href="https://discord.gg/yaNVaaGSXZ"
+                   class="md-button">Join on Discord</a>
             </div>
 
             <div class="tx-landing__hero_image">
@@ -159,21 +158,17 @@
                             d="M12 1.5A2.5 2.5 0 0 1 14.5 4 2.5 2.5 0 0 1 12 6.5 2.5 2.5 0 0 1 9.5 4 2.5 2.5 0 0 1 12 1.5M15.87 5C18 5 20 7 20 9c2.7 0 2.7 4 0 4H4c-2.7 0-2.7-4 0-4 0-2 2-4 4.13-4 .44 1.73 2.01 3 3.87 3 1.86 0 3.43-1.27 3.87-3M5 15h3l1 7H7l-2-7m5 0h4l-1 7h-2l-1-7m6 0h3l-2 7h-2l1-7Z"></path></svg></span>
                 </h2>
                 <p class="tx-landing__bottom_cta_text">
-                    Getting started with dstack's <a href="https://github.com/dstackai/dstack">open source</a> tool is
+                    Getting started with opengpt's <a href="https://github.com/jina-ai/opengpt">open source</a> tool is
                     just a mater of:
                 </p>
                 <div class="tx-landing__bottom_cta_terminal">
                     <div class="tx-landing__bottom_cta_terminal_row">
                         <span class="tx-landing__bottom_cta_terminal_row_prefix">$</span>
-                        pip install "dstack[aws,gcp,azure]"
-                    </div>
-                    <div class="tx-landing__bottom_cta_terminal_row">
-                        <span class="tx-landing__bottom_cta_terminal_row_prefix">$</span>
-                        dstack start
+                        pip install "open_gpt_torch"
                     </div>
                 </div>
                 <p class="tx-landing__bottom_cta_text">
-                    And you're done! Now you can run dev environments and tasks locally or on any cloud.
+                    And you're done! Now you can enjoy the power of LMM locally or on any cloud.
                 </p>
 
                 <a href="/docs" class="md-button md-button--primary">

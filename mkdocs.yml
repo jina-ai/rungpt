@@ -1,0 +1,142 @@
+# Project information
+site_name: OpenGPT
+# site_url: https://opengpt.dev.jina.ai
+site_author: jina-ai GmbH
+site_description: >-
+  Easily and cost-effectively LLM deployments on any cloud. 
+
+# Repository
+repo_url: https://github.com/jina-ai/opengpt
+repo_name: jina-ai/opengpt
+edit_uri: edit/master/docs/
+
+#Copyright
+copyright: © 2023 jina-ai
+
+# Configuration
+theme:
+  name: material
+  custom_dir: docs/overrides
+  logo: assets/images/dstack-logo-notext.svg
+  favicon: assets/images/dstack-fav-32.ico
+  icon:
+    repo: custom/github
+    edit: material/pencil
+  font:
+    text: Poppins
+    code: IBM Plex Mono
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: lilac
+  #        toggle:
+  #          icon: material/weather-night
+  #          name: Switch to dark mode
+  #      - media: "(prefers-color-scheme: dark)"
+  #        scheme: slate
+  #        primary: black
+  #        accent: light blue
+  #        toggle:
+  #          icon: material/weather-sunny
+  #          name: Switch to light mode
+  features:
+    #    - navigation.path
+    - content.code.copy
+    - content.action.edit
+    #    - navigation.indexes
+    - navigation.tabs
+    #    - navigation.instant
+    #    - toc.integrate
+    - navigation.sections
+    #    - navigation.expand
+    - navigation.top
+    - announce.dismiss
+    - navigation.tracking
+    - navigation.footer
+
+# Plugins
+plugins:
+  - search
+  - redirects:
+      redirect_maps:
+        'quickstart.md': 'docs/index.md'
+        'docs/quick-start.md': 'docs/index.md'
+        'docs/installation/index.md': 'docs/index.md'
+
+# Extensions
+markdown_extensions:
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+      options:
+        custom_icons:
+          - overrides/.icons
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - attr_list
+  - def_list
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - toc:
+      toc_depth: 2
+      permalink: true
+  - attr_list
+  - md_in_html
+  - footnotes
+
+# Customization
+extra_css:
+  - assets/stylesheets/extra.css
+  - assets/stylesheets/termynal.css
+  - assets/stylesheets/landing.css
+  - assets/stylesheets/font.css
+extra_javascript:
+  - assets/javascripts/extra.js
+  - assets/javascripts/termynal.js
+extra:
+  homepage: /
+  generator: false
+#  analytics:
+#    provider: google
+#    property: G-XXXXXX
+  social:
+    - icon: /fontawesome/brands/github
+      link: https://github.com/jina-ai/opengpt
+    - icon: /fontawesome/brands/python
+      link: https://pypi.org/project/open-gpt-torch
+#    - icon: /fontawesome/brands/docker
+#      link: https://hub.docker.com/r/jina-ai/opengpt
+    - icon: /fontawesome/brands/discord
+      link: https://discord.gg/yaNVaaGSXZ
+    - icon: /fontawesome/brands/twitter
+      link: https://twitter.com/JinaAI_
+  status:
+    new: Recently added
+# Page tree
+nav:
+  - Home: index.md
+  - Docs:
+      - Getting started:
+          - Quick start: docs/index.md
+      - Guides:
+          - Projects: docs/guides/projects.md
+      - Deployment:
+          - Docker: docs/deployment/docker.md
+          - Kubernetes: docs/deployment/clouds.md
+      - Reference:
+          - CLI:
+              - opengpt serve: docs/reference/cli/start.md
+              - opengpt deploy: docs/reference/cli/start.md
+  - Examples: https://github.com/jina-ai/opengpt/blob/main/examples
+  - Discord: https://discord.gg/yaNVaaGSXZ
+  - Twitter: https://twitter.com/JinaAI_
