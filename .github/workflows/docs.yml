@@ -25,5 +25,6 @@ jobs:
           pip install mkdocs-material mkdocs-material-extensions mkdocs-redirects --upgrade
           pwd
           ls ../
+          ls ../opengpt -lsth
           mkdocs gh-deploy --config-file ../opengpt/mkdocs.yml --force
         working-directory: ./opengpt.github.io
