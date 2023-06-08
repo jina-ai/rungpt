@@ -18,7 +18,7 @@ PROMPTS = [
 
 start_measures = start_measure()
 model = open_gpt.create_model(
-    'decapoda-research/llama-7b-hf', precision='float16', device_map='balanced'
+    'decapoda-research/llama-7b-hf', precision='fp16', device_map='balanced'
 )
 
 # llama + LoRA
