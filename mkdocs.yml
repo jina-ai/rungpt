@@ -57,14 +57,14 @@ theme:
 
 # Plugins
 plugins:
-  - blog:
-      blog_dir: blog
-      blog_toc: true
-  - social:
-      cards_layout_options:
-        background_color: "black"
-        color: "#FFFFFF"
-        font_family: Roboto
+#  - blog:
+#      blog_dir: blog
+#      blog_toc: true
+#  - social:
+#      cards_layout_options:
+#        background_color: "black"
+#        color: "#FFFFFF"
+#        font_family: Roboto
   - search
   - redirects:
       redirect_maps:
