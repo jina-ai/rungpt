@@ -7,16 +7,28 @@ from open_gpt.logs import logger
 
 def load_model_and_tokenizer(
     model_name_or_path: str,
-    peft_model_id_or_path: Optional[str] = None,
     tokenizer_name_or_path: Optional[str] = None,
     device: Optional[torch.device] = None,
     precision: Optional[str] = None,
     dtype: Optional[torch.dtype] = None,
     device_map: Optional[Union[str, List[int]]] = None,
-    no_split_module_classes: Optional[List[str]] = None,
     **kwargs,
 ):
-    """Load a model and tokenizer from HuggingFace."""
+    """Load a model, tokenizer, adapter model from HuggingFace / local.
+
+    :param model_name_or_path: The model id or path to load the model from.
+    :param tokenizer_name_or_path: The tokenizer id or path to load the tokenizer from.
+    :param adapter_name_or_path: The adapter model name or path to load the adapter model from.
+    (`str` or `os.PathLike`)
+    The name of the adapter configuration to use. Can be either:
+    - A string, the `model id` of a adapter configuration hosted inside a model repo on the Hugging Face
+      Hub.
+    - A path to a directory containing a adapter configuration file saved using the `save_pretrained`
+      method (`./my_adapter_config_directory/`).
+
+
+    """
+
     from transformers import AutoModelForCausalLM
     from transformers.models.llama.tokenization_llama import LlamaTokenizer
 
@@ -73,26 +85,5 @@ def load_model_and_tokenizer(
         low_cpu_mem_usage=True,
         trust_remote_code=True,
     )
-
-    """
-    Use LORA for inference, `peft_model_id_or_path` can be either an id on huggingface 
-    or the name of a directory. If it's a directory, there should be two files in it:
-    checkpoint file which contains the weight of LORA, named `adapter_model.bin`,
-    config file which will be used to initialize LORA, named `adapter_config.json`.
-    ** The file names cannot be changed **
-    
-    For details about PeftModel.from_pretrained, see:
-    `peft.utils.peft_model.py::load_adapter()` for loading ckpt,
-    `peft.utils.config.py::from_pretrained()` for loading config.
-    """
-
-    if peft_model_id_or_path:
-        from peft import PeftModel
-
-        model = PeftModel.from_pretrained(
-            model,
-            peft_model_id_or_path,
-            device_map={'': device or 0} if (device_map is None) else device_map,
-        )
 
     return model, tokenizer

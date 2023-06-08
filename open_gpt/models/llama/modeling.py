@@ -14,7 +14,7 @@ class LlamaModel(BaseModel):
     def load_model_and_transforms(
         self,
         model_name_or_path: str,
-        peft_model_id_or_path: Optional[str] = None,
+        adapter_name_or_path: Optional[str] = None,
         tokenizer_name_or_path: Optional[str] = None,
     ):
 
@@ -22,12 +22,14 @@ class LlamaModel(BaseModel):
 
         self.model, self.tokenizer = load_model_and_tokenizer(
             model_name_or_path,
-            peft_model_id_or_path=peft_model_id_or_path,
             tokenizer_name_or_path=tokenizer_name_or_path,
             dtype=self._dtype,
             precision=self._precision,
             device=self._device,
             device_map=self._device_map,
         )
+
+        if adapter_name_or_path:
+            self.load_adapter()
 
         self.model.eval()

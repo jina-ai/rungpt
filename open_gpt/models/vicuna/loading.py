@@ -8,7 +8,6 @@ from open_gpt.logs import logger
 
 def load_model_and_tokenizer(
     model_name_or_path: str,
-    peft_model_id_or_path: Optional[str] = None,
     tokenizer_name_or_path: Optional[str] = None,
     device: Optional[torch.device] = None,
     precision: Optional[str] = None,
@@ -48,7 +47,6 @@ def load_model_and_tokenizer(
 
     model, tokenizer = llama_load_model_and_tokenizer(
         llama_model_name_or_path,
-        peft_model_id_or_path=peft_model_id_or_path,
         tokenizer_name_or_path=tokenizer_name_or_path,
         device=device,
         precision='fp16',
@@ -57,10 +55,7 @@ def load_model_and_tokenizer(
         **kwargs,
     )
 
-    logger.info(
-        f"Loading model weights delta from {model_name_or_path}, "
-        f"loading LORA weights from {peft_model_id_or_path}"
-    )
+    logger.info(f"Loading model weights delta from {model_name_or_path}")
     if not os.path.exists(model_name_or_path):
         model_path = huggingface_hub.snapshot_download(model_name_or_path)
     else:
@@ -155,6 +150,7 @@ def load_model_and_tokenizer(
         modules_to_not_convert.extend(keep_in_fp32_modules)
 
         # Extend the modules to not convert to keys that are supposed to be offloaded to `cpu` or `disk`
+
         if isinstance(device_map, dict) and len(device_map.keys()) > 1:
             keys_on_cpu = [
                 key for key, value in device_map.items() if value in ["disk", "cpu"]

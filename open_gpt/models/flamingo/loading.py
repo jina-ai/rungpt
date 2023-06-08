@@ -11,7 +11,6 @@ def load_model_and_transforms(
     model_name_or_path: str,
     vision_model_name_or_path: str,
     lang_model_name_or_path: str,
-    peft_model_id_or_path: Optional[str] = None,
     tokenizer_name_or_path: Optional[str] = None,
     decoder_layers_attr_name: Optional[str] = None,
     device: 'torch.device' = torch.device('cuda'),
@@ -25,7 +24,6 @@ def load_model_and_transforms(
     :param model_name_or_path: The name or path of the model to load.
     :param vision_model_name_or_path: The name or path of the vision model to use.
     :param lang_model_name_or_path: The name or path of the language model to use.
-    :param peft_model_id_or_path: The name of path of the LORA model to use.
     :param tokenizer_name_or_path: The name or path of the tokenizer to use. If not specified, the tokenizer associated with the model will be used.
     :param decoder_layers_attr_name: The name of the attribute that specifies the decoder layers.
     :param device: The device to load the model on.
@@ -68,7 +66,6 @@ def load_model_and_transforms(
     # load the language model
     lang_model, tokenizer = load_llama_model_and_tokenizer(
         model_name_or_path=lang_model_name_or_path,
-        peft_model_id_or_path=peft_model_id_or_path,
         tokenizer_name_or_path=tokenizer_name_or_path,
         device=device,
         dtype=dtype,

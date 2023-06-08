@@ -31,33 +31,18 @@ class VicunaModel(LlamaModel):
         'lmsys/vicuna-7b-delta-v1.1', precision='fp16', device_map='balanced'
     )
     ```
-
-    If you want to use LORA for inference, you can do:
-
-    ```python
-    import open_gpt
-
-    model = open_gpt.create_model(
-        'lmsys/vicuna-7b-delta-v1.1',
-        precision='bit8',
-        peft_model_id_or_path='LORA_MODEL_ID',
-        device_map='balanced',
-    )
-    ```
-
     """
 
     def load_model_and_transforms(
         self,
         model_name_or_path: str,
-        peft_model_id_or_path: Optional[str] = None,
         tokenizer_name_or_path: Optional[str] = None,
+        **kwargs
     ):
         from .loading import load_model_and_tokenizer
 
         self.model, self.tokenizer = load_model_and_tokenizer(
             model_name_or_path,
-            peft_model_id_or_path=peft_model_id_or_path,
             tokenizer_name_or_path=tokenizer_name_or_path,
             dtype=self._dtype,
             precision=self._precision,

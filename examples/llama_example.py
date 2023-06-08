@@ -17,31 +17,31 @@ PROMPTS = [
 
 
 start_measures = start_measure()
-# model = open_gpt.create_model(
-#     'decapoda-research/llama-7b-hf', precision='float16', device_map='balanced'
-# )
+model = open_gpt.create_model(
+    'decapoda-research/llama-7b-hf', precision='float16', device_map='balanced'
+)
 
-# test lora
-model = open_gpt.create_model(
-    'decapoda-research/llama-7b-hf',
-    precision='bit8',
-    peft_model_id_or_path='tloen/alpaca-lora-7b',
-    device_map='balanced',
-)
-# test lora using local ckpt file
-model = open_gpt.create_model(
-    'decapoda-research/llama-7b-hf',
-    precision='bit8',
-    peft_model_id_or_path='./my-lora',
-    device_map='balanced',
-)
-# test qlora using local ckpt file
-model = open_gpt.create_model(
-    'decapoda-research/llama-7b-hf',
-    precision='bit4',
-    peft_model_id_or_path='./my-qlora',
-    device_map='balanced',
-)
+# llama + LoRA
+# model = open_gpt.create_model(
+#     'decapoda-research/llama-7b-hf',
+#     precision='bit8',
+#     adapter_name_or_path='jinaai/alpaca-lora',
+#     device_map='balanced',
+# )
+# llama + LoRA using local ckpt file
+# model = open_gpt.create_model(
+#     'decapoda-research/llama-7b-hf',
+#     precision='bit8',
+#     adapter_name_or_path='./my-lora',
+#     device_map='balanced',
+# )
+# llama + QLoRA using local ckpt file
+# model = open_gpt.create_model(
+#     'decapoda-research/llama-7b-hf',
+#     precision='bit4',
+#     adapter_name_or_path='./my-qlora',
+#     device_map='balanced',
+# )
 
 # model = open_gpt.create_model(
 #     'yahma/llama-7b-hf', precision='bit8', device_map='balanced'

@@ -27,7 +27,9 @@ class ServeCommand(Command):
         option(
             'precision', None, 'The precision of the model.', flag=False, default='fp16'
         ),
-        option('peft_name', None, 'The name of the LORA model.'),
+        option(
+            'adapter_name_or_path', None, 'The name or path of the adapter checkpoint.'
+        ),
         option(
             'device_map',
             None,
@@ -57,7 +59,7 @@ class ServeCommand(Command):
             cors=self.option('enable_cors'),
             uses_with={
                 'precision': self.option('precision'),
-                'peft_model_id_or_path': self.option('peft_name'),
+                'adapter_name_or_path': self.option('adapter_name_or_path'),
                 'device_map': self.option('device_map'),
             },
             replicas=self.option('replicas'),

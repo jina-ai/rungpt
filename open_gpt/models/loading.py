@@ -7,7 +7,6 @@ from open_gpt.logs import logger
 
 def load_model_and_tokenizer(
     model_name_or_path: str,
-    peft_model_id_or_path: Optional[str] = None,
     tokenizer_name_or_path: Optional[str] = None,
     device: Optional[str] = None,
     precision: Optional[str] = None,
@@ -75,26 +74,5 @@ def load_model_and_tokenizer(
         low_cpu_mem_usage=True,
         trust_remote_code=True,
     )
-
-    """
-    Use LORA for inference, `peft_model_id_or_path` can be either an id on huggingface 
-    or the name of a directory. If it's a directory, there should be two files in it:
-    checkpoint file which contains the weight of LORA, named `adapter_model.bin`,
-    config file which will be used to initialize LORA, named `adapter_config.json`.
-    ** The file names cannot be changed **
-
-    For details about PeftModel.from_pretrained, see:
-    `peft.utils.peft_model.py::load_adapter()` for loading ckpt,
-    `peft.utils.config.py::from_pretrained()` for loading config.
-    """
-
-    if peft_model_id_or_path:
-        from peft import PeftModel
-
-        model = PeftModel.from_pretrained(
-            model,
-            peft_model_id_or_path,
-            device_map={'': device or 0} if (device_map is None) else device_map,
-        )
 
     return model, tokenizer
