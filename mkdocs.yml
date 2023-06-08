@@ -1,5 +1,5 @@
 # Project information
-site_name: opengpt
+site_name: OpenGPT
 # site_url: https://opengpt.dev.jina.ai
 site_author: jina-ai GmbH
 site_description: >-
@@ -136,6 +136,4 @@ nav:
               - opengpt deploy: docs/reference/cli/start.md
   - Examples: https://github.com/jina-ai/opengpt/blob/main/examples
   - Discord: https://discord.gg/yaNVaaGSXZ
-  - Blog:
-      - blog/index.md
   - Twitter: https://twitter.com/JinaAI_
