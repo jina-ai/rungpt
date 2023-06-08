@@ -1,6 +1,6 @@
 # Project information
 site_name: opengpt
-site_url: https://opengpt.dev.jina.ai
+# site_url: https://opengpt.dev.jina.ai
 site_author: jina-ai GmbH
 site_description: >-
   Easily and cost-effectively LLM deployments on any cloud. 
