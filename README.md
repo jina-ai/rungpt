@@ -223,7 +223,7 @@ opengpt deploy yahma/llama-7b-hf --adapter jinaai/alpaca-lora --precision fp16 -
 or using customized YAML file
 
 ```bash
-opengpt deploy --config flow.yml
+opengpt deploy --cloud jina --config flow.yml
 ```
 
 It will give you a HTTP url and a gRPC url by default:
@@ -288,7 +288,7 @@ Default is `None`.
 - `config`: (Optional) the Jina Flow YAML file to use. If specified, all other parameters (including `model_name`) will be **ignored**. This is especially 
 useful when you want to customize the Flow YAML file. Default is `None`.
 
-The template for the Flow YAML file is as follows:
+Here is a sample Flow YAML file:
 
 ```yaml
 jtype: Flow
@@ -311,18 +311,19 @@ gateway:
 executors:
   - name: llm_executor
     uses:
-      jtype: CausualLMExecutor # your executor type, which is the name of model class
+      jtype: CausualLMExecutor
       py_modules:
-        - __init__.py # path to the executor's __init__.py file
+        - __init__.py
     uses_with:
-      model_name_or_path: yahma/llama-7b-hf # your model name or model path
-      adapter_name_or_path: jinaai/alpaca-lora # your adapter name or path
-      device_map: balanced # device map
-      precision: bit8 # precision
+      model_name_or_path: yahma/llama-7b-hf
+      adapter_name_or_path: jinaai/alpaca-lora
+      device_map: balanced
+      precision: bit8
     timeout_ready: 3600000
+    replicas: 1
     jcloud:
       resources:
-        instance: G3 # set you instance type here
+        instance: G3
 ```
 
 - Flow related config
@@ -362,18 +363,19 @@ gateway:
 executors:
   - name: llm_executor
     uses:
-      jtype: CausualLMExecutor # your executor type, which is the name of model class
+      jtype: CausualLMExecutor
       py_modules:
-        - __init__.py # path to the executor's __init__.py file
+        - __init__.py
     uses_with:
-      model_name_or_path: yahma/llama-7b-hf # your model name or model path
-      adapter_name_or_path: jinaai/alpaca-lora # your adapter name or path
-      device_map: balanced # device map
-      precision: bit8 # precision
+      model_name_or_path: yahma/llama-7b-hf
+      adapter_name_or_path: jinaai/alpaca-lora
+      device_map: balanced
+      precision: bit8
     timeout_ready: 3600000
+    replicas: 1
     jcloud:
       resources:
-        instance: G3 # set you instance type here
+        instance: G3
 ```
 
 | Parameters           | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
