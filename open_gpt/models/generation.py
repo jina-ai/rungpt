@@ -1,10 +1,45 @@
-import dataclasses
-from typing import TYPE_CHECKING, List, Optional, Union, overload
+from typing import TYPE_CHECKING, Iterable, List, Optional, Union, overload
 
 import torch
 
 if TYPE_CHECKING:
     from transformers import AutoModelForCausalLM, AutoTokenizer
+
+from transformers.generation.logits_process import (
+    LogitsProcessorList,
+    RepetitionPenaltyLogitsProcessor,
+    TemperatureLogitsWarper,
+    TopKLogitsWarper,
+    TopPLogitsWarper,
+)
+
+MIN_TEMPERATURE = 1e-5
+MIN_TOP_P = 1e-8
+CONTEXT_LEN = 2048
+
+
+def prepare_logits_processor(
+    temperature: float, repetition_penalty: float, top_p: float, top_k: int
+) -> LogitsProcessorList:
+    processor_list = LogitsProcessorList()
+    # TemperatureLogitsWarper doesn't accept 0.0
+    # 1.0 makes it a no-op so we skip two cases.
+    if MIN_TEMPERATURE <= temperature < 1:
+        processor_list.append(TemperatureLogitsWarper(temperature))
+    if repetition_penalty > 1:
+        processor_list.append(RepetitionPenaltyLogitsProcessor(repetition_penalty))
+    if MIN_TOP_P <= top_p < 1:
+        processor_list.append(TopPLogitsWarper(top_p))
+    if top_k > 0:
+        processor_list.append(TopKLogitsWarper(top_k))
+    return processor_list
+
+
+def partial_stop(output, stop_str):
+    for i in range(0, min(len(output), len(stop_str))):
+        if stop_str.startswith(output[-i:]):
+            return True
+    return False
 
 
 class GenerationMixin:
@@ -12,6 +47,127 @@ class GenerationMixin:
 
     model: 'AutoModelForCausalLM'
     tokenizer: 'AutoTokenizer'
+
+    def step_generate(
+        self,
+        prompt: str,
+        max_new_tokens: Optional[int] = None,
+        do_sample: bool = False,
+        temperature: float = 1.0,
+        top_k: int = 1,
+        top_p: float = 0.9,
+        repetition_penalty: float = 1.0,
+        length_penalty: float = 1.0,
+        no_repeat_ngram_size: int = 0,
+        stream_interval: int = 1,
+        **kwargs
+    ):
+        input_ids = self.tokenizer(prompt, return_tensors="pt")["input_ids"].to(
+            self._device
+        )
+        input_length = len(input_ids[0])
+
+        logits_processor = prepare_logits_processor(
+            temperature,
+            repetition_penalty,
+            top_p,
+            top_k,
+        )
+
+        # TODO: pass in the required arguments to the model
+        stop_token_ids = []
+
+        stop_token_ids.append(self.tokenizer.eos_token_id)
+        stop_token = self.tokenizer.eos_token
+
+        output_ids = input_ids.tolist()[0]
+
+        max_src_len = CONTEXT_LEN - max_new_tokens - 8
+        if input_length > max_src_len:
+            input_ids = input_ids[:, -max_src_len:]
+            input_length = max_src_len
+
+        past_key_values = outputs = logits = next_token = None
+
+        for step in range(max_new_tokens):
+            if step == 0:
+                outputs = self.model(input_ids, use_cache=True)
+                logits = outputs.logits
+                past_key_values = outputs.past_key_values
+            else:
+                outputs = self.model(
+                    input_ids=torch.as_tensor([[next_token]], device=self._device),
+                    use_cache=True,
+                    past_key_values=past_key_values,
+                )
+                logits = outputs.logits
+                past_key_values = outputs.past_key_values
+
+            if repetition_penalty > 1:
+                tmp_output_ids = torch.as_tensor([output_ids], device=logits.device)
+            else:
+                tmp_output_ids = None
+
+            last_token_logits = logits_processor(tmp_output_ids, logits[:, -1, :])[0]
+
+            if temperature < MIN_TEMPERATURE or top_p < MIN_TOP_P:  # greedy
+                next_token = int(torch.argmax(last_token_logits))
+            else:
+                probs = torch.softmax(last_token_logits, dim=-1)
+                next_token = int(torch.multinomial(probs, num_samples=1))
+
+            output_ids.append(next_token)
+            stopped = next_token in stop_token_ids
+
+            if step % stream_interval == 0 or step == max_new_tokens - 1 or stopped:
+                tmp_output_ids = output_ids[input_length:]
+                rfind_start = 0
+
+                output = self.tokenizer.decode(
+                    tmp_output_ids,
+                    skip_special_tokens=True,
+                    spaces_between_special_tokens=False,
+                )
+
+                partially_stopped = False
+                if stop_token:
+                    if isinstance(stop_token, str):
+                        pos = output.rfind(stop_token, rfind_start)
+                        if pos != -1:
+                            output = output[:pos]
+                            stopped = True
+                        else:
+                            partially_stopped = partial_stop(output, stop_token)
+                    elif isinstance(stop_token, Iterable):
+                        for each_stop in stop_token:
+                            pos = output.rfind(each_stop, rfind_start)
+                            if pos != -1:
+                                output = output[:pos]
+                                stopped = True
+                                break
+                            else:
+                                partially_stopped = partial_stop(output, each_stop)
+                                if partially_stopped:
+                                    break
+                    else:
+                        raise ValueError("Invalid stop field type.")
+
+                # prevent yielding partial stop sequence
+                if not partially_stopped:
+                    pass
+
+            if stopped:
+                break
+
+            # finish stream event, which contains finish reason
+            if step == max_new_tokens - 1:
+                finish_reason = "length"
+            elif stopped:
+                finish_reason = "stop"
+            else:
+                finish_reason = None
+
+            yield output, finish_reason, input_length, step
 
     @overload
     def generate(self, prompt: str, inplace_images: List = [], **kwargs):

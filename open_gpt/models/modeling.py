@@ -4,13 +4,14 @@ import torch
 from torch import nn
 
 from ..helper import auto_dtype_and_device
+from .embedding import EmbeddingMixin
 from .generation import GenerationMixin
 
 if TYPE_CHECKING:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-class BaseModel(nn.Module, GenerationMixin):
+class BaseModel(nn.Module, GenerationMixin, EmbeddingMixin):
     model: 'AutoModelForCausalLM'
     tokenizer: 'AutoTokenizer'
 
