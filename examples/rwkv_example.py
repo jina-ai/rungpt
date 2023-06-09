@@ -11,7 +11,11 @@ from open_gpt.profile import (
 PROMPTS = generate_plain_prompts()
 
 start_measures = start_measure()
-model = open_gpt.create_model('RWKV/rwkv-raven-1b5', device='cpu', precision='fp16')
+model = open_gpt.create_model(
+    'ybelkada/rwkv-raven-1b5', device='cpu', precision='fp32'
+    # 'sgugger/rwkv-430M-pile', device='cpu', precision='fp32'
+    # 'sgugger/rwkv-7b-pile', device='cpu', precision='fp32'
+)
 end_measures = end_measure(start_measures)
 log_measures(end_measures, "Model loading")
 module_sizes = compute_module_sizes(model)
