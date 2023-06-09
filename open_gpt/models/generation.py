@@ -1,4 +1,3 @@
-import dataclasses
 from typing import TYPE_CHECKING, Iterable, List, Optional, Union, overload
 
 import torch
