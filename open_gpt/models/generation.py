@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Iterable, List, Optional, Union, overload
+from typing import TYPE_CHECKING, Iterable, List, Optional, overload
 
 import torch
 
@@ -52,16 +52,34 @@ class GenerationMixin:
         self,
         prompt: str,
         max_new_tokens: Optional[int] = None,
-        do_sample: bool = False,
         temperature: float = 1.0,
         top_k: int = 1,
         top_p: float = 0.9,
         repetition_penalty: float = 1.0,
-        length_penalty: float = 1.0,
-        no_repeat_ngram_size: int = 0,
+        max_context_length: int = CONTEXT_LEN,
+        echo: bool = False,
         stream_interval: int = 1,
+        stop_str: Optional[str] = None,
+        stop_token_ids: List[int] = [],
         **kwargs
     ):
+        """Generate tokens in a streaming fashion. This method is a modified version of `fastchat.server.inference.generate_stream`.
+
+        :param prompt: The prompt is the context that the model will use to generate the response.
+        :param max_new_tokens: The maximum number of tokens to generate. If None, the model will generate until it predicts a stop token.
+        :param temperature: The temperature to use when sampling from the logits.
+        :param top_k: The number of highest probability vocabulary tokens to keep for top-k-filtering.
+        :param top_p: The cumulative probability of parameter highest probability vocabulary tokens to keep for nucleus sampling.
+        :param repetition_penalty: The parameter for repetition penalty. 1.0 means no penalty. See `this paper <https://arxiv.org/pdf/1909.05858.pdf>`__ for more details.
+        :param max_context_length: Maximum length of the context. If the context is longer than this, it will be truncated.
+        :param echo: If True, the prompt will be included in the generated response.
+        :param stream_interval: The number of tokens to generate before returning the generated tokens.
+        :param stop_str: If not None, the model will stop generating when the generated tokens end with this string.
+        :param stop_token_ids: A list of token ids that will cause the model to stop generating.
+        :param kwargs: Additional keyword arguments to pass to the model.
+        :return:
+        """
+        len_prompt = len(prompt)
         input_ids = self.tokenizer(prompt, return_tensors="pt")["input_ids"].to(
             self._device
         )
@@ -74,20 +92,16 @@ class GenerationMixin:
             top_k,
         )
 
-        # TODO: pass in the required arguments to the model
-        stop_token_ids = []
-
         stop_token_ids.append(self.tokenizer.eos_token_id)
-        stop_token = self.tokenizer.eos_token
 
         output_ids = input_ids.tolist()[0]
 
-        max_src_len = CONTEXT_LEN - max_new_tokens - 8
+        max_src_len = max_context_length - max_new_tokens - 8
         if input_length > max_src_len:
             input_ids = input_ids[:, -max_src_len:]
             input_length = max_src_len
 
-        past_key_values = outputs = logits = next_token = None
+        past_key_values = next_token = None
 
         for step in range(max_new_tokens):
             if step == 0:
@@ -103,12 +117,20 @@ class GenerationMixin:
                 logits = outputs.logits
                 past_key_values = outputs.past_key_values
 
-            if repetition_penalty > 1:
-                tmp_output_ids = torch.as_tensor([output_ids], device=logits.device)
+            if logits_processor:
+                if repetition_penalty > 1.0:
+                    tmp_output_ids = torch.as_tensor([output_ids], device=logits.device)
+                else:
+                    tmp_output_ids = None
+                last_token_logits = logits_processor(tmp_output_ids, logits[:, -1, :])[
+                    0
+                ]
             else:
-                tmp_output_ids = None
+                last_token_logits = logits[0, -1, :]
 
-            last_token_logits = logits_processor(tmp_output_ids, logits[:, -1, :])[0]
+            if last_token_logits.device.type == "mps":
+                # Switch to CPU by avoiding some bugs in mps backend.
+                last_token_logits = last_token_logits.float().to("cpu")
 
             if temperature < MIN_TEMPERATURE or top_p < MIN_TOP_P:  # greedy
                 next_token = int(torch.argmax(last_token_logits))
@@ -120,8 +142,12 @@ class GenerationMixin:
             stopped = next_token in stop_token_ids
 
             if step % stream_interval == 0 or step == max_new_tokens - 1 or stopped:
-                tmp_output_ids = output_ids[input_length:]
-                rfind_start = 0
+                if echo:
+                    tmp_output_ids = output_ids
+                    rfind_start = len_prompt
+                else:
+                    tmp_output_ids = output_ids[input_length:]
+                    rfind_start = 0
 
                 output = self.tokenizer.decode(
                     tmp_output_ids,
@@ -130,16 +156,16 @@ class GenerationMixin:
                 )
 
                 partially_stopped = False
-                if stop_token:
-                    if isinstance(stop_token, str):
-                        pos = output.rfind(stop_token, rfind_start)
+                if stop_str:
+                    if isinstance(stop_str, str):
+                        pos = output.rfind(stop_str, rfind_start)
                         if pos != -1:
                             output = output[:pos]
                             stopped = True
                         else:
-                            partially_stopped = partial_stop(output, stop_token)
-                    elif isinstance(stop_token, Iterable):
-                        for each_stop in stop_token:
+                            partially_stopped = partial_stop(output, stop_str)
+                    elif isinstance(stop_str, Iterable):
+                        for each_stop in stop_str:
                             pos = output.rfind(each_stop, rfind_start)
                             if pos != -1:
                                 output = output[:pos]
@@ -154,20 +180,36 @@ class GenerationMixin:
 
                 # prevent yielding partial stop sequence
                 if not partially_stopped:
-                    pass
+                    yield {
+                        "generated_text": output,
+                        "usage": {
+                            "prompt_length": input_length,
+                            "completed_tokens": step + 1,
+                            "total_tokens": input_length + step + 1,
+                        },
+                        "finish_reason": None,
+                    }
 
             if stopped:
                 break
 
-            # finish stream event, which contains finish reason
-            if step == max_new_tokens - 1:
-                finish_reason = "length"
-            elif stopped:
-                finish_reason = "stop"
-            else:
-                finish_reason = None
+        # finish stream event, which contains finish reason
+        if step == max_new_tokens - 1:
+            finish_reason = "length"
+        elif stopped:
+            finish_reason = "stop"
+        else:
+            finish_reason = None
 
-            yield output, finish_reason, input_length, step
+        yield {
+            "generated_text": output,
+            "usage": {
+                "prompt_length": input_length,
+                "completed_tokens": step + 1,
+                "total_tokens": input_length + step + 1,
+            },
+            "finish_reason": finish_reason,
+        }
 
     @overload
     def generate(self, prompt: str, inplace_images: List = [], **kwargs):
@@ -176,7 +218,7 @@ class GenerationMixin:
     @overload
     def generate(
         self,
-        prompts: Union[str, List[str]],
+        prompt: str,
         max_new_tokens: Optional[int] = None,
         num_beams: int = 1,
         do_sample: bool = False,
@@ -190,7 +232,7 @@ class GenerationMixin:
     ):
         """Generate text from the given prompt.
 
-        :param prompts: The prompt(s) to generate from.
+        :param prompt: The prompt input text.
         :param max_new_tokens: The maximum number of tokens to generate, not including the prompt.
         :param num_beams: Number of beams for beam search. 1 means no beam search.
         :param do_sample: Whether to use sampling instead of greedy decoding.
@@ -206,35 +248,27 @@ class GenerationMixin:
         """
         ...
 
-    def generate(self, prompts: Union[str, List[str]], **kwargs):
+    def generate(self, prompt: str, **kwargs):
         inputs = self.tokenizer(
-            [prompts] if isinstance(prompts, str) else prompts,
-            padding='longest',
+            prompt,
             return_tensors="pt",
         )
         inputs.pop("token_type_ids", None)
         inputs = inputs.to(self._device)
+
+        input_length = inputs["input_ids"].shape[-1]
 
         # overwrite default values with kwargs
         clean_up_tokenization_spaces = kwargs.pop('clean_up_tokenization_spaces', True)
         skip_special_tokens = kwargs.pop("skip_special_tokens", True)
 
         with torch.inference_mode():
-            outputs = self.model.generate(**inputs, **kwargs)
+            outputs = self.model.generate(**inputs, **kwargs).tolist()
 
-            texts_outs = []
-            for _, generated_sequence in enumerate(outputs):
-                generated_sequence = generated_sequence.tolist()
-                prompt = prompts[_] if isinstance(prompts, list) else prompts
-                prompt_len = len(prompt)
+            text = self.tokenizer.decode(
+                outputs[input_length:],
+                clean_up_tokenization_spaces=clean_up_tokenization_spaces,
+                skip_special_tokens=skip_special_tokens,
+            )
 
-                text = self.tokenizer.decode(
-                    generated_sequence,
-                    clean_up_tokenization_spaces=clean_up_tokenization_spaces,
-                    skip_special_tokens=skip_special_tokens,
-                )
-
-                text = text[prompt_len:] if text[:prompt_len] == prompt else text
-                texts_outs.append(text.lstrip())
-
-            return texts_outs if isinstance(prompts, list) else texts_outs[0]
+            return text
