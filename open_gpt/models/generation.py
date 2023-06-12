@@ -266,8 +266,7 @@ class GenerationMixin:
         echo = kwargs.pop("echo", False)
 
         with torch.inference_mode():
-            outputs = self.model.generate(**inputs, **kwargs).tolist()
-
+            outputs = self.model.generate(**inputs, **kwargs)[0].tolist()
             text = self.tokenizer.decode(
                 outputs if echo else outputs[input_length:],
                 clean_up_tokenization_spaces=clean_up_tokenization_spaces,
