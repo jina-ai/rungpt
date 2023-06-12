@@ -48,6 +48,7 @@ class GenerationMixin:
     model: 'AutoModelForCausalLM'
     tokenizer: 'AutoTokenizer'
 
+    @torch.inference_mode()
     def step_generate(
         self,
         prompt: str,
