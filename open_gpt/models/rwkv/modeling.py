@@ -19,7 +19,7 @@ class RWKVModel(BaseModel):
 
         embeddings = []
 
-        def layer_hook(module, inp, out):
+        def _layer_hook(module, inp, out):
             embeddings.append(out)
 
         inputs = self.tokenizer(
@@ -32,8 +32,8 @@ class RWKVModel(BaseModel):
         inputs = inputs.to(self._device)
 
         with torch.inference_mode():
-            hook = self.model.rwkv.embeddings.register_forward_hook(layer_hook)
-            outputs = self.model.forward(**inputs)
+            hook = self.model.rwkv.embeddings.register_forward_hook(_layer_hook)
+            _ = self.model.forward(**inputs)
             hook.remove()
 
             embeddings = embeddings[0]
