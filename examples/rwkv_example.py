@@ -16,5 +16,10 @@ generated_text = model.generate(
     prompt, max_new_tokens=256, do_sample=True, temperature=0.9
 )
 print(f'==> {prompt} {generated_text}')
+
+embedings = model.embedding(prompt)
+print(f'==> {prompt} \n({embedings.shape})->\n{embedings}')
+
+
 end_measures = end_measure(start_measures)
 log_measures(end_measures, "Model generation")
