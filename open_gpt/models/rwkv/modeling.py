@@ -1,16 +1,20 @@
 from typing import List, Union
+
 import torch
 import torch.nn.functional as F
+
 from open_gpt.models.modeling import BaseModel
+
+
 class RWKVModel(BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def encode(
-            self,
-            sentences: Union[str, List[str]],
-            normalize_embeddings: bool = True,
-            **kwargs
+        self,
+        sentences: Union[str, List[str]],
+        normalize_embeddings: bool = True,
+        **kwargs
     ):
 
         embeddings = []
@@ -22,7 +26,8 @@ class RWKVModel(BaseModel):
             sentences if isinstance(sentences, list) else [sentences],
             return_tensors="pt",
             padding=True,
-            truncation=True)
+            truncation=True,
+        )
 
         inputs = inputs.to(self._device)
 
