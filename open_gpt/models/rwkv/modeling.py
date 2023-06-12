@@ -1,16 +1,44 @@
-
+from typing import List, Union
+import torch
+import torch.nn.functional as F
 from open_gpt.models.modeling import BaseModel
-
 class RWKVModel(BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def generate(self, prompt: str, max_length: int, **kwargs):
-        if self._model_name_or_path.startswith('RWKV/rwkv-raven'):
-            prompt = f"### Instruction: {prompt}\n### Response:"
-        else:
-            prompt = "\n" + prompt
-        inputs = self.tokenizer(prompt, return_tensors="pt")
-        output = self.model.generate(inputs["input_ids"], max_new_tokens=max_length)
-        output = self.tokenizer.decode(output[0].tolist(), skip_special_tokens=True)
-        return output
+    def encode(
+            self,
+            sentences: Union[str, List[str]],
+            normalize_embeddings: bool = True,
+            **kwargs
+    ):
+
+        embeddings = []
+
+        def layer_hook(module, inp, out):
+            embeddings.append(out)
+
+        inputs = self.tokenizer(
+            sentences if isinstance(sentences, list) else [sentences],
+            return_tensors="pt",
+            padding=True,
+            truncation=True)
+
+        inputs = inputs.to(self._device)
+
+        with torch.inference_mode():
+            hook = self.model.rwkv.embeddings.register_forward_hook(layer_hook)
+            outputs = self.model.forward(**inputs)
+            hook.remove()
+
+            embeddings = embeddings[0]
+
+            if normalize_embeddings:
+                embeddings = F.normalize(embeddings, p=2, dim=-1)
+
+            embeddings = embeddings.detach().cpu().numpy()
+
+            if isinstance(sentences, str):
+                return embeddings[0]
+
+            return embeddings
