@@ -1,7 +1,6 @@
 from typing import List, Optional, Union
 
 import torch
-from tqdm import tqdm
 
 from open_gpt.logs import logger
 
@@ -55,7 +54,7 @@ def load_model_and_tokenizer(
         **kwargs,
     )
 
-    logger.info(f"Loading model weights delta from {model_name_or_path}")
+    logger.info(f"Loading model delta weights from {model_name_or_path}")
     if not os.path.exists(model_name_or_path):
         model_path = huggingface_hub.snapshot_download(model_name_or_path)
     else:
