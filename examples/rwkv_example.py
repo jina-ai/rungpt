@@ -18,7 +18,7 @@ generated_text = model.generate(
 print(f'==> {prompt} {generated_text}')
 
 embedings = model.embedding(prompt)
-print(f'==> {prompt} \n({embedings.shape})->\n{embedings}')
+print(f'==> {prompt} \n[shape={embedings.shape}]->\n{embedings}')
 
 
 end_measures = end_measure(start_measures)
