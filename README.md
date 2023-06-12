@@ -139,14 +139,6 @@ To do so, you can use the `serve` command:
 opengpt serve yahma/llama-7b-hf --precision fp16 --device_map balanced
 ```
 
-or 
-
-```bash
-opengpt serve yahma/llama-7b-hf --adapter jinaai/alpaca-lora --precision bit8 --device_map balanced
-```
-
-if you want to use adapter to optimize VRAM usage.
-
 💡 **Tip**: you can inspect the available options with `opengpt serve --help`.
 
 > **Note**
@@ -217,13 +209,7 @@ To do so, you can use `deploy` command:
 using predefined executor
 
 ```bash
-opengpt deploy yahma/llama-7b-hf --adapter jinaai/alpaca-lora --precision fp16 --cloud jina --replicas 2
-```
-
-or using customized YAML file
-
-```bash
-opengpt deploy --cloud jina --config flow.yml
+opengpt deploy yahma/llama-7b-hf --precision fp16 --device_map balanced --cloud jina --replicas 2
 ```
 
 It will give you a HTTP url and a gRPC url by default:
@@ -279,118 +265,216 @@ output = model.generate(
 
 Parameters that can be configured for `opengpt deploy`:
 - `cloud`: the cloud provider to use, e.g. `jina` for Jina Cloud, `aws` for AWS.
-- `adapter`: (Optional) the adapter to use, e.g. `jinaai/alpaca-lora` denotes LoRA weights used for llama-7b. Can be a string 
-denoting the name id which is published on Huggingface, or a path of a directory which contains adapter weights and config file.
-Default is `None`.
+
+[//]: # (- `adapter`: &#40;Optional&#41; the adapter to use, e.g. `jinaai/alpaca-lora` denotes LoRA weights used for llama-7b. Can be a string )
+
+[//]: # (denoting the name id which is published on Huggingface, or a path of a directory which contains adapter weights and config file.)
+
+[//]: # (Default is `None`.)
 - `device_map`: (Optional) the device map to use, e.g. `balanced` for evenly splitting the model on all available GPUs. Default is `balanced`.
 - `replicas`: (Optional) the number of replicas to deploy. Default is 1.
 - `precision`: (Optional) the precision to use, can be `fp16` or `bit8` or `bit4`. Default is `fp16`.
-- `config`: (Optional) the Jina Flow YAML file to use. If specified, all other parameters (including `model_name`) will be **ignored**. This is especially 
-useful when you want to customize the Flow YAML file. Default is `None`.
 
-Here is a sample Flow YAML file:
+[//]: # (- `config`: &#40;Optional&#41; the Jina Flow YAML file to use. If specified, all other parameters &#40;including `model_name`&#41; will be **ignored**. This is especially )
 
-```yaml
-jtype: Flow
-jcloud:
-  version: 3.14.1
-with:
-  monitoring: true
-  name: my_opengpt_flow
-  prefetch: 1
-  timeout_ready: -1
-  env:
-    JINA_LOG_LEVEL: DEBUG
-gateway:
-  port:
-    - 52000
-    - 51000
-  protocol:
-    - http
-    - grpc
-executors:
-  - name: llm_executor
-    uses:
-      jtype: CausualLMExecutor
-      py_modules:
-        - __init__.py
-    uses_with:
-      model_name_or_path: yahma/llama-7b-hf
-      adapter_name_or_path: jinaai/alpaca-lora
-      device_map: balanced
-      precision: bit8
-    timeout_ready: 3600000
-    replicas: 1
-    jcloud:
-      resources:
-        instance: G3
-```
+[//]: # (useful when you want to customize the Flow YAML file. Default is `None`.)
 
-- Flow related config
-```yaml
-with:
-  monitoring: true
-  name: my_opengpt_flow
-  prefetch: 1
-  timeout_ready: -1
-  env:
-    JINA_LOG_LEVEL: DEBUG
-```
+[//]: # (Here is a sample Flow YAML file:)
 
-| Parameters |                                                                                                      Description                                                                                                     |
-|------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| prefetch   | Control the maximum streamed request inside the Flow at any given time, default is None , which means no limit. Setting prefetch a small number helps solve the OOM problem, but may  slow down the streaming a bit. |
-- Gateway related config
+[//]: # ()
+[//]: # (```yaml)
 
-```yaml
-gateway:
-  port:
-    - 52000
-    - 51000
-  protocol:
-    - http
-    - grpc
-```
+[//]: # (jtype: Flow)
 
-| Parameters | Description                                                                          |
-|------------|--------------------------------------------------------------------------------------|
-| protocol   | The communication protocol between server and client. Can be grpc , http, websocket. |
-| port       | The port which is used for communication between server and client.                  |
+[//]: # (jcloud:)
 
-- Executor related config
+[//]: # (  version: 3.14.1)
 
-```yaml
-executors:
-  - name: llm_executor
-    uses:
-      jtype: CausualLMExecutor
-      py_modules:
-        - __init__.py
-    uses_with:
-      model_name_or_path: yahma/llama-7b-hf
-      adapter_name_or_path: jinaai/alpaca-lora
-      device_map: balanced
-      precision: bit8
-    timeout_ready: 3600000
-    replicas: 1
-    jcloud:
-      resources:
-        instance: G3
-```
+[//]: # (with:)
 
-| Parameters           | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| jtype                | Name of the Executor model class.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| py_modules           | List of strings defining the Executor’s Python dependencies. Most notably this must include the Python file containing the Executor definition itself, as well as any other files it imports.                                                                                                                                                                                                                                                                                                                                                           |
-| model_name_or_path   | The name of the model to use. Can be either:   - A string, the *model id* of a predefined tokenizer hosted inside a model repo on huggingface.co.   Valid model ids can be located at the root-level, like `bert-base-uncased`, or namespaced under a   user or organization name, like `dbmdz/bert-base-german-cased`.   - A path to a *directory* containing vocabulary files required by the tokenizer, for instance saved   using the [`~tokenization_utils_base.PreTrainedTokenizerBase.save_pretrained`] method, e.g.,   `./my_model_directory/`. |
-| adapter_name_or_path | The name of the adapter configuration to use. Can be either:   - A string, the `model id` of a Lora configuration hosted inside a model repo on the Hugging Face Hub.   - A path to a directory containing a Lora configuration file saved using the `save_pretrained` method (`./my_lora_config_directory/`).                                                                                                                                                                                                                                          |
-| device_map           | Define how the model lies across several devices.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| precision            | The precision which is used for inference. Can be fp16 / bit8 / bit4. You need to set `precision=bit8` if you want to use LoRA or `precision=bit4` if QLoRA is used                                                                                                                                                                                                                                                                                                                                                                                     |
-| instance             | GPU instance types on JCloud. For more information about GPU instance type, click [here](https://docs.jina.ai/concepts/jcloud/configuration/#gpu-tiers)                                                                                                                                                                                                                                                                                                                                                                                                 |
+[//]: # (  monitoring: true)
 
-> **Note**
-> - `uses_with` may be change if customized executor is used. It's a key-value map that defines the arguments of the 
-> executor’s `__init__` method. See more details [here](https://docs.jina.ai/concepts/orchestration/add-executors/).
+[//]: # (  name: my_opengpt_flow)
+
+[//]: # (  prefetch: 1)
+
+[//]: # (  timeout_ready: -1)
+
+[//]: # (  env:)
+
+[//]: # (    JINA_LOG_LEVEL: DEBUG)
+
+[//]: # (gateway:)
+
+[//]: # (  port:)
+
+[//]: # (    - 52000)
+
+[//]: # (    - 51000)
+
+[//]: # (  protocol:)
+
+[//]: # (    - http)
+
+[//]: # (    - grpc)
+
+[//]: # (executors:)
+
+[//]: # (  - name: llm_executor)
+
+[//]: # (    uses:)
+
+[//]: # (      jtype: CausualLMExecutor)
+
+[//]: # (      py_modules:)
+
+[//]: # (        - __init__.py)
+
+[//]: # (    uses_with:)
+
+[//]: # (      model_name_or_path: yahma/llama-7b-hf)
+
+[//]: # (      adapter_name_or_path: jinaai/alpaca-lora)
+
+[//]: # (      device_map: balanced)
+
+[//]: # (      precision: bit8)
+
+[//]: # (    timeout_ready: 3600000)
+
+[//]: # (    replicas: 1)
+
+[//]: # (    jcloud:)
+
+[//]: # (      resources:)
+
+[//]: # (        instance: G3)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (- Flow related config)
+
+[//]: # (```yaml)
+
+[//]: # (with:)
+
+[//]: # (  monitoring: true)
+
+[//]: # (  name: my_opengpt_flow)
+
+[//]: # (  prefetch: 1)
+
+[//]: # (  timeout_ready: -1)
+
+[//]: # (  env:)
+
+[//]: # (    JINA_LOG_LEVEL: DEBUG)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (| Parameters |                                                                                                      Description                                                                                                     |)
+
+[//]: # (|------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|)
+
+[//]: # (| prefetch   | Control the maximum streamed request inside the Flow at any given time, default is None , which means no limit. Setting prefetch a small number helps solve the OOM problem, but may  slow down the streaming a bit. |)
+
+[//]: # (- Gateway related config)
+
+[//]: # ()
+[//]: # (```yaml)
+
+[//]: # (gateway:)
+
+[//]: # (  port:)
+
+[//]: # (    - 52000)
+
+[//]: # (    - 51000)
+
+[//]: # (  protocol:)
+
+[//]: # (    - http)
+
+[//]: # (    - grpc)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (| Parameters | Description                                                                          |)
+
+[//]: # (|------------|--------------------------------------------------------------------------------------|)
+
+[//]: # (| protocol   | The communication protocol between server and client. Can be grpc , http, websocket. |)
+
+[//]: # (| port       | The port which is used for communication between server and client.                  |)
+
+[//]: # ()
+[//]: # (- Executor related config)
+
+[//]: # ()
+[//]: # (```yaml)
+
+[//]: # (executors:)
+
+[//]: # (  - name: llm_executor)
+
+[//]: # (    uses:)
+
+[//]: # (      jtype: CausualLMExecutor)
+
+[//]: # (      py_modules:)
+
+[//]: # (        - __init__.py)
+
+[//]: # (    uses_with:)
+
+[//]: # (      model_name_or_path: yahma/llama-7b-hf)
+
+[//]: # (      adapter_name_or_path: jinaai/alpaca-lora)
+
+[//]: # (      device_map: balanced)
+
+[//]: # (      precision: bit8)
+
+[//]: # (    timeout_ready: 3600000)
+
+[//]: # (    replicas: 1)
+
+[//]: # (    jcloud:)
+
+[//]: # (      resources:)
+
+[//]: # (        instance: G3)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (| Parameters           | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |)
+
+[//]: # (|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|)
+
+[//]: # (| jtype                | Name of the Executor model class.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |)
+
+[//]: # (| py_modules           | List of strings defining the Executor’s Python dependencies. Most notably this must include the Python file containing the Executor definition itself, as well as any other files it imports.                                                                                                                                                                                                                                                                                                                                                           |)
+
+[//]: # (| model_name_or_path   | The name of the model to use. Can be either:   - A string, the *model id* of a predefined tokenizer hosted inside a model repo on huggingface.co.   Valid model ids can be located at the root-level, like `bert-base-uncased`, or namespaced under a   user or organization name, like `dbmdz/bert-base-german-cased`.   - A path to a *directory* containing vocabulary files required by the tokenizer, for instance saved   using the [`~tokenization_utils_base.PreTrainedTokenizerBase.save_pretrained`] method, e.g.,   `./my_model_directory/`. |)
+
+[//]: # (| adapter_name_or_path | The name of the adapter configuration to use. Can be either:   - A string, the `model id` of a Lora configuration hosted inside a model repo on the Hugging Face Hub.   - A path to a directory containing a Lora configuration file saved using the `save_pretrained` method &#40;`./my_lora_config_directory/`&#41;.                                                                                                                                                                                                                                          |)
+
+[//]: # (| device_map           | Define how the model lies across several devices.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |)
+
+[//]: # (| precision            | The precision which is used for inference. Can be fp16 / bit8 / bit4. You need to set `precision=bit8` if you want to use LoRA or `precision=bit4` if QLoRA is used                                                                                                                                                                                                                                                                                                                                                                                     |)
+
+[//]: # (| instance             | GPU instance types on JCloud. For more information about GPU instance type, click [here]&#40;https://docs.jina.ai/concepts/jcloud/configuration/#gpu-tiers&#41;                                                                                                                                                                                                                                                                                                                                                                                                 |)
+
+[//]: # ()
+[//]: # (> **Note**)
+
+[//]: # (> - `uses_with` may be change if customized executor is used. It's a key-value map that defines the arguments of the )
+
+[//]: # (> executor’s `__init__` method. See more details [here]&#40;https://docs.jina.ai/concepts/orchestration/add-executors/&#41;.)
 
 
 ### AWS
