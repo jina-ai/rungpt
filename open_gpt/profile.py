@@ -105,10 +105,8 @@ def end_measure(start_measures):
     torch.cuda.empty_cache()
 
     # CPU mem
-    measures["cpu"] = (
-        psutil.Process().memory_info().rss - start_measures["cpu"]
-    ) / 2**20
-    measures["cpu-peak"] = (cpu_peak_tracker.stop() - start_measures["cpu"]) / 2**20
+    measures["cpu"] = (psutil.Process().memory_info().rss - start_measures["cpu"]) / GB
+    measures["cpu-peak"] = (cpu_peak_tracker.stop() - start_measures["cpu"]) / GB
 
     # GPU mem
     for i in range(torch.cuda.device_count()):
