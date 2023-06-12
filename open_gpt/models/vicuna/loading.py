@@ -99,7 +99,7 @@ def load_model_and_tokenizer(
             delta_param = delta_param.to(param.dtype).to(param.device)
 
             if (
-                name.endswith('embed_tokens.weight')
+                name in ['model.embed_tokens.weight', 'lm_head.weight']
                 and param.shape[0] > delta_param.shape[0]
             ):  # patch to expend the embedding layer
                 tmp_params = torch.zeros_like(
