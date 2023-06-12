@@ -228,6 +228,7 @@ class GenerationMixin:
         repetition_penalty: float = 1.0,
         length_penalty: float = 1.0,
         no_repeat_ngram_size: int = 0,
+        echo: bool = False,
         **kwargs
     ):
         """Generate text from the given prompt.
@@ -245,6 +246,7 @@ class GenerationMixin:
                 Since the score is the log likelihood of the sequence (i.e. negative), length_penalty > 0.0 promotes longer sequences,
                 while length_penalty < 0.0 encourages shorter sequences.
         :param no_repeat_ngram_size: If set to int > 0, all ngrams of that size can only occur once.
+        :param echo: Whether to echo the prompt in the generated text.
         """
         ...
 
@@ -261,12 +263,13 @@ class GenerationMixin:
         # overwrite default values with kwargs
         clean_up_tokenization_spaces = kwargs.pop('clean_up_tokenization_spaces', True)
         skip_special_tokens = kwargs.pop("skip_special_tokens", True)
+        echo = kwargs.pop("echo", False)
 
         with torch.inference_mode():
             outputs = self.model.generate(**inputs, **kwargs).tolist()
 
             text = self.tokenizer.decode(
-                outputs[input_length:],
+                outputs if echo else outputs[input_length:],
                 clean_up_tokenization_spaces=clean_up_tokenization_spaces,
                 skip_special_tokens=skip_special_tokens,
             )
