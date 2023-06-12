@@ -100,10 +100,8 @@ def create_model(
             device_map=device_map,
             **kwargs,
         )
-    elif model_name.startswith('RWKV/rwkv'):
+    elif model_name.startswith('sgugger/rwkv') or model_name.startswith('ybelkada/rwkv'):
         from .models.rwkv.modeling import RWKVModel
-
-        assert adapter_name_or_path is None, 'RWKV does not support adapter'
 
         return RWKVModel(
             model_name,
