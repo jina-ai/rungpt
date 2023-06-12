@@ -18,6 +18,7 @@ def load_model_and_tokenizer(
     import gc
     import json
     import os
+    import re
 
     import huggingface_hub
     import torch
@@ -36,7 +37,12 @@ def load_model_and_tokenizer(
             f"You can install the latest transformers with `pip install git+https://github.com/huggingface/transformers`."
         )
 
-    model_size = model_name_or_path.split('-')[-3]
+    try:
+        model_size = re.search(r".+-(\d+b)-.*", model_name_or_path).groups()[0]
+    except:
+        raise ValueError(
+            f'Cannot parse model size from model name {model_name_or_path}'
+        )
 
     from ..loading import load_model_and_tokenizer as _load_model_and_tokenizer
 
@@ -91,6 +97,16 @@ def load_model_and_tokenizer(
         for name, delta_param in state_dict.items():
             param = model.state_dict()[name]
             delta_param = delta_param.to(param.dtype).to(param.device)
+
+            if (
+                name.endswith('embed_tokens.weight')
+                and param.shape[0] > delta_param.shape[0]
+            ):  # patch to expend the embedding layer
+                tmp_params = torch.zeros_like(
+                    param, dtype=param.dtype, device=param.device
+                )
+                tmp_params[: delta_param.shape[0]] = delta_param
+                delta_param = tmp_params
 
             model.state_dict()[name].data.copy_(param.data + delta_param.data)
 

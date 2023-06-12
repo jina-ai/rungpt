@@ -6,7 +6,7 @@ start_measures = start_measure()
 # llama + LoRA
 model = open_gpt.create_model(
     'yahma/llama-7b-hf',
-    precision='bit8',
+    precision='fp16',
     adapter_name_or_path='jinaai/llama-code',
     device_map='balanced',
 )
