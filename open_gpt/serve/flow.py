@@ -16,11 +16,11 @@ def jinja_template(template):
         return Environment(loader=BaseLoader()).from_string(template)
 
 
-def deploy(flow: str, dry_run: bool = False):
+async def deploy(flow: str, dry_run: bool = False):
     with tempfile.NamedTemporaryFile() as f:
         with open(f.name, 'w') as _:
             _.write(flow)
         if not dry_run:
-            return CloudFlow(path=f.name)._deploy()
+            return await CloudFlow(path=f.name)._deploy()
         else:
             return f.name
