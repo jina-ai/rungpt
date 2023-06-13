@@ -155,7 +155,7 @@ def create_flow(
         deployment_name=f'{norm_name}',
         http_port=http_port,
         grpc_port=grpc_port,
-        gateway_image=f'docker://{settings.gateway_name}:{settings.gateway_version}',
+        gateway_image=f'docker://{settings.gateway_image}:{settings.gateway_version}',
         gateway_params=build_gateway_params(enable_cors=cors),
         executor_params=build_executor_params(
             model_name=model_name_or_path,

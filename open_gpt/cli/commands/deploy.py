@@ -10,20 +10,6 @@ class DeployCommand(Command):
     arguments = [argument("model_name", "The name of the model to serve.")]
     options = [
         option(
-            'grpc_port',
-            None,
-            'The gRPC port to serve the model on.',
-            flag=False,
-            default=51001,
-        ),
-        option(
-            'http_port',
-            None,
-            'The HTTP port to serve the model on.',
-            flag=False,
-            default=51002,
-        ),
-        option(
             'cloud',
             None,
             'The cloud to deploy the model on.',
@@ -79,8 +65,6 @@ class DeployCommand(Command):
             if self.option('config') is None:
                 flow = create_flow(
                     model_name_or_path=self.argument('model_name'),
-                    grpc_port=self.option('grpc_port'),
-                    http_port=self.option('http_port'),
                     cors=self.option('enable_cors'),
                     uses_with={
                         'precision': self.option('precision'),
@@ -91,7 +75,9 @@ class DeployCommand(Command):
                     instance_type=self.option('instance_type'),
                     return_yaml=True,
                 )
-                asyncify(deploy(flow, dry_run=self.option('dry_run')))
+                flow = asyncify(deploy)(flow=flow, dry_run=self.option('dry_run'))
+                if self.option('dry_run'):
+                    self.line(f"{flow}")
             else:
                 raise NotImplementedError(
                     'Deploying with customized config is not supported yet.'

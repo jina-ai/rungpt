@@ -1,7 +1,6 @@
 from pathlib import Path
 
 __resouce__ = Path(__file__).parent / 'resource'
-print(__resouce__)
 
 
 def get_jina_latest_version() -> str:

@@ -23,4 +23,4 @@ async def deploy(flow: str, dry_run: bool = False):
         if not dry_run:
             return await CloudFlow(path=f.name)._deploy()
         else:
-            return f.name
+            return flow
