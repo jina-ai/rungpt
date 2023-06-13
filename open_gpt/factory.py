@@ -137,7 +137,12 @@ def create_flow(
 ):
     from jina import Flow
 
-    from open_gpt.helper import build_executor_params, build_gateway_params
+    from open_gpt.helper import (
+        build_executor_params,
+        build_executor_path,
+        build_gateway_params,
+        build_gateway_path,
+    )
 
     # normalize the model name to be used as flow executor name
     norm_name = model_name_or_path.split('/')[-1]
@@ -146,30 +151,48 @@ def create_flow(
     from jinja2 import Environment, FileSystemLoader
 
     from open_gpt.config import settings
-    from open_gpt.serve.helper import __resouce__
+    from open_gpt.serve.helper import __resource__
 
-    env = Environment(loader=FileSystemLoader(__resouce__))
+    env = Environment(loader=FileSystemLoader(__resource__))
     jinja_template = env.get_template('flow.yml.jinja2')
 
-    yaml = jinja_template.render(
-        deployment_name=f'{norm_name}',
-        http_port=http_port,
-        grpc_port=grpc_port,
-        gateway_image=f'docker://{settings.gateway_image}:{settings.gateway_version}',
-        gateway_params=build_gateway_params(enable_cors=cors),
-        executor_params=build_executor_params(
+    kwargs = {
+        'deployment_name': f'{norm_name}',
+        'http_port': http_port,
+        'grpc_port': grpc_port,
+        'executor_params': build_executor_params(
             model_name=model_name_or_path,
-            adapter_name_or_path=adapter_name_or_path,
             precision=uses_with['precision'],
             device_map=uses_with['device_map'],
         ),
-        jina_version=settings.jina_version,
-        replicas=replicas,
-        labels={'app': 'opengpt'},
-        instance_type=instance_type,
-    )
+        'gateway_params': build_gateway_params(enable_cors=cors),
+        'jina_version': settings.jina_version,
+        'replicas': replicas,
+        'labels': {'app': 'opengpt'},
+        'return_yaml': return_yaml,
+    }
 
     if return_yaml:
-        return yaml
+        yml = jinja_template.render(
+            gateway_image=f'docker://{settings.gateway_image}:{settings.gateway_version}',
+            executor_image='CausualLMExecutor'
+            if 'flamingo' not in model_name_or_path
+            else 'FlamingoExecutor',
+            instance_type=instance_type,
+            **kwargs,
+        )
     else:
-        return Flow().load_config(yaml)
+        executor_path, executor_name = build_executor_path(model_name_or_path)
+        gateway_path, gateway_name = build_gateway_path()
+        yml = jinja_template.render(
+            gateway_path=gateway_path,
+            gateway_name=gateway_name,
+            executor_path=executor_path,
+            executor_name=executor_name,
+            **kwargs,
+        )
+
+    if return_yaml:
+        return yml
+    else:
+        return Flow().load_config(yml)

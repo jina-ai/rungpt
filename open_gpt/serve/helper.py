@@ -1,6 +1,6 @@
 from pathlib import Path
 
-__resouce__ = Path(__file__).parent / 'resource'
+__resource__ = Path(__file__).parent / 'resource'
 
 
 def get_jina_latest_version() -> str:

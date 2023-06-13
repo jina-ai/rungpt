@@ -11,7 +11,14 @@ jcloud:
 with:
   prefetch: 5
 gateway:
-  uses: {{ gateway_image }}
+  uses:
+    {% if not return_yaml -%}
+    jtype: {{ gateway_name }}
+    py_modules:
+      - {{  gateway_path }}
+    {% else %}
+    {{ gateway_image }}
+    {% endif %}
   port:
     {% if http_port -%}
     - {{ http_port }}
@@ -32,7 +39,14 @@ gateway:
     {% endfor %}
 executors:
   - name: {{ deployment_name }}
-    uses: jinahub+docker://CausualLMExecutor/0.0.1-gpu
+    uses:
+      {% if not return_yaml -%}
+      jtype: {{ executor_name }}
+      py_modules:
+        - {{ executor_path }}
+      {% else %}
+      jinahub+docker://{{ executor_image }}/0.0.1-gpu
+      {% endif %}
     replicas: {{ replicas }}
     uses_with:
       {% for key, value in executor_params.items() -%}

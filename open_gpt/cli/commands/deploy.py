@@ -68,7 +68,7 @@ class DeployCommand(Command):
                     cors=self.option('enable_cors'),
                     uses_with={
                         'precision': self.option('precision'),
-                        'adapter_name_or_path': self.option('adapter_name_or_path'),
+                        # 'adapter_name_or_path': self.option('adapter_name_or_path'),
                         'device_map': self.option('device_map'),
                     },
                     replicas=self.option('replicas'),
