@@ -75,6 +75,7 @@ def load_model_and_transforms(
     lang_model, tokenizer = load_llama_model_and_tokenizer(
         model_name_or_path=lang_model_name_or_path,
         tokenizer_name_or_path=tokenizer_name_or_path,
+        precision=precision,
         device=device,
         dtype=dtype,
         device_map=device_map,
