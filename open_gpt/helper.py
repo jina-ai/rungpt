@@ -120,3 +120,14 @@ def build_executor_params(model_name, adapter_name_or_path, precision, device_ma
 
 def build_gateway_params(enable_cors):
     return {'cors': enable_cors}
+
+
+def asyncify(f):
+    import asyncio
+    from functools import wraps
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        return asyncio.get_event_loop().run_until_complete(f(*args, **kwargs))
+
+    return wrapper

@@ -73,6 +73,7 @@ class DeployCommand(Command):
     def handle(self) -> int:
         if self.option('cloud') == 'jina':
             from open_gpt.factory import create_flow
+            from open_gpt.helper import asyncify
             from open_gpt.serve.flow import deploy
 
             if self.option('config') is None:
@@ -90,7 +91,7 @@ class DeployCommand(Command):
                     instance_type=self.option('instance_type'),
                     return_yaml=True,
                 )
-                self.asyncify(deploy(flow, dry_run=self.option('dry_run')))
+                asyncify(deploy(flow, dry_run=self.option('dry_run')))
             else:
                 raise NotImplementedError(
                     'Deploying with customized config is not supported yet.'
@@ -99,14 +100,3 @@ class DeployCommand(Command):
         elif self.option('cloud') == 'aws':
             raise NotImplementedError('Deploying on AWS is not supported yet.')
         return 0
-
-    @staticmethod
-    def asyncify(f):
-        import asyncio
-        from functools import wraps
-
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            return asyncio.get_event_loop().run_until_complete(f(*args, **kwargs))
-
-        return wrapper
