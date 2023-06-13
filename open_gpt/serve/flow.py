@@ -8,9 +8,9 @@ from jinja2 import BaseLoader, Environment, FileSystemLoader
 @cached_property
 def jinja_template(template):
     if template.endswith('.jinja2'):
-        from open_gpt.serve.helper import __resouce__
+        from open_gpt.serve.helper import __resource__
 
-        env = Environment(loader=FileSystemLoader(__resouce__))
+        env = Environment(loader=FileSystemLoader(__resource__))
         return env.get_template(template)
     else:
         return Environment(loader=BaseLoader()).from_string(template)
