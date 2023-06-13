@@ -52,7 +52,7 @@ def load_model_and_transforms(
     model_name, *pretrained = vision_model_name_or_path.split("::")
     pretrained = pretrained[0] if len(pretrained) == 1 else 'openai'
     clip_model, _, image_processor = open_clip.create_model_and_transforms(
-        model_name, pretrained=pretrained, precision='fp16'
+        model_name, pretrained=pretrained, precision='fp16', device=device
     )
     # set the vision encoder to output the visual features
     clip_model.visual.output_tokens = True
