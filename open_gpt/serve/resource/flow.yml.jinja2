@@ -1,0 +1,45 @@
+jtype: Flow
+jcloud:
+  version: {{ jina_version }}
+  monitor:
+    traces:
+      enable: true
+  labels:
+    {% for key, value in labels.items() -%}
+    {{ key }}: {{ value }}
+    {% endfor %}
+with:
+  prefetch: 5
+gateway:
+  uses: {{ gateway_image }}
+  port:
+    {% if http_port -%}
+    - {{ http_port }}
+    {% endif %}
+    {% if grpc_port -%}
+    - {{ grpc_port }}
+    {% endif %}
+  protocol:
+    {% if http_port -%}
+    - http
+    {% endif %}
+    {% if grpc_port -%}
+    - grpc
+    {% endif %}
+  uses_with:
+    {% for key, value in gateway_params.items() -%}
+    {{ key }}: {{ value }}
+    {% endfor %}
+executors:
+  - name: {{ deployment_name }}
+    uses: jinahub+docker://CausualLMExecutor/0.0.1-gpu
+    replicas: {{ replicas }}
+    uses_with:
+      {% for key, value in executor_params.items() -%}
+      {{ key }}: {{ value }}
+      {% endfor %}
+    {% if instance_type -%}
+    jcloud:
+      resources:
+        instance: {{ instance_type }}
+    {% endif %}
