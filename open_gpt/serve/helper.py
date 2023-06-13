@@ -1,8 +1,3 @@
-from pathlib import Path
-
-__resources_path__ = Path(__file__).parent / 'resources'
-
-
 def get_jina_latest_version() -> str:
     try:
         import json
