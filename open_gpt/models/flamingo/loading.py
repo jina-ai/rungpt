@@ -95,11 +95,33 @@ def load_model_and_transforms(
     lang_model.set_decoder_layers_attr_name(decoder_layers_attr_name)
     lang_model.resize_token_embeddings(len(tokenizer))
 
+    # flamingo_config = {
+    #     "image_size": open_clip.get_model_config(model_name)["vision_cfg"]["width"],
+    #     "cross_attn_every_n_layers": 4,
+    #     "end_chunk_token_id": tokenizer.encode("<|endofchunk|>")[-1],
+    #     "media_token_id": tokenizer.encode("<image>")[-1],
+    # }
+
     flamingo_config = {
+        "model_type": "flamingo",
         "image_size": open_clip.get_model_config(model_name)["vision_cfg"]["width"],
         "cross_attn_every_n_layers": 4,
         "end_chunk_token_id": tokenizer.encode("<|endofchunk|>")[-1],
         "media_token_id": tokenizer.encode("<image>")[-1],
+        "tie_word_embeddings": False,
+        "use_media_placement_augmentation": True,
+        "only_attend_previous": True,
+        "text_config": {"_name_or_path": "yahma/llama-7b-hf", "model_type": "llama"},
+        "vision_config": {
+            "_name_or_path": "openai/clip-vit-large-patch14",
+            "model_type": "clip_vision_model",
+            "hidden_size": 1024,
+            "intermediate_size": 4096,
+            "num_attention_heads": 16,
+            "num_hidden_layers": 24,
+            "image_size": 224,
+            "patch_size": 14,
+        },
     }
 
     model = FlamingoLMModel(

@@ -1,7 +1,6 @@
 from typing import Callable, Optional, Union
 
 import torch
-from accelerate.hooks import AlignDevicesHook, add_hook_to_module
 from einops import rearrange
 from open_flamingo.src.helpers import PerceiverResampler
 from torch import nn
@@ -12,6 +11,10 @@ from ...helper import auto_dtype_and_device
 
 
 class FlamingoLMModel(nn.Module):
+
+    base_model_prefix = "flamingo"
+    _no_split_modules = ["FlamingoPerceiverBlock", "CLIPEncoderLayer", "FlamingoLayer"]
+
     def __init__(
         self,
         vision_encoder: 'nn.Module',
@@ -31,20 +34,19 @@ class FlamingoLMModel(nn.Module):
         :param dtype: the data type to run the model on
         :param kwargs: other arguments
         """
+
         super().__init__()
 
-        self.dtype, self.device = auto_dtype_and_device(dtype, device)
+        self._dtype, self._device = auto_dtype_and_device(dtype, device)
 
         self.model_config = model_config
         self.vision_encoder = vision_encoder
         self.lang_encoder = language_model
 
         self.perceiver = PerceiverResampler(dim=self.model_config['image_size'])
-        if str(self.dtype) == 'torch.float16':
+        if str(self._dtype) == 'torch.float16':
             self.perceiver.half()
-        elif str(self.dtype) == 'torch.int8':
-            raise NotImplementedError('int8 is not supported yet')
-        self.perceiver.to(self.device)
+        self.perceiver.to(self._device)
 
         self.media_token_id = model_config['media_token_id']
         self.end_chunk_token_id = model_config['end_chunk_token_id']
@@ -59,9 +61,40 @@ class FlamingoLMModel(nn.Module):
             cross_attn_every_n_layers=model_config['cross_attn_every_n_layers'],
             use_media_placement_augmentation=True,
             only_attend_previous=True,
-            dtype=dtype,
-            device=device,
         )
+
+        if hasattr(self.lang_encoder, "_hf_hook"):
+            # logger.debug(f'lang_encoder has _hf_hook, {self.lang_encoder._hf_hook}')
+            import functools
+
+            from accelerate.hooks import add_hook_to_module, remove_hook_from_module
+
+            hook = self.lang_encoder._hf_hook
+
+            remove_hook_from_module(self.lang_encoder)
+
+            old_forward = self.lang_encoder.call_forward
+
+            self.lang_encoder = hook.init_hook(self.lang_encoder)
+            self.lang_encoder._hf_hook = hook
+
+            @functools.wraps(old_forward)
+            def new_forward(*args, **kwargs):
+                args, kwargs = self.lang_encoder._hf_hook.pre_forward(
+                    self.lang_encoder, *args, **kwargs
+                )
+                if self.lang_encoder._hf_hook.no_grad:
+                    with torch.no_grad():
+                        output = old_forward(*args, **kwargs)
+                else:
+                    output = old_forward(*args, **kwargs)
+                return self.lang_encoder._hf_hook.post_forward(
+                    self.lang_encoder, output
+                )
+
+            self.lang_encoder.forward = new_forward
+
+            # add_hook_to_module(self.lang_encoder, old_hook)
 
     def forward(
         self,
@@ -135,20 +168,8 @@ class FlamingoLMModel(nn.Module):
 
         :return: text_inputs with generated tokens appended to it (batch_size, sequence_length)
         """
-
-        # if hasattr(self, "_hf_hook"):
-        # add a hook to make sure that the output of lang_encoder is mapped to the same device as the text_inputs
-        hook = AlignDevicesHook(
-            execution_device=self.device,
-            io_same_device=True,
-            place_submodules=False,
-        )
-        add_hook_to_module(self.lang_encoder, hook)
-
-        vision_inputs = vision_inputs.to(dtype=self.dtype, device=self.device)
-        # if attention_mask is not None:
-        #     attention_mask = attention_mask.to(self.device)
-        text_inputs = text_inputs.to(self.device)
+        vision_inputs = vision_inputs.to(dtype=self._dtype, device=self._device)
+        text_inputs = text_inputs.to(self._device)
 
         if num_beams > 1:
             vision_inputs = vision_inputs.repeat_interleave(num_beams, dim=0)
@@ -159,13 +180,6 @@ class FlamingoLMModel(nn.Module):
             raise ValueError(
                 "Flamingo layers are not initialized. Please call `init_flamingo` first."
             )
-
-        media_locations = text_inputs == self.media_token_id
-        attend_previous = False
-
-        for layer in self.lang_encoder.get_decoder().layers:
-            layer.condition_media_locations(media_locations)
-            layer.condition_attend_previous(attend_previous)
 
         output = self.lang_encoder.generate(
             text_inputs,
@@ -208,7 +222,9 @@ class FlamingoLMModel(nn.Module):
         vision_x = rearrange(vision_inputs, "B T F c h w -> (B T F) c h w")
 
         with torch.no_grad():
-            vision_x = self.vision_encoder.visual(vision_x)[1]
+            vision_x = self.vision_encoder.visual(
+                vision_x.to(self._dtype).to(self._device)
+            )[1]
 
         vision_x = rearrange(vision_x, "(B T F) v d -> B T F v d", B=B, T=T, F=F)
 
@@ -216,5 +232,3 @@ class FlamingoLMModel(nn.Module):
 
         for layer in self.lang_encoder._get_decoder_layers():
             layer.condition_vis_x(vision_x)
-
-        return vision_x
