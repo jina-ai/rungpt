@@ -99,14 +99,3 @@ class DeployCommand(Command):
         elif self.option('cloud') == 'aws':
             raise NotImplementedError('Deploying on AWS is not supported yet.')
         return 0
-
-    @staticmethod
-    def asyncify(f):
-        import asyncio
-        from functools import wraps
-
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            return asyncio.get_event_loop().run_until_complete(f(*args, **kwargs))
-
-        return wrapper
