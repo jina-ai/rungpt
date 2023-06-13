@@ -110,7 +110,8 @@ class DeployCommand(Command):
             'cors': self.option('enable_cors'),
         }
 
-    def asyncify(self, f):
+    @staticmethod
+    def asyncify(f):
         import asyncio
         from functools import wraps
 

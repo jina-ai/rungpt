@@ -20,6 +20,7 @@ class SimpleFlow:
         gateway_params: dict = {},
         http_port: str = '51000',
         grpc_port: str = '52000',
+        labels: dict = {},
         replicas: int = 1,
         instance_type: str = 'G3',
         **kwargs,
@@ -29,6 +30,7 @@ class SimpleFlow:
         self.executor_params = executor_params
 
         self.replicas = replicas
+        self.labels = labels
         self.jina_version = jina_version or get_jina_latest_version()
 
         self.instance_type = instance_type
@@ -44,20 +46,17 @@ class SimpleFlow:
     @cached_property
     def jinja_template(self):
         if self.template.endswith('.jinja2'):
-            env = Environment(loader=FileSystemLoader(self.template))
+            from open_gpt.serve.helper import __resouce__
+
+            env = Environment(loader=FileSystemLoader(__resouce__))
             return env.get_template(self.template)
         else:
             return Environment(loader=BaseLoader()).from_string(self.template)
 
     def create_flow(
         self,
-        labels: Optional[dict] = None,
-        executor_params: Optional[dict] = None,
         output_path: Optional[Union[str, 'Path']] = None,
     ):
-        executor_params = executor_params or {}
-        executor_params.update(self.executor_params)
-
         content = self.jinja_template.render(
             deployment_name=self.name,
             gateway_image=self.gateway_image,
@@ -65,12 +64,12 @@ class SimpleFlow:
             http_port=self.http_port,
             grpc_port=self.grpc_port,
             replicas=self.replicas,
-            executor_params=executor_params,
+            executor_params=self.executor_params,
             jina_version=self.jina_version,
-            labels=labels,
-            instance_type=self.instance_tpye,
+            labels=self.labels,
+            instance_type=self.instance_type,
         )
-        if output_path:
+        if output_path is not None:
             with open(output_path, 'w') as f:
                 f.write(content)
             return output_path
@@ -79,7 +78,7 @@ class SimpleFlow:
 
     def deploy(self, dry_run: bool = False):
         with tempfile.NamedTemporaryFile() as f:
-            flow_path = self.create_flow(output_path=None)
+            flow_path = self.create_flow(output_path=f.name)
             if not dry_run:
                 return CloudFlow(path=flow_path)._deploy()
             else:
