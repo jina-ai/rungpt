@@ -5,7 +5,7 @@ from cleo.helpers import argument, option
 class DeployCommand(Command):
     name = "deploy"
 
-    description = "Start to deploy a model to JCloud or AWS."
+    description = "Start to deploy a model to cloud."
 
     arguments = [argument("model_name", "The name of the model to serve.")]
     options = [
@@ -35,7 +35,7 @@ class DeployCommand(Command):
             None,
             'The cloud to deploy the model on.',
             flag=False,
-            default='jcloud',
+            default='jina',
         ),
         option('enable_cors', None, 'Enable CORS.', flag=True),
         option(
@@ -61,54 +61,51 @@ class DeployCommand(Command):
             flag=False,
             default='G3',
         ),
-        option("config", None, "The config YAML used to deploy.", flag=False),
+        option(
+            'dry_run',
+            None,
+            'Whether to run the deployment in dry run mode.',
+            flag=True,
+        ),
+        option("config", "c", "The config YAML used to deploy.", flag=False),
     ]
 
     help = """\
-    This command allows you to deploy a model on JCloud or AWS.
+    This command allows you to deploy a model on cloud.
 
     To start a model deploying, you can run:
 
         <comment>opengpt deploy facebook/llama-7b</comment>"""
 
     def handle(self) -> int:
-        if self.option('cloud') == 'jcloud':
-            from open_gpt.config import settings
-            from open_gpt.serve.flow import SimpleFlow
+        if self.option('cloud') == 'jina':
+            from open_gpt.factory import create_flow
+            from open_gpt.serve.flow import deploy
 
             if self.option('config') is None:
-                flow = SimpleFlow(
-                    name=self.option('name'),
-                    template='flow.yml.jinja2',
-                    executor_params=self._build_executor_params(),
-                    gateway_params=self._build_gateway_params(),
-                    labels={'app': 'opengpt'},
+                flow = create_flow(
+                    self.argument('model_name'),
+                    grpc_port=self.option('grpc_port'),
+                    http_port=self.option('http_port'),
+                    cors=self.option('enable_cors'),
+                    uses_with={
+                        'precision': self.option('precision'),
+                        'adapter_name_or_path': self.option('adapter_name_or_path'),
+                        'device_map': self.option('device_map'),
+                    },
                     replicas=self.option('replicas'),
-                    jina_version=settings.jina_version,
                     instance_type=self.option('instance_type'),
+                    return_yaml=True,
                 )
-                self.asyncify(flow.deploy(dry_run=True))
+                deploy(flow, dry_run=self.option('dry_run'))
             else:
-                raise NotImplementedError()
+                raise NotImplementedError(
+                    'Deploying with customized config is not ' 'supported yet.'
+                )
 
         elif self.option('cloud') == 'aws':
-            raise NotImplementedError()
+            raise NotImplementedError('Deploying on AWS is not supported yet.')
         return 0
-
-    def _build_executor_params(self):
-        return {
-            'model_name_or_path': self.argument('model_name'),
-            'precision': self.option('precision'),
-            'adapter_name_or_path': self.option('adapter_name_or_path'),
-            'device_map': self.option('device_map'),
-        }
-
-    def _build_gateway_params(self):
-        return {
-            'grpc_port': self.option('grpc_port'),
-            'http_port': self.option('http_port'),
-            'cors': self.option('enable_cors'),
-        }
 
     @staticmethod
     def asyncify(f):

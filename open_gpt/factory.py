@@ -129,39 +129,47 @@ def create_flow(
     grpc_port: int = 51001,
     http_port: int = 51002,
     cors: bool = False,
+    return_yaml: bool = True,
     adapter_name_or_path: Optional[str] = None,
     uses_with: Optional[dict] = {},
     replicas: int = 1,
+    instance_type: Optional[str] = None,
 ):
     from jina import Flow
 
-    if 'flamingo' in model_name_or_path:
-        from .serve.executors.flamingo import FlamingoExecutor as Executor
-    else:
-        from .serve.executors import CausualLMExecutor as Executor
-
-    from .serve.gateway import Gateway
+    from open_gpt.helper import build_executor_params, build_gateway_params
 
     # normalize the model name to be used as flow executor name
     norm_name = model_name_or_path.split('/')[-1]
     norm_name = norm_name.replace('-', '_').replace('.', '_').lower()
 
-    uses_with['model_name_or_path'] = model_name_or_path
-    uses_with['adapter_name_or_path'] = adapter_name_or_path
+    from jinja2 import Environment, FileSystemLoader
 
-    return (
-        Flow()
-        .config_gateway(
-            uses=Gateway,
-            port=[grpc_port, http_port],
-            protocol=['grpc', 'http'],
-            cors=cors,
-        )
-        .add(
-            uses=Executor,
-            uses_with=uses_with,
-            name=f'{norm_name}_executor',
-            replicas=replicas,
-            timeout_ready=-1,
-        )
+    from open_gpt.config import settings
+    from open_gpt.serve.helper import __resouce__
+
+    env = Environment(loader=FileSystemLoader(__resouce__))
+    jinja_template = env.get_template('flow.yml.jinja2')
+
+    yaml = jinja_template.render(
+        deployment_name=f'{norm_name}',
+        http_port=http_port,
+        grpc_port=grpc_port,
+        gateway_image=f'docker://{settings.gateway_name}:{settings.gateway_version}',
+        gateway_params=build_gateway_params(enable_cors=cors),
+        executor_params=build_executor_params(
+            model_name=model_name_or_path,
+            adapter_name_or_path=adapter_name_or_path,
+            precision=uses_with['precision'],
+            device_map=uses_with['device_map'],
+        ),
+        jina_version=settings.jina_version,
+        replicas=replicas,
+        labels={'app': 'opengpt'},
+        instance_type=instance_type,
     )
+
+    if return_yaml:
+        return yaml
+    else:
+        return Flow().load_config(yaml)

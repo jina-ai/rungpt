@@ -107,3 +107,16 @@ def setup_seeds(seed: int = 32):
 def utcnow() -> datetime:
     """Return the current utc date and time with tzinfo set to UTC."""
     return datetime.now(timezone.utc)
+
+
+def build_executor_params(model_name, adapter_name_or_path, precision, device_map):
+    return {
+        'model_name_or_path': model_name,
+        'precision': precision,
+        'adapter_name_or_path': adapter_name_or_path,
+        'device_map': device_map,
+    }
+
+
+def build_gateway_params(enable_cors):
+    return {'cors': enable_cors}

@@ -1,16 +1,16 @@
 from pydantic import BaseSettings
 
 # jina core
-DEFAULT_JINA_VERSION = ''
+DEFAULT_JINA_VERSION = '3.14.1'
 
 # gateway
-DEFAULT_GATEWAY_NAME = 'inferenceteam/paywall-gateway'
+DEFAULT_GATEWAY_IMAGE = 'inferenceteam/opengpt-gateway'
 DEFAULT_GATEWAY_VERSION = 'latest'
 
 
 class Settings(BaseSettings):
 
-    gateway_name: str = DEFAULT_GATEWAY_NAME
+    gateway_image: str = DEFAULT_GATEWAY_IMAGE
     gateway_version: str = DEFAULT_GATEWAY_VERSION
 
     jina_version: str = DEFAULT_JINA_VERSION

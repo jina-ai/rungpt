@@ -63,6 +63,7 @@ class ServeCommand(Command):
                 'device_map': self.option('device_map'),
             },
             replicas=self.option('replicas'),
+            return_yaml=False,
         ) as flow:
             self.line(
                 f'<info>The model is ready to be used at port {self.option("grpc_port")} (gRPC) and {self.option("http_port")} (HTTP).</info>'
