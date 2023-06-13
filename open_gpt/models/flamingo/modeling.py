@@ -7,7 +7,6 @@ from open_gpt.models.modeling import BaseModel
 
 
 class FlamingoModel(BaseModel):
-    no_split_module_classes = ["LlamaDecoderLayer"]
     image_processor = None
 
     def __init__(self, *args, **kwargs):
@@ -31,8 +30,6 @@ class FlamingoModel(BaseModel):
             device=self._device,
             device_map=self._device_map,
         )
-
-        self.model.eval()
 
     def generate(self, prompt: str, inplace_images: List = [], **kwargs):
         """Generate text from the given prompt."""
