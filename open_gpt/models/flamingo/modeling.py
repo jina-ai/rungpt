@@ -27,9 +27,9 @@ class FlamingoModel(BaseModel):
             lang_model_name_or_path='facebook/llama-7b',
             tokenizer_name_or_path=tokenizer_name_or_path,
             dtype=self._dtype,
+            precision=self._precision,
             device=self._device,
             device_map=self._device_map,
-            no_split_module_classes=self.no_split_module_classes,
         )
 
         self.model.eval()
