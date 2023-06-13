@@ -100,7 +100,7 @@ class DeployCommand(Command):
                 deploy(flow, dry_run=self.option('dry_run'))
             else:
                 raise NotImplementedError(
-                    'Deploying with customized config is not ' 'supported yet.'
+                    'Deploying with customized config is not supported yet.'
                 )
 
         elif self.option('cloud') == 'aws':
