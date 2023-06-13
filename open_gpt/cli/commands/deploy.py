@@ -24,13 +24,6 @@ class DeployCommand(Command):
             default=51002,
         ),
         option(
-            'name',
-            None,
-            'The name of the deployment.',
-            flag=False,
-            default='open-gpt-deployment',
-        ),
-        option(
             'cloud',
             None,
             'The cloud to deploy the model on.',
@@ -84,7 +77,7 @@ class DeployCommand(Command):
 
             if self.option('config') is None:
                 flow = create_flow(
-                    self.argument('model_name'),
+                    model_name_or_path=self.argument('model_name'),
                     grpc_port=self.option('grpc_port'),
                     http_port=self.option('http_port'),
                     cors=self.option('enable_cors'),

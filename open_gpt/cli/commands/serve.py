@@ -53,7 +53,7 @@ class ServeCommand(Command):
         from open_gpt.factory import create_flow
 
         with create_flow(
-            self.argument('model_name'),
+            model_name_or_path=self.argument('model_name'),
             grpc_port=self.option('grpc_port'),
             http_port=self.option('http_port'),
             cors=self.option('enable_cors'),
