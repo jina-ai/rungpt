@@ -24,6 +24,13 @@ class DeployCommand(Command):
             default=51002,
         ),
         option(
+            'name',
+            None,
+            'The name of the deployment.',
+            flag=False,
+            default='open-gpt-deployment',
+        ),
+        option(
             'cloud',
             None,
             'The cloud to deploy the model on.',
@@ -71,7 +78,7 @@ class DeployCommand(Command):
 
             if self.option('config') is None:
                 flow = SimpleFlow(
-                    name=self.argument('model_name'),
+                    name=self.option('name'),
                     template='flow.yml.jinja2',
                     executor_params=self._build_executor_params(),
                     gateway_params=self._build_gateway_params(),
