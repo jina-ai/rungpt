@@ -23,6 +23,7 @@ COMMANDS = [
     "about",
     "serve",
     "playground",
+    "quantize",
 ]
 
 
