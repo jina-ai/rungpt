@@ -148,8 +148,9 @@ def create_flow(
     norm_name = norm_name.replace('-', '_').replace('.', '_').lower()
 
     # HOTFIX: patch to avoid to use pre-release version
+    __VERSION_TAG__ = f'v{__version__}'
     if 'dev' in __version__:
-        __version__ = 'latest'
+        __VERSION_TAG__ = 'latest'
 
     deployment_params = {
         'deployment_name': f'{norm_name}',
@@ -164,14 +165,14 @@ def create_flow(
         'gateway_params': {'cors': cors},
         'jina_version': __jina_version__,
         'replicas': replicas,
-        'labels': {'app': 'opengpt', 'version': __version__},
+        'labels': {'app': 'opengpt', 'version': __VERSION_TAG__},
     }
 
     yaml = get_template('flow.yml.jinja2').render(
         dockerized=dockerized,
-        gateway_image=f'docker://jinaai/open_gpt_gateway:v{__version__}',
+        gateway_image=f'docker://jinaai/open_gpt_gateway:{__VERSION_TAG__}',
         gateway_module='Gateway',
-        executor_image=f'docker://jinaai/open_gpt_executor:v{__version__}',
+        executor_image=f'docker://jinaai/open_gpt_executor:{__VERSION_TAG__}',
         executor_module='CausualLMExecutor'
         if 'flamingo' not in model_name_or_path
         else 'FlamingoExecutor',
