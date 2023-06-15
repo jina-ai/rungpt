@@ -48,7 +48,4 @@ class VicunaModel(LlamaModel):
             precision=self._precision,
             device=self._device,
             device_map=self._device_map,
-            no_split_module_classes=self.no_split_module_classes,
         )
-
-        self.model.eval()

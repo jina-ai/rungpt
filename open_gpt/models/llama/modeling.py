@@ -6,8 +6,6 @@ from open_gpt.models.modeling import BaseModel
 
 
 class LlamaModel(BaseModel):
-    no_split_module_classes = ["LlamaDecoderLayer"]
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -31,5 +29,3 @@ class LlamaModel(BaseModel):
 
         if adapter_name_or_path:
             self.load_adapter(adapter_name_or_path)
-
-        self.model.eval()

@@ -46,6 +46,10 @@ class BaseModel(nn.Module, GenerationMixin, EmbeddingMixin):
             tokenizer_name_or_path=tokenizer_name_or_path,
         )
 
+        # turn the eval mode off `eval_mode=False` in training
+        if self._eval_mode:
+            self.model.eval()
+
         self.post_init(**kwargs)
 
     def load_model_and_transforms(
@@ -67,10 +71,6 @@ class BaseModel(nn.Module, GenerationMixin, EmbeddingMixin):
 
         if adapter_name_or_path is not None:
             self.load_adapter(adapter_name_or_path)
-
-        # turn the eval mode off `eval_mode=False` in training
-        if self._eval_mode:
-            self.model.eval()
 
     def post_init(self, **kwargs):
         pass

@@ -13,10 +13,10 @@ def load_model_and_transforms(
     lang_model_name_or_path: str,
     tokenizer_name_or_path: Optional[str] = None,
     decoder_layers_attr_name: Optional[str] = None,
-    device: 'torch.device' = torch.device('cuda'),
-    dtype: 'torch.dtype' = torch.float16,
+    device: Optional[torch.device] = None,
+    precision: Optional[str] = None,
+    dtype: Optional[torch.dtype] = None,
     device_map: Optional[Union[str, List[int]]] = None,
-    no_split_module_classes: Optional[List[str]] = None,
     **kwargs,
 ):
     """Load a Flamingo model and its associated image and text processors.
@@ -26,25 +26,33 @@ def load_model_and_transforms(
     :param lang_model_name_or_path: The name or path of the language model to use.
     :param tokenizer_name_or_path: The name or path of the tokenizer to use. If not specified, the tokenizer associated with the model will be used.
     :param decoder_layers_attr_name: The name of the attribute that specifies the decoder layers.
+    :param precision: The precision to load the model with.
     :param device: The device to load the model on.
     :param dtype: The dtype to load the model with.
     """
 
-    from ...helper import cast_to_precision
-    from ..loading import load_model_and_tokenizer as load_llama_model_and_tokenizer
+    import os
+
+    from ..llama.loading import (
+        load_model_and_tokenizer as load_llama_model_and_tokenizer,
+    )
     from .flamingo_lm import FlamingoLMMixin
     from .flamingo_model import FlamingoLMModel
+
+    hf_token = os.environ.get("HF_TOKEN")
+    assert (
+        hf_token is not None
+    ), "Please set HF_TOKEN environment variable to download model from HuggingFace Hub"
 
     assert (
         device_map is None
     ), f"`device_map={device_map}` is not supported for Flamingo models"
 
     # load the vision model
-    precision = cast_to_precision(dtype)
     model_name, *pretrained = vision_model_name_or_path.split("::")
     pretrained = pretrained[0] if len(pretrained) == 1 else 'openai'
     clip_model, _, image_processor = open_clip.create_model_and_transforms(
-        model_name, pretrained=pretrained, device=device, precision=precision
+        model_name, pretrained=pretrained, precision='fp16', device=device
     )
     # set the vision encoder to output the visual features
     clip_model.visual.output_tokens = True
@@ -67,10 +75,10 @@ def load_model_and_transforms(
     lang_model, tokenizer = load_llama_model_and_tokenizer(
         model_name_or_path=lang_model_name_or_path,
         tokenizer_name_or_path=tokenizer_name_or_path,
+        precision=precision,
         device=device,
         dtype=dtype,
         device_map=device_map,
-        no_split_module_classes=no_split_module_classes,
     )
 
     # add Flamingo special tokens to the tokenizer
@@ -87,11 +95,33 @@ def load_model_and_transforms(
     lang_model.set_decoder_layers_attr_name(decoder_layers_attr_name)
     lang_model.resize_token_embeddings(len(tokenizer))
 
+    # flamingo_config = {
+    #     "image_size": open_clip.get_model_config(model_name)["vision_cfg"]["width"],
+    #     "cross_attn_every_n_layers": 4,
+    #     "end_chunk_token_id": tokenizer.encode("<|endofchunk|>")[-1],
+    #     "media_token_id": tokenizer.encode("<image>")[-1],
+    # }
+
     flamingo_config = {
+        "model_type": "flamingo",
         "image_size": open_clip.get_model_config(model_name)["vision_cfg"]["width"],
         "cross_attn_every_n_layers": 4,
         "end_chunk_token_id": tokenizer.encode("<|endofchunk|>")[-1],
         "media_token_id": tokenizer.encode("<image>")[-1],
+        "tie_word_embeddings": False,
+        "use_media_placement_augmentation": True,
+        "only_attend_previous": True,
+        "text_config": {"_name_or_path": "yahma/llama-7b-hf", "model_type": "llama"},
+        "vision_config": {
+            "_name_or_path": "openai/clip-vit-large-patch14",
+            "model_type": "clip_vision_model",
+            "hidden_size": 1024,
+            "intermediate_size": 4096,
+            "num_attention_heads": 16,
+            "num_hidden_layers": 24,
+            "image_size": 224,
+            "patch_size": 14,
+        },
     }
 
     model = FlamingoLMModel(
@@ -117,14 +147,7 @@ def load_model_and_transforms(
     )
 
     # grab model checkpoint from huggingface hub
-    import os
-
     from huggingface_hub import hf_hub_download
-
-    hf_token = os.environ.get("HF_TOKEN")
-    assert (
-        hf_token is not None
-    ), "Please set HF_TOKEN environment variable to download model from HuggingFace Hub"
 
     checkpoint_path = hf_hub_download(
         model_name_or_path, "checkpoint.pt", token=hf_token
