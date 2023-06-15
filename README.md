@@ -206,13 +206,13 @@ To do so, you can use `deploy` command:
 using predefined executor
 
 ```bash
-opengpt deploy stabilityai/stablelm-tuned-alpha-3b --precision fp16 --device_map balanced --cloud jina --name opengpt --replicas 2
+opengpt deploy stabilityai/stablelm-tuned-alpha-3b --precision fp16 --device_map balanced --cloud jina --replicas 1
 ```
 
 It will give you a HTTP url and a gRPC url by default:
 ```bash
-https://activate-puma-3defr4e32-http.wolf.jina.ai
-grpcs://activate-puma-3defr4e32-grpc.wolf.jina.ai
+https://{random-host-name}-http.wolf.jina.ai
+grpcs://{random-host-name}-grpc.wolf.jina.ai
 ```
 
 
