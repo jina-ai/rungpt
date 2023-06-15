@@ -165,9 +165,9 @@ def create_flow(
 
     yaml = get_template('flow.yml.jinja2').render(
         dockerized=dockerized,
-        gateway_image=f'docker://inferenceteam/opengpt_gateway:v{__version__}',
+        gateway_image=f'docker://jinaai/open_gpt_gateway:v{__version__}',
         gateway_module='Gateway',
-        executor_image=f'docker://inferenceteam/opengpt_executor:v{__version__}',
+        executor_image=f'docker://jinaai/open_gpt_executor:v{__version__}',
         executor_module='CausualLMExecutor'
         if 'flamingo' not in model_name_or_path
         else 'FlamingoExecutor',
