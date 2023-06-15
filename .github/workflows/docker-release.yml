@@ -94,3 +94,34 @@ jobs:
             BUILD_DATE=${{env.BUILD_DATE}}
             VERSION=${{env.VERSION}}
             VCS_REF=${{env.VCS_REF}}
+
+      - name: Build and push gateway
+        id: docker_build_gateway
+        uses: docker/build-push-action@v4
+        with:
+          file: Dockerfiles/gateway.Dockerfile
+          platforms: linux/amd64
+          cache-from: type=registry,ref=jinaai/open_gpt_gateway:latest
+          cache-to: type=inline
+          push: true
+          tags: jinaai/open_gpt_gateway:v${{env.VERSION}}, jinaai/open_gpt_gateway:latest
+          build-args: |
+            BUILD_DATE=${{env.BUILD_DATE}}
+            VERSION=${{env.VERSION}}
+            VCS_REF=${{env.VCS_REF}}
+
+      - name: Build and push executor
+        id: docker_build_executor
+        uses: docker/build-push-action@v4
+        with:
+          file: Dockerfiles/executor.Dockerfile
+          platforms: linux/amd64
+          cache-from: type=registry,ref=jinaai/open_gpt_executor:latest
+          cache-to: type=inline
+          push: true
+          tags: jinaai/open_gpt_executor:v${{env.VERSION}}, jinaai/open_gpt_executor:latest
+          build-args: |
+            BUILD_DATE=${{env.BUILD_DATE}}
+            VERSION=${{env.VERSION}}
+            VCS_REF=${{env.VCS_REF}}
+            EXECUTOR_MODULE=CausualLMExecutor

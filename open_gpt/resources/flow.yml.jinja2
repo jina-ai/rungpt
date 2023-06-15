@@ -1,0 +1,54 @@
+jtype: Flow
+jcloud:
+  version: {{ jina_version }}
+  monitor:
+    traces:
+      enable: true
+  labels:
+    {% for key, value in labels.items() -%}
+    {{ key }}: {{ value }}
+    {% endfor %}
+with:
+  prefetch: 1
+
+gateway:
+  {% if not dockerized -%}
+  uses:
+    jtype: {{ gateway_module }}
+    py_modules:
+      - open_gpt.serve.gateway
+  {% else -%}
+  uses: {{ gateway_image }}
+  {% endif -%}
+  port:
+    - {{ grpc_port }}
+    - {{ http_port }}
+  protocol:
+    - grpc
+    - http
+  uses_with:
+    {% for key, value in gateway_params.items() -%}
+    {{ key }}: {{ value }}
+    {% endfor %}
+executors:
+  - name: {{ deployment_name }}
+    {% if not dockerized -%}
+    uses:
+      jtype: {{ executor_module }}
+      py_modules:
+        - open_gpt.serve.executors
+    {% else -%}
+    uses: {{ executor_image }}
+    {% endif -%}
+    replicas: {{ replicas }}
+    uses_with:
+      {% for key, value in executor_params.items() -%}
+      {{ key }}: {{ value }}
+      {% endfor %}
+    jcloud:
+      resources:
+        capacity: spot
+        {% if instance_type -%}
+        instance_type: {{ instance_type }}
+        {% endif %}
+

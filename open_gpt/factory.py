@@ -1,3 +1,4 @@
+import os.path
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -101,7 +102,9 @@ def create_model(
             device_map=device_map,
             **kwargs,
         )
-    elif model_name.startswith('sgugger/rwkv') or model_name.startswith('ybelkada/rwkv'):
+    elif model_name.startswith('sgugger/rwkv') or model_name.startswith(
+        'ybelkada/rwkv'
+    ):
         from .models.rwkv.modeling import RWKVModel
 
         return RWKVModel(
@@ -129,39 +132,55 @@ def create_flow(
     grpc_port: int = 51001,
     http_port: int = 51002,
     cors: bool = False,
-    adapter_name_or_path: Optional[str] = None,
-    uses_with: Optional[dict] = {},
+    uses_with: dict = {},
     replicas: int = 1,
+    instance_type: Optional[str] = None,
+    dockerized: bool = False,
+    return_yaml: bool = True,
 ):
     from jina import Flow
 
-    if 'flamingo' in model_name_or_path:
-        from .serve.executors.flamingo import FlamingoExecutor as Executor
-    else:
-        from .serve.executors import CausualLMExecutor as Executor
-
-    from .serve.gateway import Gateway
+    from open_gpt import __jina_version__, __version__
+    from open_gpt.serve.flow import get_template
 
     # normalize the model name to be used as flow executor name
     norm_name = model_name_or_path.split('/')[-1]
     norm_name = norm_name.replace('-', '_').replace('.', '_').lower()
 
-    uses_with['model_name_or_path'] = model_name_or_path
-    uses_with['adapter_name_or_path'] = adapter_name_or_path
+    # HOTFIX: patch to avoid to use pre-release version
+    __VERSION_TAG__ = f'v{__version__}'
+    if 'dev' in __version__:
+        __VERSION_TAG__ = 'latest'
 
-    return (
-        Flow()
-        .config_gateway(
-            uses=Gateway,
-            port=[grpc_port, http_port],
-            protocol=['grpc', 'http'],
-            cors=cors,
-        )
-        .add(
-            uses=Executor,
-            uses_with=uses_with,
-            name=f'{norm_name}_executor',
-            replicas=replicas,
-            timeout_ready=-1,
-        )
+    deployment_params = {
+        'deployment_name': f'{norm_name}',
+        'http_port': http_port,
+        'grpc_port': grpc_port,
+        'executor_params': {
+            'model_name_or_path': model_name_or_path,
+            'adapter_name_or_path': uses_with.get('adapter_name_or_path') or '',
+            'precision': uses_with.get('precision', 'fp16'),
+            'device_map': uses_with.get('device_map', 'balanced'),
+        },
+        'gateway_params': {'cors': cors},
+        'jina_version': __jina_version__,
+        'replicas': replicas,
+        'labels': {'app': 'open_gpt', 'version': __VERSION_TAG__},
+    }
+
+    yaml = get_template('flow.yml.jinja2').render(
+        dockerized=dockerized,
+        gateway_image=f'docker://jinaai/open_gpt_gateway:{__VERSION_TAG__}',
+        gateway_module='Gateway',
+        executor_image=f'docker://jinaai/open_gpt_executor:{__VERSION_TAG__}',
+        executor_module='CausualLMExecutor'
+        if 'flamingo' not in model_name_or_path
+        else 'FlamingoExecutor',
+        instance_type=instance_type,
+        **deployment_params,
     )
+
+    if return_yaml:
+        return yaml
+    else:
+        return Flow.load_config(yaml)

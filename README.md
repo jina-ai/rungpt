@@ -201,14 +201,24 @@ output = model.generate(
 You can also deploy the server to a cloud provider like Jina Cloud or AWS.
 To do so, you can use `deploy` command:
 
-- Jina Cloud
+### Jina Cloud
+
+using predefined executor
 
 ```bash
-opengpt deploy stabilityai/stablelm-tuned-alpha-3b --device cuda --precision fp16 --provider jina --name opengpt --replicas 2
+opengpt deploy stabilityai/stablelm-tuned-alpha-3b --precision fp16 --device_map balanced --cloud jina --replicas 1
 ```
 
-**TBD ...**
+It will give you a HTTP url and a gRPC url by default:
+```bash
+https://{random-host-name}-http.wolf.jina.ai
+grpcs://{random-host-name}-grpc.wolf.jina.ai
+```
 
+
+### AWS
+
+TBD
 
 ## Contributing
 

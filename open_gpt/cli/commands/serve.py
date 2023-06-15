@@ -5,7 +5,7 @@ from cleo.helpers import argument, option
 class ServeCommand(Command):
     name = "serve"
 
-    description = "Start a model serving."
+    description = "Start a model serving locally in gRPC and HTTP."
 
     arguments = [argument("model_name", "The name of the model to serve.")]
     options = [
@@ -28,7 +28,11 @@ class ServeCommand(Command):
             'precision', None, 'The precision of the model.', flag=False, default='fp16'
         ),
         option(
-            'adapter_name_or_path', None, 'The name or path of the adapter checkpoint.'
+            'adapter_name_or_path',
+            None,
+            'The name or path of the adapter checkpoint.',
+            flag=False,
+            default=None,
         ),
         option(
             'device_map',
@@ -45,15 +49,15 @@ class ServeCommand(Command):
     help = """\
     This command allows you to start a model serving in protocol gRPC and HTTP.
     
-    To start a model serving, you can run:
+    To start a model serving locally, you can run:
         
-        <comment>opengpt serve facebook/llama-7b</comment>"""
+        <comment>opengpt serve stabilityai/stablelm-tuned-alpha-3b</comment>"""
 
     def handle(self) -> int:
         from open_gpt.factory import create_flow
 
         with create_flow(
-            self.argument('model_name'),
+            model_name_or_path=self.argument('model_name'),
             grpc_port=self.option('grpc_port'),
             http_port=self.option('http_port'),
             cors=self.option('enable_cors'),
@@ -63,6 +67,8 @@ class ServeCommand(Command):
                 'device_map': self.option('device_map'),
             },
             replicas=self.option('replicas'),
+            dockerized=False,
+            return_yaml=False,
         ) as flow:
             self.line(
                 f'<info>The model is ready to be used at port {self.option("grpc_port")} (gRPC) and {self.option("http_port")} (HTTP).</info>'

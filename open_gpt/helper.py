@@ -107,3 +107,14 @@ def setup_seeds(seed: int = 32):
 def utcnow() -> datetime:
     """Return the current utc date and time with tzinfo set to UTC."""
     return datetime.now(timezone.utc)
+
+
+def asyncify(f):
+    import asyncio
+    from functools import wraps
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        return asyncio.get_event_loop().run_until_complete(f(*args, **kwargs))
+
+    return wrapper
