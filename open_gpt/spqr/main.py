@@ -344,6 +344,6 @@ def llama_eval(model, testenc, args, dev):
     print(f"\nperplexity = {ppl.item():.4f}")
 
     if args.wandb:
-        wandb.log({args.dataset_name: ppl.item()})
+        wandb.log({args.dataset: ppl.item()})
 
     model.config.use_cache = use_cache

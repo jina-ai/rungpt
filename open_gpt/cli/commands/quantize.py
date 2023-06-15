@@ -15,7 +15,7 @@ class QuantizeCommand(Command):
             None,
             'The path to quantized checkpoint.',
             flag=False,
-            default='./quantized_model'
+            default=''
         )
     ]
 

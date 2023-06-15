@@ -59,44 +59,24 @@ def apply_quantize(args: QuantizeArgs, quantized_model_path: str = None):
         save_llama(model, quantized_model_path)
 
 
-def test(before_args: QuantizeArgs, quantized_args: QuantizeArgs):
+def test(args):
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    print("before quantization:")
-    model = get_llama(before_args.model_path)
+    model = get_llama(args.model_path)
 
-    if before_args.benchmark:
+    if args.benchmark:
         raise NotImplementedError()
 
     datasets = ["wikitext2", "ptb", "c4"]
-    if before_args.new_eval:
+    if args.new_eval:
         datasets = ["wikitext2", "ptb-new", "c4-new"]
     for dataset in datasets:
-        dataloader, testloader = get_loaders(dataset, seed=before_args.seed, model_path=before_args.model_path,
+        dataloader, testloader = get_loaders(dataset, seed=args.seed, model_path=args.model_path,
                                              seqlen=model.seqlen)
         print(dataset)
-        before_args.dataset_name = dataset
-        llama_eval(model, testloader, before_args, device)
+        args.dataset = dataset
+        llama_eval(model, testloader, args, device)
 
-    if before_args.save or before_args.save_safetensors:
-        raise NotImplementedError()
-
-    print("after quantization:")
-    model = get_llama(quantized_args.model_path)
-
-    if quantized_args.benchmark:
-        raise NotImplementedError()
-
-    datasets = ["wikitext2", "ptb", "c4"]
-    if quantized_args.new_eval:
-        datasets = ["wikitext2", "ptb-new", "c4-new"]
-    for dataset in datasets:
-        dataloader, testloader = get_loaders(dataset, seed=quantized_args.seed, model_path=quantized_args.model_path,
-                                             seqlen=model.seqlen)
-        print(dataset)
-        quantized_args.dataset_name = dataset
-        llama_eval(model, testloader, quantized_args, device)
-
-    if quantized_args.save or quantized_args.save_safetensors:
+    if args.save or args.save_safetensors:
         raise NotImplementedError()
 
 
@@ -109,4 +89,5 @@ def quant(model_name, quantized_model_path):
 
 
 before, quantized = quant("openlm-research/open_llama_3b", "./quantized")
-test(before, quantized)
+test(before)
+test(quantized)
