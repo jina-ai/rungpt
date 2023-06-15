@@ -54,7 +54,7 @@ class DeployCommand(Command):
 
     To start a model deploying, you can run:
 
-        <comment>opengpt deploy facebook/llama-7b</comment>"""
+        <comment>opengpt deploy stabilityai/stablelm-tuned-alpha-3b</comment>"""
 
     def handle(self) -> int:
         if self.option('cloud') == 'jina':
@@ -80,7 +80,7 @@ class DeployCommand(Command):
                 if self.option('dry_run'):
                     self.line(f"{flow_yaml}")
                 else:
-                    asyncify(deploy)(flow=flow_yaml, dry_run=self.option('dry_run'))
+                    asyncify(deploy)(flow=flow_yaml)
                 # if self.option('dry_run'):
                 #     self.line(f"{flow}")
             else:

@@ -1,3 +1,4 @@
+import os.path
 from pathlib import Path
 from typing import List, Optional, Union
 
@@ -139,8 +140,8 @@ def create_flow(
 ):
     from jina import Flow
 
-    from open_gpt import __jina_version__, __version__
-    from open_gpt.serve.flow import flow_template
+    from open_gpt import __jina_version__, __resources_path__, __version__
+    from open_gpt.serve.flow import get_template
 
     # normalize the model name to be used as flow executor name
     norm_name = model_name_or_path.split('/')[-1]
@@ -152,7 +153,7 @@ def create_flow(
         'grpc_port': grpc_port,
         'executor_params': {
             'model_name_or_path': model_name_or_path,
-            'adapter_name_or_path': uses_with.get('adapter_name_or_path', ''),
+            'adapter_name_or_path': uses_with.get('adapter_name_or_path') or '',
             'precision': uses_with.get('precision', 'fp16'),
             'device_map': uses_with.get('device_map', 'balanced'),
         },
@@ -162,7 +163,7 @@ def create_flow(
         'labels': {'app': 'opengpt', 'version': __version__},
     }
 
-    flow_yaml = flow_template.render(
+    yaml = get_template('flow.yml.jinja2').render(
         dockerized=dockerized,
         gateway_image=f'docker://inferenceteam/opengpt_gateway:v{__version__}',
         gateway_module='Gateway',
@@ -175,6 +176,6 @@ def create_flow(
     )
 
     if return_yaml:
-        return flow_yaml
+        return yaml
     else:
-        return Flow().load_config(flow_yaml)
+        return Flow.load_config(yaml)

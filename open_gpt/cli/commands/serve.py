@@ -51,7 +51,7 @@ class ServeCommand(Command):
     
     To start a model serving locally, you can run:
         
-        <comment>opengpt serve facebook/llama-7b</comment>"""
+        <comment>opengpt serve stabilityai/stablelm-tuned-alpha-3b</comment>"""
 
     def handle(self) -> int:
         from open_gpt.factory import create_flow

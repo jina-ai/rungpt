@@ -1,6 +1,3 @@
-# This is the default Jina Flow YAML template for deploying. You can overwrite any field as you want.
-# For more information about the fields and their usage, please visit https://docs.jina.ai/concepts/orchestration/yaml-spec/
-
 jtype: Flow
 jcloud:
   version: {{ jina_version }}
@@ -11,19 +8,18 @@ jcloud:
     {% for key, value in labels.items() -%}
     {{ key }}: {{ value }}
     {% endfor %}
-
 with:
   prefetch: 1
 
 gateway:
-  {% if dockerized -%}
+  {% if not dockerized -%}
   uses:
     jtype: {{ gateway_module }}
     py_modules:
       - open_gpt.serve.gateway
   {% else -%}
   uses: {{ gateway_image }}
-  {% endif %}
+  {% endif -%}
   port:
     - {{ grpc_port }}
     - {{ http_port }}
@@ -36,14 +32,14 @@ gateway:
     {% endfor %}
 executors:
   - name: {{ deployment_name }}
-    {% if dockerized -%}
+    {% if not dockerized -%}
     uses:
-      jtype: {{ executor_name }}
+      jtype: {{ executor_module }}
       py_modules:
         - open_gpt.serve.executors
     {% else -%}
     uses: {{ executor_image }}
-    {% endif %}
+    {% endif -%}
     replicas: {{ replicas }}
     uses_with:
       {% for key, value in executor_params.items() -%}

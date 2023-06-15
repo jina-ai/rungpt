@@ -1,11 +1,11 @@
-from functools import cached_property
+from functools import cache
 
 from jcloud.flow import CloudFlow
 from jinja2 import BaseLoader, Environment, FileSystemLoader
 
 
-@cached_property
-def flow_template(template):
+@cache
+def get_template(template):
     if template.endswith('.jinja2'):
         from open_gpt import __resources_path__
 
