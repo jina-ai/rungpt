@@ -129,3 +129,44 @@ def log_measures(measures, description):
         print(f"- GPU {i} peak: {peak:.3f}GiB")
     print(f"- CPU RAM allocated: {measures['cpu']:.3f}GiB")
     print(f"- CPU RAM peak: {measures['cpu-peak']:.3f}GiB")
+
+
+class LLMMeasure:
+    from typing import List, Union
+
+    def __init__(self):
+        self._time_elapsed_list = []
+        self._generation_length = []
+        self._time_stamp = None
+
+    def start_record(self):
+        self._time_stamp = time.time()
+
+    def end_record(self, generation_outputs: Union[str, List[str]]):
+        if self._time_stamp is None:
+            raise ValueError(f"start time must be set before calling end_record.")
+
+        self._time_elapsed_list.append(time.time() - self._time_stamp)
+        # use ' ' to split the string, not works for chinese models
+        if isinstance(generation_outputs, str):
+            self._generation_length.append(len(generation_outputs.split(' ')))
+        else:
+            num_tokens = sum(list(map(lambda x: len(x.split(' ')), generation_outputs)))
+            self._generation_length.append(num_tokens)
+        self._time_stamp = None
+
+    def stats(self, stage):
+        print(f"LLM measure:")
+        print(
+            f"- {stage} average token latency: {sum(self._time_elapsed_list) / len(self._time_elapsed_list):.2f}s"
+        )
+        print(f"- {stage} minimal token latency: {min(self._time_elapsed_list):.2f}s")
+        print(f"- {stage} maximal token latency: {max(self._time_elapsed_list):.2f}s")
+        print(
+            f"- {stage} token throughput: {sum(self._generation_length) / sum(self._time_elapsed_list):.2f} tokens/s"
+        )
+
+    def clear(self):
+        self._time_elapsed_list = []
+        self._generation_length = []
+        self._time_stamp = None
