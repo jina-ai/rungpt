@@ -1,7 +1,7 @@
 class QuantizeArgs():
     def __init__(self,
                  model_path,
-                 dataset: str = 'custom',
+                 dataset: str = 'wikitext2',
                  load_from_saved: str = None,
                  seed: int = 0,
                  nsamples: int = 128,

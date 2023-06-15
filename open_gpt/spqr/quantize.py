@@ -57,7 +57,6 @@ def apply_quantize(args: QuantizeArgs, quantized_model_path: str = None):
 
     if quantized_model_path is not None:
         save_llama(model, quantized_model_path)
-        return QuantizeArgs(model_path=quantized_model_path, dataset=args.dataset)
 
 
 def test(before_args: QuantizeArgs, quantized_args: QuantizeArgs):
@@ -101,14 +100,13 @@ def test(before_args: QuantizeArgs, quantized_args: QuantizeArgs):
         raise NotImplementedError()
 
 
-def quant(model_name, dataset, quantized_model_path):
+def quant(model_name, quantized_model_path):
     model_path = huggingface_hub.snapshot_download(model_name)
-    before_args = QuantizeArgs(model_path=model_path,
-                               dataset=dataset)
-    quantized_args = apply_quantize(before_args, quantized_model_path)
-    
+    before_args = QuantizeArgs(model_path=model_path)
+    apply_quantize(before_args, quantized_model_path)
+    quantized_args = QuantizeArgs(model_path=quantized_model_path)
     return before_args, quantized_args
 
 
-before_args, quantized_args = quant("openlm-research/open_llama_3b", "wikitext2", "./quantized")
-test(before_args, quantized_args)
+before, quantized = quant("openlm-research/open_llama_3b", "./quantized")
+test(before, quantized)
