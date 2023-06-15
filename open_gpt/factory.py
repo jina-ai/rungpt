@@ -165,7 +165,7 @@ def create_flow(
         'gateway_params': {'cors': cors},
         'jina_version': __jina_version__,
         'replicas': replicas,
-        'labels': {'app': 'opengpt', 'version': __VERSION_TAG__},
+        'labels': {'app': 'open_gpt', 'version': __VERSION_TAG__},
     }
 
     yaml = get_template('flow.yml.jinja2').render(
