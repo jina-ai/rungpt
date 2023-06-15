@@ -1,4 +1,3 @@
-import tempfile
 from functools import cached_property
 
 from jcloud.flow import CloudFlow
@@ -18,6 +17,7 @@ def flow_template(template):
 
 async def deploy(flow: str):
     import os
+    import tempfile
 
     if os.path.isfile(flow):
         return await CloudFlow(path=flow).deploy()
