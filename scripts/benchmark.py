@@ -5,6 +5,12 @@ PROMPT = 'The goal of life is'
 
 
 def run_benchmark(model, max_new_tokens, llm_measure):
+    # warm up
+    for i in range(10):
+        _ = model.generate(
+            PROMPT, max_new_tokens=max_new_tokens, do_sample=args.do_sample
+        )
+
     for i in range(args.repeat_time):
         llm_measure.start_record()
         generated_text = model.generate(
