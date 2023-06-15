@@ -5,7 +5,7 @@ from cleo.helpers import argument, option
 class ServeCommand(Command):
     name = "serve"
 
-    description = "Start a model serving."
+    description = "Start a model serving locally in gRPC and HTTP."
 
     arguments = [argument("model_name", "The name of the model to serve.")]
     options = [
@@ -49,7 +49,7 @@ class ServeCommand(Command):
     help = """\
     This command allows you to start a model serving in protocol gRPC and HTTP.
     
-    To start a model serving, you can run:
+    To start a model serving locally, you can run:
         
         <comment>opengpt serve facebook/llama-7b</comment>"""
 
@@ -63,10 +63,11 @@ class ServeCommand(Command):
             cors=self.option('enable_cors'),
             uses_with={
                 'precision': self.option('precision'),
-                # 'adapter_name_or_path': self.option('adapter_name_or_path'),
+                'adapter_name_or_path': self.option('adapter_name_or_path'),
                 'device_map': self.option('device_map'),
             },
             replicas=self.option('replicas'),
+            dockerized=False,
             return_yaml=False,
         ) as flow:
             self.line(

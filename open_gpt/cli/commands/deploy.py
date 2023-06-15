@@ -63,26 +63,33 @@ class DeployCommand(Command):
             from open_gpt.serve.flow import deploy
 
             if self.option('config') is None:
-                flow = create_flow(
+                flow_yaml = create_flow(
                     model_name_or_path=self.argument('model_name'),
                     cors=self.option('enable_cors'),
                     uses_with={
                         'precision': self.option('precision'),
-                        # 'adapter_name_or_path': self.option('adapter_name_or_path'),
+                        'adapter_name_or_path': self.option('adapter_name_or_path'),
                         'device_map': self.option('device_map'),
                     },
                     replicas=self.option('replicas'),
                     instance_type=self.option('instance_type'),
+                    dockerized=True,
                     return_yaml=True,
                 )
-                flow = asyncify(deploy)(flow=flow, dry_run=self.option('dry_run'))
+
                 if self.option('dry_run'):
-                    self.line(f"{flow}")
+                    self.line(f"{flow_yaml}")
+                else:
+                    asyncify(deploy)(flow=flow_yaml, dry_run=self.option('dry_run'))
+                # if self.option('dry_run'):
+                #     self.line(f"{flow}")
             else:
                 raise NotImplementedError(
                     'Deploying with customized config is not supported yet.'
                 )
 
-        elif self.option('cloud') == 'aws':
-            raise NotImplementedError('Deploying on AWS is not supported yet.')
+        else:
+            raise ValueError(
+                f'Cloud {self.option("cloud")} is not supported yet. You can try to deploy on Jina instead.'
+            )
         return 0

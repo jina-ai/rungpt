@@ -1,3 +1,6 @@
+# This is the default Jina Flow YAML template for deploying. You can overwrite any field as you want.
+# For more information about the fields and their usage, please visit https://docs.jina.ai/concepts/orchestration/yaml-spec/
+
 jtype: Flow
 jcloud:
   version: {{ jina_version }}
@@ -8,52 +11,48 @@ jcloud:
     {% for key, value in labels.items() -%}
     {{ key }}: {{ value }}
     {% endfor %}
+
 with:
-  prefetch: 5
+  prefetch: 1
+
 gateway:
+  {% if dockerized -%}
   uses:
-    {% if not return_yaml -%}
-    jtype: {{ gateway_name }}
+    jtype: {{ gateway_module }}
     py_modules:
-      - {{  gateway_path }}
-    {% else %}
-    {{ gateway_image }}
-    {% endif %}
+      - open_gpt.serve.gateway
+  {% else -%}
+  uses: {{ gateway_image }}
+  {% endif %}
   port:
-    {% if http_port -%}
-    - {{ http_port }}
-    {% endif %}
-    {% if grpc_port -%}
     - {{ grpc_port }}
-    {% endif %}
+    - {{ http_port }}
   protocol:
-    {% if http_port -%}
-    - http
-    {% endif %}
-    {% if grpc_port -%}
     - grpc
-    {% endif %}
+    - http
   uses_with:
     {% for key, value in gateway_params.items() -%}
     {{ key }}: {{ value }}
     {% endfor %}
 executors:
   - name: {{ deployment_name }}
+    {% if dockerized -%}
     uses:
-      {% if not return_yaml -%}
       jtype: {{ executor_name }}
       py_modules:
-        - {{ executor_path }}
-      {% else %}
-      jinahub+docker://{{ executor_image }}/0.0.1-gpu
-      {% endif %}
+        - open_gpt.serve.executors
+    {% else -%}
+    uses: {{ executor_image }}
+    {% endif %}
     replicas: {{ replicas }}
     uses_with:
       {% for key, value in executor_params.items() -%}
       {{ key }}: {{ value }}
       {% endfor %}
-    {% if instance_type -%}
     jcloud:
       resources:
-        instance: {{ instance_type }}
-    {% endif %}
+        capacity: spot
+        {% if instance_type -%}
+        instance_type: {{ instance_type }}
+        {% endif %}
+

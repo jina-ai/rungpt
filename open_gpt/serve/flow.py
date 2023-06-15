@@ -6,21 +6,23 @@ from jinja2 import BaseLoader, Environment, FileSystemLoader
 
 
 @cached_property
-def jinja_template(template):
+def flow_template(template):
     if template.endswith('.jinja2'):
-        from open_gpt.serve.helper import __resource__
+        from open_gpt import __resources_path__
 
-        env = Environment(loader=FileSystemLoader(__resource__))
+        env = Environment(loader=FileSystemLoader(__resources_path__))
         return env.get_template(template)
     else:
         return Environment(loader=BaseLoader()).from_string(template)
 
 
-async def deploy(flow: str, dry_run: bool = False):
-    with tempfile.NamedTemporaryFile() as f:
-        with open(f.name, 'w') as _:
-            _.write(flow)
-        if not dry_run:
-            return await CloudFlow(path=f.name)._deploy()
-        else:
-            return flow
+async def deploy(flow: str):
+    import os
+
+    if os.path.isfile(flow):
+        return await CloudFlow(path=flow).deploy()
+    else:
+        with tempfile.NamedTemporaryFile() as f:
+            with open(f.name, 'w') as _:
+                _.write(flow)
+            return await CloudFlow(path=f.name).deploy()

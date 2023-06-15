@@ -34,6 +34,8 @@ def get_version() -> str:
 
 __version__ = get_version()
 
+__resources_path__ = _os.path.join(_os.path.dirname(__file__), 'resources')
+
 _os.environ['NO_VERSION_CHECK'] = '1'
 
 from inference_client import Client

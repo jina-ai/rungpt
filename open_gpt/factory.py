@@ -101,7 +101,9 @@ def create_model(
             device_map=device_map,
             **kwargs,
         )
-    elif model_name.startswith('sgugger/rwkv') or model_name.startswith('ybelkada/rwkv'):
+    elif model_name.startswith('sgugger/rwkv') or model_name.startswith(
+        'ybelkada/rwkv'
+    ):
         from .models.rwkv.modeling import RWKVModel
 
         return RWKVModel(
@@ -129,70 +131,50 @@ def create_flow(
     grpc_port: int = 51001,
     http_port: int = 51002,
     cors: bool = False,
-    return_yaml: bool = True,
-    adapter_name_or_path: Optional[str] = None,
-    uses_with: Optional[dict] = {},
+    uses_with: dict = {},
     replicas: int = 1,
     instance_type: Optional[str] = None,
+    dockerized: bool = False,
+    return_yaml: bool = True,
 ):
     from jina import Flow
 
-    from open_gpt.helper import (
-        build_executor_params,
-        build_executor_path,
-        build_gateway_params,
-        build_gateway_path,
-    )
+    from open_gpt import __jina_version__, __version__
+    from open_gpt.serve.flow import flow_template
 
     # normalize the model name to be used as flow executor name
     norm_name = model_name_or_path.split('/')[-1]
     norm_name = norm_name.replace('-', '_').replace('.', '_').lower()
 
-    from jinja2 import Environment, FileSystemLoader
-
-    from open_gpt.config import settings
-    from open_gpt.serve.helper import __resource__
-
-    env = Environment(loader=FileSystemLoader(__resource__))
-    jinja_template = env.get_template('flow.yml.jinja2')
-
-    kwargs = {
+    deployment_params = {
         'deployment_name': f'{norm_name}',
         'http_port': http_port,
         'grpc_port': grpc_port,
-        'executor_params': build_executor_params(
-            model_name=model_name_or_path,
-            precision=uses_with['precision'],
-            device_map=uses_with['device_map'],
-        ),
-        'gateway_params': build_gateway_params(enable_cors=cors),
-        'jina_version': settings.jina_version,
+        'executor_params': {
+            'model_name_or_path': model_name_or_path,
+            'adapter_name_or_path': uses_with.get('adapter_name_or_path', ''),
+            'precision': uses_with.get('precision', 'fp16'),
+            'device_map': uses_with.get('device_map', 'balanced'),
+        },
+        'gateway_params': {'cors': cors},
+        'jina_version': __jina_version__,
         'replicas': replicas,
-        'labels': {'app': 'opengpt'},
-        'return_yaml': return_yaml,
+        'labels': {'app': 'opengpt', 'version': __version__},
     }
 
-    if return_yaml:
-        yml = jinja_template.render(
-            gateway_image=f'docker://{settings.gateway_image}:{settings.gateway_version}',
-            executor_image='CausualLMExecutor'
-            if 'flamingo' not in model_name_or_path
-            else 'FlamingoExecutor',
-            instance_type=instance_type,
-            **kwargs,
-        )
-    else:
-        executor_path, executor_name = build_executor_path(model_name_or_path)
-        gateway_path, gateway_name = build_gateway_path()
-        yml = jinja_template.render(
-            gateway_path=gateway_path,
-            gateway_name=gateway_name,
-            executor_path=executor_path,
-            executor_name=executor_name,
-            **kwargs,
-        )
+    flow_yaml = flow_template.render(
+        dockerized=dockerized,
+        gateway_image=f'docker://inferenceteam/opengpt_gateway:v{__version__}',
+        gateway_module='Gateway',
+        executor_image=f'docker://inferenceteam/opengpt_executor:v{__version__}',
+        executor_module='CausualLMExecutor'
+        if 'flamingo' not in model_name_or_path
+        else 'FlamingoExecutor',
+        instance_type=instance_type,
+        **deployment_params,
+    )
 
     if return_yaml:
-        return yml
+        return flow_yaml
     else:
-        return Flow().load_config(yml)
+        return Flow().load_config(flow_yaml)

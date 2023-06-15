@@ -109,39 +109,6 @@ def utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def build_executor_params(model_name, precision, device_map):
-    return {
-        'model_name_or_path': model_name,
-        'precision': precision,
-        'device_map': device_map,
-    }
-
-
-def build_executor_path(model_name):
-    from pathlib import Path
-
-    if 'flamingo' in model_name:
-        return (
-            str(Path(__file__).parent / 'serve' / 'executors' / 'flamingo.py'),
-            'FlamingoExecutor',
-        )
-    else:
-        return (
-            str(Path(__file__).parent / 'serve' / 'executors' / 'base.py'),
-            'CausualLMExecutor',
-        )
-
-
-def build_gateway_params(enable_cors):
-    return {'cors': enable_cors}
-
-
-def build_gateway_path():
-    from pathlib import Path
-
-    return str(Path(__file__).parent / 'serve' / 'gateway.py'), 'Gateway'
-
-
 def asyncify(f):
     import asyncio
     from functools import wraps
