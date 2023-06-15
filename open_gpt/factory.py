@@ -140,12 +140,16 @@ def create_flow(
 ):
     from jina import Flow
 
-    from open_gpt import __jina_version__, __resources_path__, __version__
+    from open_gpt import __jina_version__, __version__
     from open_gpt.serve.flow import get_template
 
     # normalize the model name to be used as flow executor name
     norm_name = model_name_or_path.split('/')[-1]
     norm_name = norm_name.replace('-', '_').replace('.', '_').lower()
+
+    # HOTFIX: patch to avoid to use pre-release version
+    if 'dev' in __version__:
+        __version__ = 'latest'
 
     deployment_params = {
         'deployment_name': f'{norm_name}',
