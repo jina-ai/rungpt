@@ -167,10 +167,10 @@ class LLMMeasure:
             f"- {stage} average token throughput: {sum(self._generation_length) / sum(self._time_elapsed_list):.2f} tokens/s"
         )
         print(
-            f"- {stage} minimal token throughput: {min([x / y for x, y in zip(self._generation_length, self._time_elapsed_list)]):.2f} tokens/s"
+            f"- {stage} minimal token throughput: {min([length / time for length, time in zip(self._generation_length, self._time_elapsed_list)]):.2f} tokens/s"
         )
         print(
-            f"- {stage} maximal token throughput: {max([x / y for x, y in zip(self._generation_length, self._time_elapsed_list)]):.2f} tokens/s"
+            f"- {stage} maximal token throughput: {max([length / time for length, time in zip(self._generation_length, self._time_elapsed_list)]):.2f} tokens/s"
         )
 
     def clear(self):
