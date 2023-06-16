@@ -5,12 +5,6 @@ PROMPT = 'The goal of life is'
 
 
 def run_benchmark(model, max_new_tokens, llm_measure):
-    # warm up
-    for i in range(10):
-        _ = model.generate(
-            PROMPT, max_new_tokens=max_new_tokens, do_sample=args.do_sample
-        )
-
     for i in range(args.repeat_time):
         llm_measure.start_record()
         generated_text = model.generate(
@@ -39,6 +33,10 @@ def main(args):
         )
     model_load_end = end_measure(model_load_start)
     log_measures(model_load_end, "Resource measure")
+
+    # warm up
+    for i in range(10):
+        _ = model.generate(PROMPT, max_new_tokens=5, do_sample=args.do_sample)
 
     print(f"===> start benchmark for prefill ...")
     prefill_start = start_measure()

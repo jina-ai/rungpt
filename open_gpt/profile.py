@@ -139,6 +139,10 @@ class LLMMeasure:
         self._generation_length = []
         self._time_stamp = None
 
+        from transformers import AutoTokenizer
+
+        self._tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+
     def start_record(self):
         self._time_stamp = time.time()
 
@@ -147,30 +151,31 @@ class LLMMeasure:
             raise ValueError(f"start time must be set before calling end_record.")
 
         self._time_elapsed_list.append(time.time() - self._time_stamp)
-        # use ' ' to split the string, not works for chinese models
         if isinstance(generation_outputs, str):
-            self._generation_length.append(len(generation_outputs.split(' ')))
+            self._generation_length.append(len(self._tokenizer(generation_outputs)) - 2)
         else:
-            num_tokens = sum(list(map(lambda x: len(x.split(' ')), generation_outputs)))
+            num_tokens = sum(
+                list(map(lambda x: len(self._tokenizer(x)) - 2, generation_outputs))
+            )
             self._generation_length.append(num_tokens)
         self._time_stamp = None
 
     def stats(self, stage):
         print(f"LLM measure:")
         print(
-            f"- {stage} average token latency: {sum(self._time_elapsed_list) / len(self._time_elapsed_list):.2f}s"
+            f"- {stage} average token latency: {sum(self._time_elapsed_list) / len(self._time_elapsed_list):.3f}s"
         )
-        print(f"- {stage} minimal token latency: {min(self._time_elapsed_list):.2f}s")
-        print(f"- {stage} maximal token latency: {max(self._time_elapsed_list):.2f}s")
+        print(f"- {stage} minimal token latency: {min(self._time_elapsed_list):.3f}s")
+        print(f"- {stage} maximal token latency: {max(self._time_elapsed_list):.3f}s")
 
         print(
-            f"- {stage} average token throughput: {sum(self._generation_length) / sum(self._time_elapsed_list):.2f} tokens/s"
+            f"- {stage} average token throughput: {sum(self._generation_length) / sum(self._time_elapsed_list):.3f} tokens/s"
         )
         print(
-            f"- {stage} minimal token throughput: {min([length / time for length, time in zip(self._generation_length, self._time_elapsed_list)]):.2f} tokens/s"
+            f"- {stage} minimal token throughput: {min([length / time for length, time in zip(self._generation_length, self._time_elapsed_list)]):.3f} tokens/s"
         )
         print(
-            f"- {stage} maximal token throughput: {max([length / time for length, time in zip(self._generation_length, self._time_elapsed_list)]):.2f} tokens/s"
+            f"- {stage} maximal token throughput: {max([length / time for length, time in zip(self._generation_length, self._time_elapsed_list)]):.3f} tokens/s"
         )
 
     def clear(self):
