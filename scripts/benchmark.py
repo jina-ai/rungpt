@@ -39,13 +39,13 @@ def main(args):
         _ = model.generate(PROMPT, max_new_tokens=5, do_sample=args.do_sample)
 
     print(f"===> start benchmark for prefill ...")
-    prefill_start = start_measure()
+    prefill_start = start_measure(clear_cache=False)
     run_benchmark(model, max_new_tokens=1, llm_measure=llm_measure)
     prefill_end = end_measure(prefill_start)
     log_measures(prefill_end, "Resource measure")
 
     print(f"===> start benchmark for decoding ...")
-    decoder_start = start_measure()
+    decoder_start = start_measure(clear_cache=False)
     run_benchmark(model, max_new_tokens=args.max_new_tokens, llm_measure=llm_measure)
     decoder_end = end_measure(decoder_start)
     log_measures(decoder_end, "Resource measure")

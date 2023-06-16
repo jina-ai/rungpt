@@ -78,12 +78,13 @@ class PeakCPUMemory:
 cpu_peak_tracker = PeakCPUMemory()
 
 
-def start_measure():
+def start_measure(clear_cache=True):
     # Time
     measures = {"time": time.time()}
 
-    gc.collect()
-    torch.cuda.empty_cache()
+    if clear_cache:
+        gc.collect()
+        torch.cuda.empty_cache()
 
     # CPU mem
     measures["cpu"] = psutil.Process().memory_info().rss
