@@ -3,7 +3,8 @@ site_name: OpenGPT
 # site_url: https://opengpt.dev.jina.ai
 site_author: jina-ai GmbH
 site_description: >-
-  Easily and cost-effectively LLM deployments on any cloud. 
+  An open-source cloud-native of large multi-modal models (LMMs) serving framework. 
+  Easily and cost-effectively model deployment on your cloud.  
 
 # Repository
 repo_url: https://github.com/jina-ai/opengpt
@@ -11,35 +12,35 @@ repo_name: jina-ai/opengpt
 edit_uri: edit/master/docs/
 
 #Copyright
-copyright: © 2023 jina-ai
+copyright: Copyright &copy; 2023 Jina-AI. All rights reserved.
 
 # Configuration
 theme:
   name: material
   custom_dir: docs/overrides
-  logo: assets/images/dstack-logo-notext.svg
-  favicon: assets/images/dstack-fav-32.ico
+  logo: assets/images/logo-notext.png
+  favicon: assets/images/fav-32.ico
   icon:
     repo: custom/github
     edit: material/pencil
   font:
     text: Poppins
-    code: IBM Plex Mono
+    code: Source Code Pro
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
       primary: white
       accent: lilac
-  #        toggle:
-  #          icon: material/weather-night
-  #          name: Switch to dark mode
-  #      - media: "(prefers-color-scheme: dark)"
-  #        scheme: slate
-  #        primary: black
-  #        accent: light blue
-  #        toggle:
-  #          icon: material/weather-sunny
-  #          name: Switch to light mode
+#      toggle:
+#        icon: material/weather-night
+#        name: Switch to dark mode
+#    - media: "(prefers-color-scheme: dark)"
+#      scheme: slate
+#      primary: black
+#      accent: light blue
+#      toggle:
+#        icon: material/weather-sunny
+#        name: Switch to light mode
   features:
     #    - navigation.path
     - content.code.copy
@@ -57,7 +58,10 @@ theme:
 
 # Plugins
 plugins:
-  - search
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - minify:
+      minify_html: true
   - redirects:
       redirect_maps:
         'quickstart.md': 'docs/index.md'
@@ -106,16 +110,16 @@ extra_javascript:
 extra:
   homepage: /
   generator: false
-#  analytics:
-#    provider: google
-#    property: G-XXXXXX
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
   social:
     - icon: /fontawesome/brands/github
       link: https://github.com/jina-ai/opengpt
     - icon: /fontawesome/brands/python
       link: https://pypi.org/project/open-gpt-torch
-#    - icon: /fontawesome/brands/docker
-#      link: https://hub.docker.com/r/jina-ai/opengpt
+    - icon: /fontawesome/brands/docker
+      link: https://hub.docker.com/r/jinaai/open_gpt
     - icon: /fontawesome/brands/discord
       link: https://discord.gg/yaNVaaGSXZ
     - icon: /fontawesome/brands/twitter
@@ -130,7 +134,7 @@ nav:
           - Quick start: docs/index.md
       - Guides:
           - Projects: docs/guides/projects.md
-      - Deployment:
+      - Self-host:
           - Docker: docs/deployment/docker.md
           - Kubernetes: docs/deployment/clouds.md
       - Reference:

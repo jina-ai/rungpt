@@ -1,3 +1,22 @@
+/* Code block background and highlight */
+:root>* {
+    /* theme */
+    --md-primary-fg-color: #115AF4;
+    --md-primary-fg-color--light: #115AF4;
+    --md-primary-fg-color--dark: #115AF4;
+    --nav-size: 0.9rem;
+    font-family: "Poppins", sans-serif;
+}
+
+/* code block margin and padding  */
+.highlight>pre>code {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
 @media screen and (min-width: 76.1875em) {
     .md-header {
         backdrop-filter: blur(5px);
@@ -301,9 +320,9 @@
 }
 
 .md-nav__item {
-    color: rgba(0,0,0,0.87);
+    /*color: rgba(0,0,0,0.87);*/
     font-weight: 500;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
 }
 
 .md-nav__item .md-nav__link:hover:not(.md-nav__link--active) {
@@ -957,11 +976,11 @@ html .md-footer-meta.md-typeset a:is(:focus,:hover) {
     }
 
     .md-tabs__link {
-        text-transform: uppercase;
-        font-size: 0.8rem;
+        /*text-transform: uppercase;*/
+        font-size: 1rem;
         font-weight: 700;
         color: black;
-        letter-spacing: -0.5px;
+        letter-spacing: 0.5px;
         margin-top: 17px;
         line-height: 24px;
     }
@@ -1085,8 +1104,8 @@ html .md-footer-meta.md-typeset a:is(:focus,:hover) {
 .md-banner {
     background-color: rgba(237, 243, 254, 0.9);
     color: var(--md-default-fg-color);
-    /*border-top: 1px solid rgb(227, 233, 244, 0.75);*/
-    /*border-bottom: 1px solid rgba(227, 233, 244, 0.75);*/
+    border-top: 1px solid rgb(227, 233, 244, 0.75);
+    border-bottom: 1px solid rgba(227, 233, 244, 0.75);
     margin-bottom: 1px;
     font-weight: 700;
 }
@@ -1144,7 +1163,7 @@ html .md-footer-meta.md-typeset a:is(:focus,:hover) {
 }
 
 [data-md-color-primary=white] .md-button {
-    border: 1.5px solid rgba(0,0,0,0.87);
+    border: 1.5px solid rgba(128,64,255,0.87);
     line-height: 35px;
     color: rgba(0,0,0,0.87);
     margin-right: 5px;
@@ -1157,7 +1176,7 @@ html .md-footer-meta.md-typeset a:is(:focus,:hover) {
 
 [data-md-color-primary=white] .md-button:hover{
     background: transparent;
-    border: 1.5px solid rgba(0,0,0,1);
+    border: 1.5px solid rgba(128,64,255,1);
     color: black !important;
 }
 
@@ -1167,16 +1186,16 @@ html .md-footer-meta.md-typeset a:is(:focus,:hover) {
 
 [data-md-color-primary=white] .md-button--primary {
     color: white;
-    background: rgba(0,0,0,0.87);
+    background: rgba(128,64,255,0.87);
 }
 
 [data-md-color-primary=white] .md-button--primary:hover {
-    background: rgba(0,0,0,1);
+    background: rgba(128,64,255,1);
     color: white !important;
 }
 
 a.md-go-to-action.secondary {
-    color: rgba(0,0,0,0.87);
+    color: rgba(128,64,255,0.87);
     background: white;
 }
 
