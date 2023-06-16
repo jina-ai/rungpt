@@ -162,8 +162,15 @@ class LLMMeasure:
         )
         print(f"- {stage} minimal token latency: {min(self._time_elapsed_list):.2f}s")
         print(f"- {stage} maximal token latency: {max(self._time_elapsed_list):.2f}s")
+
         print(
-            f"- {stage} token throughput: {sum(self._generation_length) / sum(self._time_elapsed_list):.2f} tokens/s"
+            f"- {stage} average token throughput: {sum(self._generation_length) / sum(self._time_elapsed_list):.2f} tokens/s"
+        )
+        print(
+            f"- {stage} minimal token throughput: {min([x / y for x, y in zip(self._generation_length, self._time_elapsed_list)]):.2f} tokens/s"
+        )
+        print(
+            f"- {stage} maximal token throughput: {max([x / y for x, y in zip(self._generation_length, self._time_elapsed_list)]):.2f} tokens/s"
         )
 
     def clear(self):
