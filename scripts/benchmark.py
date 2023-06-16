@@ -71,7 +71,7 @@ if __name__ == '__main__':
         '--precision', type=str, default='fp16', help='precision used for inference'
     )
     parser.add_argument(
-        '--repeat-time', type=int, default=100, help='repeat time for benchmark'
+        '--repeat-time', type=int, default=10, help='repeat time for benchmark'
     )
     parser.add_argument(
         '--do-sample',
@@ -80,7 +80,7 @@ if __name__ == '__main__':
         help='whether to use sampling for inference',
     )
     parser.add_argument(
-        '--max-new-tokens', type=int, default=10, help='max new tokens for inference'
+        '--max-new-tokens', type=int, default=100, help='max new tokens for inference'
     )
 
     args = parser.parse_args()

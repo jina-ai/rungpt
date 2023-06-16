@@ -9,6 +9,7 @@ import gc
 import threading
 import time
 
+import numpy as np
 import psutil
 import torch
 from accelerate.utils import compute_module_sizes as _compute_module_sizes
@@ -153,7 +154,9 @@ class LLMMeasure:
 
         self._time_elapsed_list.append(time.time() - self._time_stamp)
         if isinstance(generation_outputs, str):
-            self._generation_length.append(len(self._tokenizer(generation_outputs)) - 2)
+            self._generation_length.append(
+                len(self._tokenizer(generation_outputs)['input_ids']) - 2
+            )
         else:
             num_tokens = sum(
                 list(map(lambda x: len(self._tokenizer(x)) - 2, generation_outputs))
@@ -164,19 +167,38 @@ class LLMMeasure:
     def stats(self, stage):
         print(f"LLM measure:")
         print(
-            f"- {stage} average token latency: {sum(self._time_elapsed_list) / len(self._time_elapsed_list):.3f}s"
+            f"- {stage} average token latency: {np.mean(self._time_elapsed_list):.3f}s"
         )
         print(f"- {stage} minimal token latency: {min(self._time_elapsed_list):.3f}s")
         print(f"- {stage} maximal token latency: {max(self._time_elapsed_list):.3f}s")
+        print(
+            f"- {stage} p50 token latency: {np.percentile(self._time_elapsed_list, 50):.3f}s"
+        )
+        print(
+            f"- {stage} p90 token latency: {np.percentile(self._time_elapsed_list, 90):.3f}s"
+        )
+        print(
+            f"- {stage} p99 token latency: {np.percentile(self._time_elapsed_list, 99):.3f}s"
+        )
+
+        _throughput = [
+            _length / _time
+            for _length, _time in zip(self._generation_length, self._time_elapsed_list)
+        ]
 
         print(
-            f"- {stage} average token throughput: {sum(self._generation_length) / sum(self._time_elapsed_list):.3f} tokens/s"
+            f"- {stage} average token throughput: {np.mean(_throughput):.3f} tokens/s"
+        )
+        print(f"- {stage} minimal token throughput: {min(_throughput):.3f} tokens/s")
+        print(f"- {stage} maximal token throughput: {max(_throughput):.3f} tokens/s")
+        print(
+            f"- {stage} p50 token throughput: {np.percentile(_throughput, 50):.3f} tokens/s"
         )
         print(
-            f"- {stage} minimal token throughput: {min([length / time for length, time in zip(self._generation_length, self._time_elapsed_list)]):.3f} tokens/s"
+            f"- {stage} p90 token throughput: {np.percentile(_throughput, 90):.3f} tokens/s"
         )
         print(
-            f"- {stage} maximal token throughput: {max([length / time for length, time in zip(self._generation_length, self._time_elapsed_list)]):.3f} tokens/s"
+            f"- {stage} p99 token throughput: {np.percentile(_throughput, 99):.3f} tokens/s"
         )
 
     def clear(self):
