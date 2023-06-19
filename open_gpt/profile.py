@@ -9,6 +9,7 @@ import gc
 import threading
 import time
 
+import numpy as np
 import psutil
 import torch
 from accelerate.utils import compute_module_sizes as _compute_module_sizes
@@ -78,12 +79,15 @@ class PeakCPUMemory:
 cpu_peak_tracker = PeakCPUMemory()
 
 
-def start_measure():
+def start_measure(clear_cache=True):
+    torch.cuda.synchronize()
+
     # Time
     measures = {"time": time.time()}
 
-    gc.collect()
-    torch.cuda.empty_cache()
+    if clear_cache:
+        gc.collect()
+        torch.cuda.empty_cache()
 
     # CPU mem
     measures["cpu"] = psutil.Process().memory_info().rss
@@ -98,6 +102,8 @@ def start_measure():
 
 
 def end_measure(start_measures):
+    torch.cuda.synchronize()
+
     # Time
     measures = {"time": time.time() - start_measures["time"]}
 
@@ -129,3 +135,79 @@ def log_measures(measures, description):
         print(f"- GPU {i} peak: {peak:.3f}GiB")
     print(f"- CPU RAM allocated: {measures['cpu']:.3f}GiB")
     print(f"- CPU RAM peak: {measures['cpu-peak']:.3f}GiB")
+
+
+class LLMMeasure:
+    from typing import List, Union
+
+    def __init__(self):
+        self._time_elapsed_list = []
+        self._generation_length = []
+        self._time_stamp = None
+
+        from transformers import AutoTokenizer
+
+        self._tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+
+    def start_record(self):
+        torch.cuda.synchronize()
+        self._time_stamp = time.time()
+
+    def end_record(self, generation_outputs: Union[str, List[str]]):
+        torch.cuda.synchronize()
+        if self._time_stamp is None:
+            raise ValueError(f"start time must be set before calling end_record.")
+
+        self._time_elapsed_list.append(time.time() - self._time_stamp)
+        if isinstance(generation_outputs, str):
+            self._generation_length.append(
+                len(self._tokenizer(generation_outputs)['input_ids']) - 2
+            )
+        else:
+            num_tokens = sum(
+                list(map(lambda x: len(self._tokenizer(x)) - 2, generation_outputs))
+            )
+            self._generation_length.append(num_tokens)
+        self._time_stamp = None
+
+    def stats(self, stage):
+        print(f"LLM measure:")
+        print(
+            f"- {stage} average token latency: {np.mean(self._time_elapsed_list):.3f}s"
+        )
+        print(f"- {stage} minimal token latency: {min(self._time_elapsed_list):.3f}s")
+        print(f"- {stage} maximal token latency: {max(self._time_elapsed_list):.3f}s")
+        print(
+            f"- {stage} p50 token latency: {np.percentile(self._time_elapsed_list, 50):.3f}s"
+        )
+        print(
+            f"- {stage} p90 token latency: {np.percentile(self._time_elapsed_list, 90):.3f}s"
+        )
+        print(
+            f"- {stage} p99 token latency: {np.percentile(self._time_elapsed_list, 99):.3f}s"
+        )
+
+        _throughput = [
+            _length / _time
+            for _length, _time in zip(self._generation_length, self._time_elapsed_list)
+        ]
+
+        print(
+            f"- {stage} average token throughput: {np.mean(_throughput):.3f} tokens/s"
+        )
+        print(f"- {stage} minimal token throughput: {min(_throughput):.3f} tokens/s")
+        print(f"- {stage} maximal token throughput: {max(_throughput):.3f} tokens/s")
+        print(
+            f"- {stage} p50 token throughput: {np.percentile(_throughput, 50):.3f} tokens/s"
+        )
+        print(
+            f"- {stage} p90 token throughput: {np.percentile(_throughput, 90):.3f} tokens/s"
+        )
+        print(
+            f"- {stage} p99 token throughput: {np.percentile(_throughput, 99):.3f} tokens/s"
+        )
+
+    def clear(self):
+        self._time_elapsed_list = []
+        self._generation_length = []
+        self._time_stamp = None
