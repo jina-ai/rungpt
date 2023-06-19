@@ -80,6 +80,8 @@ cpu_peak_tracker = PeakCPUMemory()
 
 
 def start_measure(clear_cache=True):
+    torch.cuda.synchronize()
+
     # Time
     measures = {"time": time.time()}
 
@@ -100,6 +102,8 @@ def start_measure(clear_cache=True):
 
 
 def end_measure(start_measures):
+    torch.cuda.synchronize()
+
     # Time
     measures = {"time": time.time() - start_measures["time"]}
 
@@ -146,9 +150,11 @@ class LLMMeasure:
         self._tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
 
     def start_record(self):
+        torch.cuda.synchronize()
         self._time_stamp = time.time()
 
     def end_record(self, generation_outputs: Union[str, List[str]]):
+        torch.cuda.synchronize()
         if self._time_stamp is None:
             raise ValueError(f"start time must be set before calling end_record.")
 
