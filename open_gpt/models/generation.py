@@ -99,6 +99,7 @@ class GenerationMixin:
         :param stop_str: If not None, the model will stop generating when the generated tokens end with this string.
         :param stop_token_ids: A list of token ids that will cause the model to stop generating.
         :param past_key_values: A list of past key values to use for generation. If None, the model will generate from scratch.
+        :param output_past_key_values: If True, the model will return the past key values.
         :param kwargs: Additional keyword arguments to pass to the model.
         :return:
         """
