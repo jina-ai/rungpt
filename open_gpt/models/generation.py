@@ -1,9 +1,11 @@
-from typing import TYPE_CHECKING, Iterable, List, Optional, overload
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, overload
 
 import torch
 
 if TYPE_CHECKING:
     from transformers import AutoModelForCausalLM, AutoTokenizer
+
+from dataclasses import dataclass
 
 from transformers.generation.logits_process import (
     LogitsProcessorList,
@@ -16,6 +18,23 @@ from transformers.generation.logits_process import (
 MIN_TEMPERATURE = 1e-5
 MIN_TOP_P = 1e-8
 CONTEXT_LEN = 2048
+
+
+@dataclass
+class PastKeyValuesOutput:
+    """
+    Wrapper class for past_key_values.
+
+    Args:
+        past_key_values (`tuple(tuple(torch.FloatTensor))`, *optional*
+        Tuple of `tuple(torch.FloatTensor)` of length `config.n_layers`, with each tuple having 2 tensors of shape
+        `(batch_size, num_heads, sequence_length, embed_size_per_head)`)
+
+        Contains pre-computed hidden-states (key and values in the self-attention blocks) that can be used (see
+        `past_key_values` input) to speed up sequential decoding.
+    """
+
+    past_key_values: Optional[Tuple[Tuple[torch.FloatTensor]]] = None
 
 
 def prepare_logits_processor(
@@ -62,6 +81,8 @@ class GenerationMixin:
         stream_interval: int = 1,
         stop_str: Optional[str] = None,
         stop_token_ids: List[int] = [],
+        past_key_values: Optional[Iterable[torch.Tensor]] = None,
+        output_past_key_values: Optional[bool] = False,
         **kwargs
     ):
         """Generate tokens in a streaming fashion. This method is a modified version of `fastchat.server.inference.generate_stream`.
@@ -77,6 +98,7 @@ class GenerationMixin:
         :param stream_interval: The number of tokens to generate before returning the generated tokens.
         :param stop_str: If not None, the model will stop generating when the generated tokens end with this string.
         :param stop_token_ids: A list of token ids that will cause the model to stop generating.
+        :param past_key_values: A list of past key values to use for generation. If None, the model will generate from scratch.
         :param kwargs: Additional keyword arguments to pass to the model.
         :return:
         """
@@ -102,11 +124,14 @@ class GenerationMixin:
             input_ids = input_ids[:, -max_src_len:]
             input_length = max_src_len
 
-        past_key_values = next_token = None
+        next_token = None
+        past_key_values = past_key_values if past_key_values is not None else None
 
         for step in range(max_new_tokens):
             if step == 0:
-                outputs = self.model(input_ids, use_cache=True)
+                outputs = self.model(
+                    input_ids, use_cache=True, past_key_values=past_key_values
+                )
                 logits = outputs.logits
                 past_key_values = outputs.past_key_values
             else:
@@ -183,6 +208,9 @@ class GenerationMixin:
                 if not partially_stopped:
                     yield {
                         "generated_text": output,
+                        "past_key_values": PastKeyValuesOutput(past_key_values)
+                        if output_past_key_values
+                        else None,
                         "usage": {
                             "prompt_length": input_length,
                             "completed_tokens": step + 1,
@@ -204,6 +232,9 @@ class GenerationMixin:
 
         yield {
             "generated_text": output,
+            "past_key_values": PastKeyValuesOutput(past_key_values)
+            if output_past_key_values
+            else None,
             "usage": {
                 "prompt_length": input_length,
                 "completed_tokens": step + 1,
