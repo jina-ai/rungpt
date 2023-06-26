@@ -131,9 +131,19 @@ nav:
   - Home: index.md
   - Docs:
       - Getting started:
-          - Quick start: docs/index.md
+          - Introduction: docs/index.md
       - Guides:
-          - Projects: docs/guides/projects.md
+          - Model Serving: docs/guides/serving.md
+          - Token Streaming Generation: docs/guides/token-streaming.md
+          - Tensor Parallelism on multiple GPUs: docs/guides/parallelism.md
+          - Quantization: docs/guides/quantization.md
+          - LoRA (Low-Rank Adapter): docs/guides/lora.md
+      - Multi-Models:
+          - BLIP2: docs/guides/blip2.md
+          - Open-Flamingo: docs/guides/flamingo.md
+#      - Benchmark:
+#          - Single-GPU: docs/guides/benchmark.md
+#          - Multi-GPU: docs/guides/benchmark.md
       - Self-host:
           - Docker: docs/deployment/docker.md
           - Kubernetes: docs/deployment/clouds.md
