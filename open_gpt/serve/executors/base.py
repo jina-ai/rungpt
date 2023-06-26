@@ -50,10 +50,15 @@ class CausualLMExecutor(Executor):
             [d for d in docs if d.tags.get('prompt') or d.text is not None]
         )
         prompts = [d.tags['prompt'] or d.text for d in prompted_da]
+        past_key_values = [d.embedding for d in prompted_da]
 
         if prompts:
-            result = self.model.generate(prompts, **parameters)
+            result = self.model.step_generate(
+                prompts, past_key_values=past_key_values, **parameters
+            )
             for d, r in zip(prompted_da, result):
-                d.tags['generated_text'] = r
+                for _, v in r.items():
+                    d.tags['generated_text'] = v['generated_text']
+                    d.embedding = v['past_key_values']
         else:
             logger.warning('No prompts found in the request.')

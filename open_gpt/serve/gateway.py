@@ -1,5 +1,4 @@
 """The serve module provides a simple way to serve a model using Jina."""
-from typing import List
 
 import jina
 from jina import Document, DocumentArray
@@ -7,9 +6,16 @@ from jina import Gateway as BaseGateway
 from jina.serve.runtimes.servers.composite import CompositeServer
 from pydantic import BaseModel, Field
 
+from open_gpt.models.session import SessionManager
+
 
 class GenerateRequest(BaseModel):
     prompt: str = Field(..., description='The prompt to generate from.')
+
+    # session id
+    session_id: str = Field(
+        description='The session id of the generation.', default=None
+    )
 
     # generation parameters
     num_beams: int = Field(description='The number of beams to use.', default=None)
@@ -38,6 +44,7 @@ class GenerateRequest(BaseModel):
         schema_extra = {
             'example': {
                 'prompt': 'Hello, my name is',
+                'session_id': '18d92585-7b66-4b7c-b818-71287c122c57',
                 'num_beams': 5,
                 'max_length': 50,
                 'temperature': 0.7,
@@ -57,6 +64,7 @@ class Gateway(BaseGateway, CompositeServer):
         """Initialize a new Gateway."""
 
         super().__init__(**kwargs)
+        session_manager = SessionManager()
 
         from fastapi import Body, status
         from fastapi.responses import JSONResponse
@@ -73,21 +81,38 @@ class Gateway(BaseGateway, CompositeServer):
                     exclude={'prompt'},
                 )
 
+                session_id = payload.session_id
+                if session_id is None:
+                    import uuid
+
+                    session_id = str(uuid.uuid4())
+
                 async for docs, error in self.streamer.stream(
-                    docs=DocumentArray([Document(text=payload.prompt)]),
+                    docs=DocumentArray(
+                        [
+                            Document(
+                                text=payload.prompt,
+                                embedding=session_manager.get(session_id),
+                            )
+                        ]
+                    ),
                     exec_endpoint='/generate',
                     parameters=parameters,
                 ):
                     if error:
                         return JSONResponse(
                             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            content={'message': error.name},
+                            content={'message': error.name, 'session_id': session_id},
                         )
                     else:
+                        if session_id:
+                            session_manager.update(session_id, docs[0].embedding)
+
                         return JSONResponse(
                             status_code=status.HTTP_200_OK,
                             content={
-                                'generated_text': docs[0].tags.get('generated_text')
+                                'generated_text': docs[0].tags.get('generated_text'),
+                                'session_id': session_id,
                             },
                         )
 
