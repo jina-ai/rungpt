@@ -138,7 +138,7 @@ nav:
           - Tensor Parallelism on multiple GPUs: docs/guides/parallelism.md
           - Quantization: docs/guides/quantization.md
           - LoRA (Low-Rank Adapter): docs/guides/lora.md
-      - Multi-Models:
+      - Multi-modal Supports:
           - BLIP2: docs/guides/blip2.md
           - Open-Flamingo: docs/guides/flamingo.md
 #      - Benchmark:
