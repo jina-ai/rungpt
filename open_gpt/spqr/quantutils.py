@@ -254,7 +254,7 @@ def llama_sequential(model, dataloader, args, dev):
 
 
 @torch.no_grad()
-def llama_eval(model, testenc, args, dev):
+def llama_eval(nodel, testenc, args, dev):
     print("Evaluating ...")
 
     testenc = testenc.input_ids

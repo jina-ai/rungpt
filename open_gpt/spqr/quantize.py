@@ -2,7 +2,7 @@ import time
 
 from quantizeargs import QuantizeArgs
 from datautils import *
-from main import *
+from quantutils import *
 import huggingface_hub
 
 
