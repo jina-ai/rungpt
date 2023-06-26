@@ -4,17 +4,8 @@
     --md-primary-fg-color: #115AF4;
     --md-primary-fg-color--light: #115AF4;
     --md-primary-fg-color--dark: #115AF4;
-    --nav-size: 0.9rem;
+    --nav-size: 0.8rem;
     font-family: "Poppins", sans-serif;
-}
-
-/* code block margin and padding  */
-.highlight>pre>code {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 10px;
-    padding-top: 20px;
-    padding-bottom: 20px;
 }
 
 @media screen and (min-width: 76.1875em) {

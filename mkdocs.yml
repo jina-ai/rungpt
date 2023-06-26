@@ -66,7 +66,7 @@ plugins:
       redirect_maps:
         'quickstart.md': 'docs/index.md'
         'docs/quick-start.md': 'docs/index.md'
-        'docs/installation/index.md': 'docs/index.md'
+
 
 # Extensions
 markdown_extensions:
