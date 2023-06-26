@@ -1,7 +1,7 @@
+# Originally from https://github.com/Vahe1994/SpQR
 from __future__ import annotations
 import math
 from typing import Optional, NamedTuple, Union
-
 import torch
 from tqdm.auto import tqdm
 from weight_permutation import get_permutation_order

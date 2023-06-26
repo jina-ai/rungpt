@@ -1,6 +1,6 @@
+# Originally from https://github.com/Vahe1994/SpQR
 import numpy as np
 import torch
-import os
 from transformers import LlamaTokenizer
 
 

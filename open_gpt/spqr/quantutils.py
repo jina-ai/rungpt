@@ -1,19 +1,18 @@
-import os
+# Adapted from https://github.com/Vahe1994/SpQR
 import time
-
-import wandb
 import torch
 import torch.nn as nn
 from tqdm import trange
 from transformers import LlamaForCausalLM
 from spqr_engine import SPQRUtil, Quantizer, quantize
 
+
 def save_llama(model, save_directory):
     LlamaForCausalLM.save_pretrained(model, save_directory=save_directory)
 
+
 def get_llama(model_path):
     import torch
-
     def skip(*args, **kwargs):
         pass
 
@@ -23,7 +22,7 @@ def get_llama(model_path):
     torch.nn.init.normal_ = skip
 
     model = LlamaForCausalLM.from_pretrained(
-        pretrained_model_name_or_path=model_path, 
+        pretrained_model_name_or_path=model_path,
         local_files_only=True,
         low_cpu_mem_usage=True,
         torch_dtype="auto"
@@ -44,15 +43,15 @@ def find_layers(module, layers=[nn.Conv2d, nn.Linear], name=""):
 
 
 def get_average_number_of_bits(
-    wbits: int = 3, 
-    qq_scale_bits: int = 3, 
-    qq_zero_bits: int = 3, 
-    qqq_scale_bits: int = 16, 
-    qqq_zero_bits: int = 16, 
-    groupsize: int = 16, 
-    qq_groupsize: int = 16, 
-    round_zero: bool = False,
-    global_ol_n_share: float = 0.00,
+        wbits: int = 3,
+        qq_scale_bits: int = 3,
+        qq_zero_bits: int = 3,
+        qqq_scale_bits: int = 16,
+        qqq_zero_bits: int = 16,
+        groupsize: int = 16,
+        qq_groupsize: int = 16,
+        round_zero: bool = False,
+        global_ol_n_share: float = 0.00,
 ):
     # if not quantized stats are in full precision
     qq_scale_bits = qq_scale_bits or 16
@@ -61,9 +60,11 @@ def get_average_number_of_bits(
     qq_groupsize = qq_groupsize or float('inf')
 
     if round_zero:
-        wbits_avg = wbits + (qq_scale_bits + wbits) / groupsize + (qqq_scale_bits + qqq_zero_bits) / (groupsize * qq_groupsize)
+        wbits_avg = wbits + (qq_scale_bits + wbits) / groupsize + (qqq_scale_bits + qqq_zero_bits) / (
+                groupsize * qq_groupsize)
     else:
-        wbits_avg = wbits + (qq_scale_bits + qq_zero_bits) / groupsize +  2 * (qqq_scale_bits + qqq_zero_bits) / (groupsize * qq_groupsize)
+        wbits_avg = wbits + (qq_scale_bits + qq_zero_bits) / groupsize + 2 * (qqq_scale_bits + qqq_zero_bits) / (
+                groupsize * qq_groupsize)
 
     # correct accounting for outliers
     if global_ol_n_share > 0:
@@ -183,12 +184,13 @@ def llama_sequential(model, dataloader, args, dev):
                 )
 
                 gptq[name].layer.weight.data = quantized.weight.to(gptq[name].layer.weight.data.dtype)
-                quantizers["model.layers.%d.%s" % (i, name)] = () # to be updated
+                quantizers["model.layers.%d.%s" % (i, name)] = ()  # to be updated
 
                 # OUTLIER STATS per module:
                 normal_outliers_count = quantized.unstructured_outlier_mask.to(torch.int32).sum()
 
-                stats_payload[f"n_{name}_ol_share"] = round((normal_outliers_count / quantized.weight.numel()).item(), 6)
+                stats_payload[f"n_{name}_ol_share"] = round((normal_outliers_count / quantized.weight.numel()).item(),
+                                                            6)
 
                 normal_outlier_count += normal_outliers_count.item()
                 w_count += quantized.weight.numel()
@@ -205,13 +207,13 @@ def llama_sequential(model, dataloader, args, dev):
             outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask)[0]
 
         if args.skip_out_loss:
-             out_losses = torch.full((1,), torch.nan)
+            out_losses = torch.full((1,), torch.nan)
         else:
             out_losses = (outs - outs_tmp).float().square().view(
                 outs.shape[0], -1
             ).mean(dim=1).sqrt() / outs.view(outs.shape[0], -1).float().std(dim=1)
             del outs_tmp
-            
+
         layers[i] = layer.cpu()
         del layer
         del gptq
@@ -244,10 +246,6 @@ def llama_sequential(model, dataloader, args, dev):
         args.round_zero,
         normal_outlier_count_global / w_count_global
     )
-
-    if args.wandb:
-        wandb.log({"outlier_share": normal_outlier_count_global / w_count_global})
-        wandb.log({"wbits_avg": wbits_avg})
 
     model.config.use_cache = use_cache
     return quantizers
@@ -286,7 +284,7 @@ def llama_eval(model, testenc, args, dev):
     saved_num_threads = torch.get_num_threads()
     torch.set_num_threads(min(16, saved_num_threads))
     for i in range(nsamples):
-        batch = testenc[:, (i * model.seqlen) : ((i + 1) * model.seqlen)].to(dev)
+        batch = testenc[:, (i * model.seqlen): ((i + 1) * model.seqlen)].to(dev)
         try:
             model(batch)
         except ValueError:
@@ -335,15 +333,12 @@ def llama_eval(model, testenc, args, dev):
             hidden_states = model.model.norm(hidden_states)
         lm_logits = model.lm_head(hidden_states)
         shift_logits = lm_logits[:, :-1, :].contiguous()
-        shift_labels = testenc[:, (i * model.seqlen) : ((i + 1) * model.seqlen)][:, 1:]
+        shift_labels = testenc[:, (i * model.seqlen): ((i + 1) * model.seqlen)][:, 1:]
         loss_fct = nn.CrossEntropyLoss()
         loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
         neg_log_likelihood = loss.float() * model.seqlen
         nlls.append(neg_log_likelihood)
     ppl = torch.exp(torch.stack(nlls).sum() / (nsamples * model.seqlen))
     print(f"\nperplexity = {ppl.item():.4f}")
-
-    if args.wandb:
-        wandb.log({args.dataset: ppl.item()})
 
     model.config.use_cache = use_cache

@@ -1,3 +1,4 @@
+# Adapted from https://github.com/Vahe1994/SpQR
 import time
 
 from quantizeargs import QuantizeArgs
@@ -20,34 +21,6 @@ def apply_quantize(args: QuantizeArgs, quantized_model_path: str = None):
         dataloader, testloader = get_loaders(
             args.dataset, nsamples=args.nsamples, seed=args.seed, model_path=args.model_path, seqlen=model.seqlen
         )
-
-    if args.wandb:
-        args.exp_name = (
-                args.wandb_exp_name
-                + "_wbits_"
-                + str(args.wbits)
-                + "_groupsize_"
-                + str(args.groupsize)
-                + "_qq_scale_bits_"
-                + str(args.qq_scale_bits)
-                + "_qq_zero_bits_"
-                + str(args.qq_zero_bits)
-                + "_qq_groupsize_"
-                + str(args.qq_groupsize)
-                + "_outl_"
-                + str(args.outlier_threshold)
-                + "_permord_"
-                + str(args.permutation_order)
-        )
-        neweval_str = ""
-        if args.new_eval:
-            neweval_str = "_new_eval"
-        wandb.init(
-            name=args.exp_name,
-            dir=args.wandb_dir,
-            config={a: getattr(args, a) for a in dir(args) if not a.startswith("_")},
-        )
-        wandb.run.log_code(".")
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if not args.load and args.wbits < 16 and not args.nearest:
@@ -79,15 +52,12 @@ def test(args):
     if args.save or args.save_safetensors:
         raise NotImplementedError()
 
-
 def quant(model_name, quantized_model_path):
     model_path = huggingface_hub.snapshot_download(model_name)
     before_args = QuantizeArgs(model_path=model_path)
+    test(before_args)
     apply_quantize(before_args, quantized_model_path)
     quantized_args = QuantizeArgs(model_path=quantized_model_path)
+    test(quantized_args)
     return before_args, quantized_args
 
-
-before, quantized = quant("openlm-research/open_llama_3b", "./quantized")
-test(before)
-test(quantized)

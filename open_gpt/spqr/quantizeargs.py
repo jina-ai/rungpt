@@ -26,9 +26,6 @@ class QuantizeArgs():
                  load: str = '',
                  benchmark: int = 0,
                  check: bool = False,
-                 wandb: bool = False,
-                 wandb_dir: str = '',
-                 wandb_exp_name: str = 'SpQR',
                  skip_out_loss: bool = False,
                  offload_activations: bool = False,
                  dtype: str = "auto"):
@@ -58,9 +55,6 @@ class QuantizeArgs():
         self.load = load
         self.benchmark = benchmark
         self.check = check
-        self.wandb = wandb
-        self.wandb_dir = wandb_dir
-        self.wandb_exp_name = wandb_exp_name
         self.skip_out_loss = skip_out_loss
         self.offload_activations = offload_activations
         self.dtype = dtype
