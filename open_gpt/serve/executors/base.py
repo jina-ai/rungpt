@@ -50,10 +50,10 @@ class CausualLMExecutor(Executor):
         )
         prompts = [d.tags['prompt'] or d.text for d in prompted_da]
 
-        parameters['top_k'] = int(parameters.get('top_k', None))
-        parameters['max_new_tokens'] = int(parameters.get('max_new_tokens', None))
+        parameters['top_k'] = int(parameters.get('top_k', 1))
+        parameters['max_new_tokens'] = int(parameters.get('max_new_tokens', 100))
         parameters['num_return_sequences'] = int(
-            parameters.get('num_return_sequences', None)
+            parameters.get('num_return_sequences', 1)
         )
 
         if prompts:
