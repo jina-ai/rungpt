@@ -122,7 +122,7 @@ class GenerationMixin:
                 )
                 logits = outputs.logits
                 past_key_values = outputs.past_key_values
-            logging.info(
+            logging.debug(
                 f"===> step: {step}, past_key_values: {type(past_key_values)}, {type(past_key_values[0])}"
             )
 
