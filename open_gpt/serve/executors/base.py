@@ -48,7 +48,7 @@ class CausualLMExecutor(Executor):
         prompted_da = DocumentArray(
             [d for d in docs if d.tags.get('prompt') or d.text is not None]
         )
-        prompts = [d.tags['prompt'] for d in docs if d.tags.get('prompt')]
+        prompts = [d.tags['prompt'] or d.text for d in prompted_da]
 
         parameters['top_k'] = int(parameters.get('top_k', None))
         parameters['max_new_tokens'] = int(parameters.get('max_new_tokens', None))
