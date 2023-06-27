@@ -1,12 +1,12 @@
 class QuantizeArgs():
     def __init__(self,
+                 model_name,
                  model_path,
                  dataset: str = 'wikitext2',
                  load_from_saved: str = None,
                  seed: int = 0,
                  nsamples: int = 128,
                  percdamp: float = 0.01,
-                 nearest: bool = False,
                  wbits: int = 4,
                  groupsize: int = 16,
                  permutation_order: str = "identity",
@@ -23,19 +23,18 @@ class QuantizeArgs():
                  simplified_outliers: bool = False,
                  save: str = '',
                  save_safetensors: str = '',
-                 load: str = '',
                  benchmark: int = 0,
                  check: bool = False,
                  skip_out_loss: bool = False,
                  offload_activations: bool = False,
                  dtype: str = "auto"):
+        self.model_name= model_name
         self.model_path = model_path
         self.dataset = dataset
         self.load_from_saved = load_from_saved
         self.seed = seed
         self.nsamples = nsamples
         self.percdamp = percdamp
-        self.nearest = nearest
         self.wbits = wbits
         self.groupsize = groupsize
         self.permutation_order = permutation_order
@@ -52,7 +51,6 @@ class QuantizeArgs():
         self.simplified_outliers = simplified_outliers
         self.save = save
         self.save_safetensors = save_safetensors
-        self.load = load
         self.benchmark = benchmark
         self.check = check
         self.skip_out_loss = skip_out_loss

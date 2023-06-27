@@ -3,11 +3,13 @@ import time
 import torch
 import torch.nn as nn
 from tqdm import trange
-from transformers import LlamaForCausalLM
-from spqr_engine import SPQRUtil, Quantizer, quantize
+from transformers import LlamaForCausalLM, LlamaTokenizer
+from spqr_engine import SPQRUtil
 
 
-def save_llama(model, save_directory):
+def save_llama(model_name, model, save_directory):
+    tokenizer = LlamaTokenizer.from_pretrained(model_name, use_fast=False)
+    LlamaTokenizer.save_pretrained(tokenizer, save_directory=save_directory)
     LlamaForCausalLM.save_pretrained(model, save_directory=save_directory)
 
 
@@ -252,7 +254,7 @@ def llama_sequential(model, dataloader, args, dev):
 
 
 @torch.no_grad()
-def llama_eval(model, testenc, args, dev):
+def llama_eval(model, testenc, dev):
     print("Evaluating ...")
 
     testenc = testenc.input_ids
@@ -302,17 +304,6 @@ def llama_eval(model, testenc, args, dev):
     for i in range(len(layers)):
         print(i, end=", ", flush=True)
         layer = layers[i].to(dev)
-
-        if args.nearest:
-            subset = find_layers(layer)
-            for name in subset:
-                quantizer = Quantizer()
-                quantizer.configure(args.wbits, perchannel=True, sym=False)
-                W = subset[name].weight.data
-                quantizer.find_params(W, weight=True)
-                subset[name].weight.data = quantize(W, quantizer.scale, quantizer.zero, quantizer.maxq).to(
-                    next(iter(layer.parameters())).dtype
-                )
 
         for j in range(nsamples):
             outs[j] = layer(inps[j].unsqueeze(0), attention_mask=attention_mask)[0]
