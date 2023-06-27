@@ -1,14 +1,10 @@
 """The serve module provides a simple way to serve a model using Jina."""
 
-import logging
-
 import jina
 from jina import Document, DocumentArray
 from jina import Gateway as BaseGateway
 from jina.serve.runtimes.servers.composite import CompositeServer
 from pydantic import BaseModel, Field
-
-from open_gpt.models.session import SessionManager
 
 
 class GenerateRequest(BaseModel):
@@ -66,7 +62,6 @@ class Gateway(BaseGateway, CompositeServer):
         """Initialize a new Gateway."""
 
         super().__init__(**kwargs)
-        session_manager = SessionManager()
 
         from fastapi import Body, status
         from fastapi.responses import JSONResponse
@@ -83,22 +78,10 @@ class Gateway(BaseGateway, CompositeServer):
                     exclude={'prompt'},
                 )
 
-                session_id = payload.session_id
-                if session_id is None:
-                    import uuid
-
-                    session_id = str(uuid.uuid4())
-                    logging.info(
-                        f"===> session_id is None, creating new session: {session_id}"
-                    )
-                else:
-                    logging.info(f"===> session_id: {session_id}")
-
                 async for docs, error in self.streamer.stream(
                     docs=DocumentArray(
                         [
                             Document(
-                                embedding=session_manager.get(session_id),
                                 tags={'prompt': payload.prompt},
                             )
                         ]
@@ -109,19 +92,13 @@ class Gateway(BaseGateway, CompositeServer):
                     if error:
                         return JSONResponse(
                             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            content={'message': error.name, 'session_id': session_id},
+                            content={'message': error.name},
                         )
                     else:
-                        session_manager.update(session_id, docs[0].embedding)
-                        logging.info(
-                            f"===> seq_length of {session_id}: {session_manager.get_context_length(session_id)}"
-                        )
-
                         return JSONResponse(
                             status_code=status.HTTP_200_OK,
                             content={
                                 'generated_text': docs[0].tags.get('generated_text'),
-                                'session_id': session_id,
                             },
                         )
 

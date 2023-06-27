@@ -49,7 +49,6 @@ class CausualLMExecutor(Executor):
             [d for d in docs if d.tags.get('prompt') or d.text is not None]
         )
         prompts = [d.tags['prompt'] for d in docs if d.tags.get('prompt')]
-        past_key_values = [d.embedding for d in prompted_da]
 
         parameters['top_k'] = int(parameters.get('top_k', None))
         parameters['max_new_tokens'] = int(parameters.get('max_new_tokens', None))
@@ -58,12 +57,8 @@ class CausualLMExecutor(Executor):
         )
 
         if prompts:
-            for idx, prompt in enumerate(prompts):
-                result = self.model.step_generate(
-                    prompt, past_key_values=past_key_values[idx], **parameters
-                )
-                for _, v in enumerate(result):
-                    prompted_da[idx].tags['generated_text'] = v['generated_text']
-                    prompted_da[idx].embedding = v['past_key_values']  # TODO: fix this
+            result = self.model.generate(prompts, **parameters)
+            for d, r in zip(prompted_da, result):
+                d.tags['generated_text'] = r
         else:
             logger.warning('No prompts found in the request.')
