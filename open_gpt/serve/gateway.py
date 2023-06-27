@@ -1,5 +1,7 @@
 """The serve module provides a simple way to serve a model using Jina."""
 
+import logging
+
 import jina
 from jina import Document, DocumentArray
 from jina import Gateway as BaseGateway
@@ -19,7 +21,7 @@ class GenerateRequest(BaseModel):
 
     # generation parameters
     num_beams: int = Field(description='The number of beams to use.', default=None)
-    max_length: int = Field(
+    max_new_tokens: int = Field(
         description='The maximum length of the generated text.', default=None
     )
     temperature: float = Field(
@@ -46,7 +48,7 @@ class GenerateRequest(BaseModel):
                 'prompt': 'Hello, my name is',
                 'session_id': '18d92585-7b66-4b7c-b818-71287c122c57',
                 'num_beams': 5,
-                'max_length': 50,
+                'max_new_tokens': 50,
                 'temperature': 0.7,
                 'top_k': 50,
                 'top_p': 0.95,
@@ -86,13 +88,18 @@ class Gateway(BaseGateway, CompositeServer):
                     import uuid
 
                     session_id = str(uuid.uuid4())
+                    logging.info(
+                        f"===> session_id is None, creating new session: {session_id}"
+                    )
+                else:
+                    logging.info(f"===> session_id: {session_id}")
 
                 async for docs, error in self.streamer.stream(
                     docs=DocumentArray(
                         [
                             Document(
-                                text=payload.prompt,
                                 embedding=session_manager.get(session_id),
+                                tags={'prompt': payload.prompt},
                             )
                         ]
                     ),
@@ -105,8 +112,10 @@ class Gateway(BaseGateway, CompositeServer):
                             content={'message': error.name, 'session_id': session_id},
                         )
                     else:
-                        if session_id:
-                            session_manager.update(session_id, docs[0].embedding)
+                        session_manager.update(session_id, docs[0].embedding)
+                        logging.info(
+                            f"===> seq_length of {session_id}: {session_manager.get_context_length(session_id)}"
+                        )
 
                         return JSONResponse(
                             status_code=status.HTTP_200_OK,

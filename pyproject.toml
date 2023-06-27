@@ -63,7 +63,6 @@ bitsandbytes = "^0.39.0"
 accelerate = "^0.20.3"
 tqdm = "^4.62.3"
 peft = "^0.3.0"
-dataclasses = "^0.8"
 
 # A list of all of the optional dependencies, some of which are included in the
 # below `extras`. They can be opted into by apps.
