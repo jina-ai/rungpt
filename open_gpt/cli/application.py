@@ -24,6 +24,7 @@ COMMANDS = [
     "serve",
     "deploy",
     "playground",
+    "quantize",
 ]
 
 
