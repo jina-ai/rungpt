@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Iterable, List, Optional, overload
+import logging
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, overload
 
 import torch
 
@@ -62,7 +63,8 @@ class GenerationMixin:
         stream_interval: int = 1,
         stop_str: Optional[str] = None,
         stop_token_ids: List[int] = [],
-        **kwargs
+        past_key_values: Optional[Iterable[torch.Tensor]] = None,
+        **kwargs,
     ):
         """Generate tokens in a streaming fashion. This method is a modified version of `fastchat.server.inference.generate_stream`.
 
@@ -77,6 +79,7 @@ class GenerationMixin:
         :param stream_interval: The number of tokens to generate before returning the generated tokens.
         :param stop_str: If not None, the model will stop generating when the generated tokens end with this string.
         :param stop_token_ids: A list of token ids that will cause the model to stop generating.
+        :param past_key_values: A list of past key values to use for generation. If None, the model will generate from scratch.
         :param kwargs: Additional keyword arguments to pass to the model.
         :return:
         """
@@ -102,11 +105,13 @@ class GenerationMixin:
             input_ids = input_ids[:, -max_src_len:]
             input_length = max_src_len
 
-        past_key_values = next_token = None
+        next_token = None
 
         for step in range(max_new_tokens):
             if step == 0:
-                outputs = self.model(input_ids, use_cache=True)
+                outputs = self.model(
+                    input_ids, use_cache=True, past_key_values=past_key_values
+                )
                 logits = outputs.logits
                 past_key_values = outputs.past_key_values
             else:
@@ -117,6 +122,9 @@ class GenerationMixin:
                 )
                 logits = outputs.logits
                 past_key_values = outputs.past_key_values
+            logging.debug(
+                f"===> step: {step}, past_key_values: {type(past_key_values)}, {type(past_key_values[0])}"
+            )
 
             if logits_processor:
                 if repetition_penalty > 1.0:
@@ -183,6 +191,7 @@ class GenerationMixin:
                 if not partially_stopped:
                     yield {
                         "generated_text": output,
+                        "past_key_values": past_key_values,
                         "usage": {
                             "prompt_length": input_length,
                             "completed_tokens": step + 1,
@@ -204,6 +213,7 @@ class GenerationMixin:
 
         yield {
             "generated_text": output,
+            "past_key_values": past_key_values,
             "usage": {
                 "prompt_length": input_length,
                 "completed_tokens": step + 1,
@@ -230,7 +240,7 @@ class GenerationMixin:
         length_penalty: float = 1.0,
         no_repeat_ngram_size: int = 0,
         echo: bool = False,
-        **kwargs
+        **kwargs,
     ):
         """Generate text from the given prompt.
 

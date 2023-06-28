@@ -1,5 +1,4 @@
 """The serve module provides a simple way to serve a model using Jina."""
-from typing import List
 
 import jina
 from jina import Document, DocumentArray
@@ -11,9 +10,14 @@ from pydantic import BaseModel, Field
 class GenerateRequest(BaseModel):
     prompt: str = Field(..., description='The prompt to generate from.')
 
+    # session id
+    session_id: str = Field(
+        description='The session id of the generation.', default=None
+    )
+
     # generation parameters
     num_beams: int = Field(description='The number of beams to use.', default=None)
-    max_length: int = Field(
+    max_new_tokens: int = Field(
         description='The maximum length of the generated text.', default=None
     )
     temperature: float = Field(
@@ -38,8 +42,9 @@ class GenerateRequest(BaseModel):
         schema_extra = {
             'example': {
                 'prompt': 'Hello, my name is',
+                'session_id': '18d92585-7b66-4b7c-b818-71287c122c57',
                 'num_beams': 5,
-                'max_length': 50,
+                'max_new_tokens': 50,
                 'temperature': 0.7,
                 'top_k': 50,
                 'top_p': 0.95,
@@ -74,7 +79,13 @@ class Gateway(BaseGateway, CompositeServer):
                 )
 
                 async for docs, error in self.streamer.stream(
-                    docs=DocumentArray([Document(text=payload.prompt)]),
+                    docs=DocumentArray(
+                        [
+                            Document(
+                                tags={'prompt': payload.prompt},
+                            )
+                        ]
+                    ),
                     exec_endpoint='/generate',
                     parameters=parameters,
                 ):
@@ -87,7 +98,7 @@ class Gateway(BaseGateway, CompositeServer):
                         return JSONResponse(
                             status_code=status.HTTP_200_OK,
                             content={
-                                'generated_text': docs[0].tags.get('generated_text')
+                                'generated_text': docs[0].tags.get('generated_text'),
                             },
                         )
 

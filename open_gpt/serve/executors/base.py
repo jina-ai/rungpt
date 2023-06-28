@@ -3,7 +3,6 @@
 from multiprocessing.pool import ThreadPool
 from typing import Dict, List, Optional, Union
 
-import torch
 from docarray import DocumentArray
 from jina import Executor, requests
 
@@ -50,6 +49,10 @@ class CausualLMExecutor(Executor):
             [d for d in docs if d.tags.get('prompt') or d.text is not None]
         )
         prompts = [d.tags['prompt'] or d.text for d in prompted_da]
+
+        for k, v in parameters.items():
+            if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
+                parameters[k] = int(v)
 
         if prompts:
             result = self.model.generate(prompts, **parameters)
