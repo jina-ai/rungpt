@@ -261,7 +261,7 @@ class GenerationMixin:
         """
         ...
 
-    def generate(self, prompt: str, **kwargs):
+    def generate(self, prompt: str, past_key_values: Optional[Tuple] = None, **kwargs):
         inputs = self.tokenizer(
             prompt,
             return_tensors="pt",
@@ -277,7 +277,19 @@ class GenerationMixin:
         echo = kwargs.pop("echo", False)
 
         with torch.inference_mode():
-            outputs = self.model.generate(**inputs, **kwargs)[0].tolist()
+            if past_key_values:
+                prefill = self.step_generate(
+                    prompt, max_new_tokens=1, past_key_values=past_key_values, **kwargs
+                )
+                for idx, _ in enumerate(prefill):
+                    if idx == 1:
+                        past_key_values = _['past_key_values']
+                from transformers.generation import GenerationConfig
+
+                generation_config = GenerationConfig(past_key_values=past_key_values)
+            outputs = self.model.generate(
+                generation_config=generation_config, **inputs, **kwargs
+            )[0].tolist()
             text = self.tokenizer.decode(
                 outputs if echo else outputs[input_length:],
                 clean_up_tokenization_spaces=clean_up_tokenization_spaces,
