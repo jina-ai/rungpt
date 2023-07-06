@@ -102,6 +102,57 @@ class Gateway(BaseGateway, CompositeServer):
                             },
                         )
 
+            @app.api_route(path='/generate_stream', methods=['POST'])
+            async def generate_stream(payload: GenerateRequest = Body(...)):
+                """Generate text from a prompt in streaming."""
+
+                import pickle
+
+                from sse_starlette.sse import EventSourceResponse
+                from fastapi import HTTPException
+
+                parameters = payload.dict(
+                    exclude_unset=True,
+                    exclude_none=True,
+                    exclude_defaults=True,
+                    exclude={'prompt'},
+                )
+
+                async def event_generator():
+                    MAX_TOKENS = parameters.pop('max_new_tokens', 20)
+                    NUM_TOKENS = 0
+
+                    while True:
+                        if NUM_TOKENS == MAX_TOKENS:
+                            break
+                        # Checks for new generated token and return them to client if any
+                        async for docs, error in self.streamer.stream(
+                            docs=input_docs,
+                            exec_endpoint='/generate_stream',
+                            parameters=parameters,
+                        ):
+                            if error:
+                                # TODO: find best practice to handle errors in sse
+                                raise HTTPException(status_code=500, detail=error)
+
+                            input_docs[0].tags['input_ids'] = docs[0].tags.get(
+                                'output_ids'
+                            )
+                            input_docs[0].blob = docs[0].blob
+
+                            NUM_TOKENS += 1
+                            yield {"data": docs[0].tags['generated_text']}
+
+                input_docs = DocumentArray(
+                    [
+                        Document(
+                            tags={'prompt': payload.prompt},
+                        )
+                    ]
+                )
+
+                return EventSourceResponse(event_generator())
+
             return app
 
         jina.helper.extend_rest_interface = _extend_rest_function

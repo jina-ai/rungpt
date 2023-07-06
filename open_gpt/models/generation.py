@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, overload
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, overload, Union
 
 import torch
 
@@ -52,7 +52,7 @@ class GenerationMixin:
     @torch.inference_mode()
     def step_generate(
         self,
-        prompt: str,
+        prompt: Union[str, List],
         max_new_tokens: Optional[int] = None,
         temperature: float = 1.0,
         top_k: int = 1,
@@ -83,10 +83,18 @@ class GenerationMixin:
         :param kwargs: Additional keyword arguments to pass to the model.
         :return:
         """
-        len_prompt = len(prompt)
-        input_ids = self.tokenizer(prompt, return_tensors="pt")["input_ids"].to(
-            self._device
-        )
+        if isinstance(prompt, str):
+            len_prompt = len(prompt)
+            input_ids = self.tokenizer(prompt, return_tensors="pt")["input_ids"].to(
+                self._device
+            )
+        elif isinstance(prompt, List):
+            len_prompt = None
+            prompt = torch.Tensor([prompt]).to(dtype=int)
+            input_ids = prompt.to(self._device)
+        else:
+            raise TypeError(f"prompt must be str or torch.tensor, got {type(prompt)}, {prompt}")
+
         input_length = len(input_ids[0])
 
         logits_processor = prepare_logits_processor(
@@ -109,12 +117,14 @@ class GenerationMixin:
 
         for step in range(max_new_tokens):
             if step == 0:
+                print(f"===> step: {step}, input_ids: {input_ids}")
                 outputs = self.model(
                     input_ids, use_cache=True, past_key_values=past_key_values
                 )
                 logits = outputs.logits
                 past_key_values = outputs.past_key_values
             else:
+                print(f"===> step: {step}, input_ids: {input_ids}")
                 outputs = self.model(
                     input_ids=torch.as_tensor([[next_token]], device=self._device),
                     use_cache=True,
@@ -147,11 +157,15 @@ class GenerationMixin:
                 probs = torch.softmax(last_token_logits, dim=-1)
                 next_token = int(torch.multinomial(probs, num_samples=1))
 
+            print(f"===> step: {step}, input_ids: {next_token}")
+
             output_ids.append(next_token)
             stopped = next_token in stop_token_ids
 
             if step % stream_interval == 0 or step == max_new_tokens - 1 or stopped:
                 if echo:
+                    if len_prompt is None:
+                        raise ValueError(f"echo is True but prompt is not a string")
                     tmp_output_ids = output_ids
                     rfind_start = len_prompt
                 else:
@@ -191,6 +205,7 @@ class GenerationMixin:
                 if not partially_stopped:
                     yield {
                         "generated_text": output,
+                        "output_ids": tmp_output_ids,
                         "past_key_values": past_key_values,
                         "usage": {
                             "prompt_length": input_length,
@@ -213,6 +228,7 @@ class GenerationMixin:
 
         yield {
             "generated_text": output,
+            "output_ids": tmp_output_ids,
             "past_key_values": past_key_values,
             "usage": {
                 "prompt_length": input_length,
