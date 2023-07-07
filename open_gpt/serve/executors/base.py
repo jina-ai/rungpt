@@ -74,7 +74,8 @@ class CausualLMExecutor(Executor):
             if k in ['top_k', 'num_return_sequences']:
                 parameters[k] = int(v)
             if k == 'max_new_tokens':
-                logger.info(f"executor got max_new_tokens: {v} from gateway but it will be ignored")
+                logger.info(
+                    f"executor got max_new_tokens: {v} from gateway but it will be ignored")
                 parameters.pop('max_new_tokens')
 
         for d in docs:
@@ -96,5 +97,3 @@ class CausualLMExecutor(Executor):
             d.tags['output_ids'] = resp['output_ids']
             d.tags['usage'] = resp['usage']
             d.tags['finish_reason'] = resp['finish_reason']
-
-
