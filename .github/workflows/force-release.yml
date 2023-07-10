@@ -60,3 +60,4 @@ jobs:
           artifacts: "dist/*"
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: false
+          tag: v${{ env.VERSION }}
