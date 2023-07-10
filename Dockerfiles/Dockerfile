@@ -13,6 +13,8 @@ WORKDIR /workspace
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
 RUN poetry config virtualenvs.create false
-RUN poetry install --only main
+RUN poetry export -f requirements.txt --output requirements.txt
+RUN python3 -m pip install -e .
+# RUN poetry install --only main
 
 ENTRYPOINT ["opengpt"]
