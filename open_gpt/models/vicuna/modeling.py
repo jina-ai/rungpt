@@ -39,13 +39,22 @@ class VicunaModel(LlamaModel):
         tokenizer_name_or_path: Optional[str] = None,
         **kwargs
     ):
-        from .loading import load_model_and_tokenizer
+        # Difference between different versions of Vicuna
+        # See https://github.com/lm-sys/FastChat/blob/main/docs/vicuna_weights_version.md
+        if 'delta' in model_name_or_path:
+            from .loading import load_model_and_tokenizer
 
-        self.model, self.tokenizer = load_model_and_tokenizer(
-            model_name_or_path,
-            tokenizer_name_or_path=tokenizer_name_or_path,
-            dtype=self._dtype,
-            precision=self._precision,
-            device=self._device,
-            device_map=self._device_map,
-        )
+            self.model, self.tokenizer = load_model_and_tokenizer(
+                model_name_or_path,
+                tokenizer_name_or_path=tokenizer_name_or_path,
+                dtype=self._dtype,
+                precision=self._precision,
+                device=self._device,
+                device_map=self._device_map,
+            )
+        else:
+            super().load_model_and_transforms(
+                model_name_or_path,
+                tokenizer_name_or_path=tokenizer_name_or_path,
+                **kwargs
+            )
