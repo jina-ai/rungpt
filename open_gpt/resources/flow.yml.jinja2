@@ -31,7 +31,7 @@ gateway:
     {{ key }}: {{ value }}
     {% endfor %}
 executors:
-  - name: {{ deployment_name }}
+  - name: decoder
     {% if not dockerized -%}
     uses:
       jtype: {{ executor_module }}
@@ -49,6 +49,6 @@ executors:
       resources:
         capacity: spot
         {% if instance_type -%}
-        instance_type: {{ instance_type }}
+        instance: {{ instance_type }}
         {% endif %}
 

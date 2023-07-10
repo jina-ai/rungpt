@@ -21,7 +21,6 @@ py_modules:\n\
   - open_gpt.serve.executors\n\
 with:\n\
   device_map: balanced\n\
-" > /tmp/config.yml
+" > config.yml
 
-
-ENTRYPOINT ["opengpt"]
+ENTRYPOINT ["jina", "executor", "--uses", "config.yml", "--timeout-ready", "3600000"]
