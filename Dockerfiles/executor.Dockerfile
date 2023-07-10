@@ -11,7 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 COPY . /workspace/
 WORKDIR /workspace
 
-RUN python3 -m pip instal jina==3.18.0
+RUN python3 -m pip install jina==3.18.0
 RUN python3 -m pip install -e .
 
 RUN echo "\
