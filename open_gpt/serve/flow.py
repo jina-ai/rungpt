@@ -25,4 +25,4 @@ async def deploy(flow: str):
         with tempfile.NamedTemporaryFile() as f:
             with open(f.name, 'w') as _:
                 _.write(flow)
-            return await CloudFlow(path=f.name).deploy()
+            return await CloudFlow(path=f.name).__aenter__()
