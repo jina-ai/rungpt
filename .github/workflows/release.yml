@@ -18,19 +18,33 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Install Poetry
+      - name: Install dependencies
         run: |
-          curl -sSL https://install.python-poetry.org | python - -y
-      - name: Update PATH
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+          pip install setuptools wheel twine
 
-      - name: Build project for distribution
-        run: poetry build
+      - name: Set envs and versions
+        run: |
+          VCS_REF=${{ github.ref }}
+          echo "VCS_REF=$VCS_REF" >> $GITHUB_ENV
+          echo "Will build $VCS_REF"
+
+          VERSION=$(sed -n '/^version = /p' ./open_gpt/__init__.py | cut -d \' -f2)
+
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Check Version
         id: check-version
         run: |
-          [[ "$(poetry version --short)" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo prerelease=true >> $GITHUB_OUTPUT
+          [[ ${{ env.VERSION }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || echo prerelease=true >> $GITHUB_OUTPUT
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          python setup.py sdist bdist_wheel
+          twine upload dist/*
+
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
@@ -38,8 +52,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           draft: false
           prerelease: steps.check-version.outputs.prerelease == 'true'
-
-      - name: Publish to PyPI
-        env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
-        run: poetry publish
