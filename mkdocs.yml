@@ -135,7 +135,7 @@ nav:
       - Guides:
           - Model Serving: docs/guides/serving.md
           - Token Streaming Generation: docs/guides/token-streaming.md
-          - Tensor Parallelism on multiple GPUs: docs/guides/parallelism.md
+          - Tensor Parallelism: docs/guides/tensor-parallelism.md
           - Quantization: docs/guides/quantization.md
           - LoRA (Low-Rank Adapter): docs/guides/lora.md
       - Multi-modal Supports:
