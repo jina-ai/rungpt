@@ -5,11 +5,14 @@ WORKDIR /workspace
 
 RUN python3 -m pip install -e .
 
-RUN echo $'!Gateway\
-py_modules:\
-  open_gpt.serve.gateway\
-with:\
-  cors: False' > config.yml
+
+RUN echo "\
+!Gateway\n\
+py_modules:\n\
+  - open_gpt.serve.gateway\n\
+with:\n\
+  cors: False\n\
+" > config.yml
 
 
 ENTRYPOINT ["jina", "gateway", "--uses", "config.yml"]

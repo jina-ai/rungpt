@@ -38,7 +38,7 @@ class DeployCommand(Command):
             None,
             "The instance used to deploy model.",
             flag=False,
-            default='G3',
+            default='G2',
         ),
         option(
             'dry_run',
