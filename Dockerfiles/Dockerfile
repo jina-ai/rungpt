@@ -11,8 +11,8 @@ ENV DEBIAN_FRONTEND=noninteractive LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 COPY . /workspace/
 WORKDIR /workspace
 
-RUN python3 -m pip install -e .
-
-WORKDIR /workspace
+RUN python3 -m pip install poetry
+RUN poetry config virtualenvs.create false
+RUN poetry install --only main
 
 ENTRYPOINT ["opengpt"]

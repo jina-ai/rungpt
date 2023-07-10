@@ -1,9 +1,11 @@
-FROM jinaai/jina:3.17.0-py310-perf
+FROM jinaai/jina:3.18.0-py310-standard
 
 COPY . /workspace/
 WORKDIR /workspace
 
-RUN python3 -m pip install -e .
+RUN python3 -m pip install poetry
+RUN poetry config virtualenvs.create false
+RUN poetry install --only main
 
 
 RUN echo "\
