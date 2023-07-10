@@ -2,6 +2,8 @@ import logging as _logging
 import os as _os
 import sys
 
+__version__ = '0.0.8'
+
 _logging.captureWarnings(True)
 
 
@@ -24,20 +26,10 @@ except AttributeError as e:
         '`jina` dependency is not installed correctly, please reinstall with `pip install -U --force-reinstall jina`'
     )
 
-
-def get_version() -> str:
-    """Return the module version number specified in pyproject.toml.
-    :return: The version number.
-    """
-    return importlib_metadata.version(__package__ + '_torch')
-
-
-__version__ = get_version()
-
 __resources_path__ = _os.path.join(_os.path.dirname(__file__), 'resources')
 
 _os.environ['NO_VERSION_CHECK'] = '1'
 
-from inference_client import Client
+from inference_client import Client  # noqa
 
 from .factory import create_model

@@ -34,7 +34,7 @@ jobs:
           echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
           echo "BUILD_TARGET=clip_executor" >> $GITHUB_ENV
         
-          VERSION=$(sed -n '/^version = /p' ./pyproject.toml | cut -d \" -f2)
+          VERSION=$(sed -n '/^version = /p' ./open_gpt/__init__.py | cut -d \' -f2)
           V_VERSION=v${VERSION}
           MINOR_VERSION=${VERSION%.*}
           MAJOR_VERSION=${MINOR_VERSION%.*}
