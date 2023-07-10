@@ -2,7 +2,7 @@ import logging as _logging
 import os as _os
 import sys
 
-__version__ = '0.0.8'
+__version__ = '0.0.9.dev0'
 
 _logging.captureWarnings(True)
 
