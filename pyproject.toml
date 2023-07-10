@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "open_gpt_torch"
-version = "0.0.7"
+version = "0.0.8"
 description = "An open-source cloud-native of large multi-modal models (LMMs) serving framework."
 
 license = "Apache-2.0"
