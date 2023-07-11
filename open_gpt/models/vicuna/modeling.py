@@ -53,7 +53,7 @@ class VicunaModel(LlamaModel):
                 device_map=self._device_map,
             )
         else:
-            super().load_model_and_transforms(
+            super(LlamaModel, self).load_model_and_transforms(
                 model_name_or_path,
                 tokenizer_name_or_path=tokenizer_name_or_path,
                 **kwargs
