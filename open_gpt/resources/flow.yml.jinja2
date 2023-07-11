@@ -46,6 +46,7 @@ executors:
       {{ key }}: {{ value }}
       {% endfor %}
     jcloud:
+      imagepullpolicy: always
       resources:
         capacity: spot
         {% if instance_type -%}

@@ -41,22 +41,20 @@ class CausualLMExecutor(Executor):
         )
 
         # warmup the model to avoid the first-time slowness
-        self.model.generate(['Hello world!'])
+        self.model.generate('Hello world!')
 
     @requests(on='/generate')
     def generate(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
-        prompted_da = DocumentArray(
-            [d for d in docs if d.tags.get('prompt') or d.text is not None]
-        )
-        prompts = [d.tags['prompt'] or d.text for d in prompted_da]
+        # TEMPORARY FIX: remove the `__results__` key from the parameters dict
+        parameters.pop('__results__')
 
         for k, v in parameters.items():
             if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
                 parameters[k] = int(v)
 
-        if prompts:
-            result = self.model.generate(prompts, **parameters)
-            for d, r in zip(prompted_da, result):
-                d.tags['generated_text'] = r
-        else:
-            logger.warning('No prompts found in the request.')
+        for d in docs:
+            prompt = d.tags.get('prompt') or d.text
+            if not prompt:
+                continue
+
+            d.tags['generated_text'] = self.model.generate(prompt, **parameters)
