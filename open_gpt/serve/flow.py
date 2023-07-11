@@ -20,7 +20,7 @@ async def deploy(flow: str):
     import tempfile
 
     if os.path.isfile(flow):
-        return await CloudFlow(path=flow)._deploy()
+        return await CloudFlow(path=flow).deploy()
     else:
         with tempfile.NamedTemporaryFile() as f:
             with open(f.name, 'w') as _:
