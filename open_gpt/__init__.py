@@ -1,17 +1,9 @@
 import logging as _logging
 import os as _os
-import sys
 
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 
 _logging.captureWarnings(True)
-
-
-# import importlib.metadata if available, otherwise importlib_metadata
-if sys.version_info >= (3, 8):
-    import importlib.metadata as importlib_metadata
-else:
-    import importlib_metadata
 
 import jina as _jina
 
