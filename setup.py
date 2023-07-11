@@ -48,6 +48,7 @@ setup(
         'cleo>=2.0.0',
         'click>=8.0.0',
         'Jinja2>=3.1.0',
+        'sentencepiece>=0.1.96',
         'transformers>=4.30.1',
         'bitsandbytes>=0.39.0',
         'accelerate>=0.20.3',
