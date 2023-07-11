@@ -1,4 +1,5 @@
 """The serve module provides a simple way to serve a model using Jina."""
+import logging
 
 import jina
 from jina import Document, DocumentArray
@@ -127,9 +128,9 @@ class Gateway(BaseGateway, CompositeServer):
                             break
                         # Checks for new generated token and return them to client if any
                         async for docs, error in self.streamer.stream(
-                            docs=input_docs,
-                            exec_endpoint='/generate_stream',
-                            parameters=parameters,
+                                docs=input_docs,
+                                exec_endpoint='/generate_stream',
+                                parameters=parameters,
                         ):
                             if error:
                                 # TODO: find best practice to handle errors in sse

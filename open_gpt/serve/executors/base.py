@@ -1,5 +1,7 @@
 """The executor wraps the model and provides a simple way to run inference on the model."""
 
+import logging
+import pickle
 from multiprocessing.pool import ThreadPool
 from typing import Dict, List, Optional, Union
 
