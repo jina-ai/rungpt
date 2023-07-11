@@ -81,8 +81,6 @@ class DeployCommand(Command):
                     self.line(f"{flow_yaml}")
                 else:
                     asyncify(deploy)(flow=flow_yaml)
-                # if self.option('dry_run'):
-                #     self.line(f"{flow}")
             else:
                 raise NotImplementedError(
                     'Deploying with customized config is not supported yet.'

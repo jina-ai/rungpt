@@ -52,12 +52,10 @@ setup(
         'bitsandbytes>=0.39.0',
         'accelerate>=0.20.3',
         'peft>=0.3.0',
-        'open_clip_torch>=2.20.0',
         'loguru',
         'tqdm',
     ],
     extras_require={
-        'profile': ['psutil'],
         'test': ['pytest', 'pytest-cov', 'pytest-xdist', 'pytest-mock'],
     },
     entry_points={
