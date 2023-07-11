@@ -17,7 +17,7 @@ RUN python3 -m pip install -e .
 RUN echo "\
 jtype: CausualLMExecutor\n\
 py_modules:\n\
-  - open_gpt.serve.executors.base\n\
+  - open_gpt.serve.executors\n\
 " > config.yml
 
 ENTRYPOINT ["jina", "executor", "--uses", "config.yml", "--timeout-ready", "3600000"]
