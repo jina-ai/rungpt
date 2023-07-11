@@ -14,7 +14,7 @@ WORKDIR /open_gpt
 RUN python3 -m pip install jina==3.18.0
 RUN python3 -m pip install -e .
 
-RUN echo "\
+RUN echo -e "\
 jtype: CausualLMExecutor\n\
 py_modules:\n\
   - open_gpt.serve.executors\n\
