@@ -60,6 +60,11 @@ setup(
         'profile': ['psutil'],
         'test': ['pytest', 'pytest-cov', 'pytest-xdist', 'pytest-mock'],
     },
+    entry_points={
+        'console_scripts': [
+            'opengpt = open_gpt.cli.application:main',
+        ],
+    },
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
@@ -84,8 +89,9 @@ setup(
         'Tracker': 'https://github.com/jina-ai/opengpt/issues',
     },
     keywords=[
-        "Pytorch",
-        "LMM",
+        "jina",
+        "pytorch",
+        "large-language-model",
         "GPT",
         "LLM",
         "multi-modality",
