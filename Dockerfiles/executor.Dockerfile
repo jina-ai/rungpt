@@ -18,6 +18,6 @@ RUN echo "\
 jtype: CausualLMExecutor\n\
 py_modules:\n\
   - open_gpt.serve.executors.base\n\
-" > /tmp/config.yml
+" > config.yml
 
-ENTRYPOINT ["jina", "executor", "--uses", "/tmp/config.yml", "--timeout-ready", "3600000"]
+ENTRYPOINT ["jina", "executor", "--uses", "config.yml", "--timeout-ready", "3600000"]

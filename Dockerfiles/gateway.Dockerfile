@@ -10,7 +10,7 @@ RUN echo "\
 !Gateway\n\
 py_modules:\n\
   - open_gpt.serve.gateway\n\
-" > /tmp/config.yml
+" > config.yml
 
 
-ENTRYPOINT ["jina", "gateway", "--uses", "/tmp/config.yml"]
+ENTRYPOINT ["jina", "gateway", "--uses", "config.yml"]
