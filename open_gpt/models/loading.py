@@ -12,6 +12,7 @@ def load_model_and_tokenizer(
     precision: Optional[str] = None,
     dtype: Optional[torch.dtype] = None,
     device_map: Optional[Union[str, List[int]]] = None,
+    use_fast: bool = False,
     **kwargs,
 ):
     """Load a model and tokenizer from HuggingFace."""
@@ -21,7 +22,9 @@ def load_model_and_tokenizer(
         f'Loading tokenizer from {tokenizer_name_or_path or model_name_or_path} ...'
     )
     tokenizer = AutoTokenizer.from_pretrained(
-        tokenizer_name_or_path or model_name_or_path, trust_remote_code=True
+        tokenizer_name_or_path or model_name_or_path,
+        trust_remote_code=True,
+        use_fast=use_fast,
     )
 
     if tokenizer.pad_token is None:

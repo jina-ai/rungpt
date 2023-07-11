@@ -67,6 +67,7 @@ class BaseModel(nn.Module, GenerationMixin, EmbeddingMixin):
             dtype=self._dtype,
             device=self._device,
             device_map=self._device_map,
+            use_fast=False,
         )
 
         if adapter_name_or_path is not None:
