@@ -55,7 +55,7 @@ class GenerationMixin:
         prompt: Optional[str] = None,
         input_ids: Optional[List[int]] = None,
         max_new_tokens: Optional[int] = None,
-        offset: int = 0,
+        completed_steps: int = 0,
         temperature: float = 1.0,
         top_k: int = 1,
         top_p: float = 0.9,
@@ -73,7 +73,7 @@ class GenerationMixin:
         :param prompt: The prompt is the context that the model will use to generate the response.
         :param input_ids: The input ids to use for generation.
         :param max_new_tokens: The maximum number of tokens to generate. If None, the model will generate until it predicts a stop token.
-        :param offset: The number of tokens that has been generated before.
+        :param completed_steps: The number of tokens that has been generated before.
         :param temperature: The temperature to use when sampling from the logits.
         :param top_k: The number of highest probability vocabulary tokens to keep for top-k-filtering.
         :param top_p: The cumulative probability of parameter highest probability vocabulary tokens to keep for nucleus sampling.
@@ -86,15 +86,15 @@ class GenerationMixin:
         :param past_key_values: A list of past key values to use for generation. If None, the model will generate from scratch.
         :param kwargs: Additional keyword arguments to pass to the model.
         :return: A dictionary contains generated text, output ids, past_key_values, finish reason and usage information.
-                usage information: {'offset': int,
+                usage information: {'completed_steps': int,
                                     'prompt_length': int, the length of past_key_values passed to model.forward() when generating this token
                                     'completed_tokens': int, how many tokens have been generated
                                     'total_tokens': int, completed_tokens + input_tokens
                                 }
         """
 
-        def _get_finish_reason(step, offset, max_new_tokens):
-            if step + 1 + offset == max_new_tokens:
+        def _get_finish_reason(step, completed_steps, max_new_tokens):
+            if step + 1 + completed_steps == max_new_tokens:
                 return "length"
             elif stopped:
                 return "stop"
@@ -139,7 +139,7 @@ class GenerationMixin:
         next_token = None
 
         for step in range(max_new_tokens):
-            prompt_length = past_key_values[0][0].shape[2] if past_key_values else 0
+            context_length = past_key_values[0][0].shape[2] if past_key_values else 0
             if step == 0:
                 outputs = self.model(
                     input_ids, use_cache=True, past_key_values=past_key_values
@@ -181,7 +181,7 @@ class GenerationMixin:
 
             if (
                 step % stream_interval == 0
-                or step + offset == max_new_tokens - 1
+                or step + completed_steps == max_new_tokens - 1
                 or stopped
             ):
                 if echo:
@@ -229,14 +229,14 @@ class GenerationMixin:
                         "output_ids": tmp_output_ids,
                         "past_key_values": past_key_values,
                         "usage": {
-                            "offset": offset,
-                            "prompt_length": prompt_length,
-                            "completed_tokens": step + 1,
-                            "total_tokens": prompt_length + 1,
+                            "context_length": context_length,
+                            "input_length": input_length,
+                            "completed_tokens": completed_steps + step + 1,
+                            "total_tokens": context_length + 1,
                         },
                         # finish stream event, which contains finish reason
                         "finish_reason": _get_finish_reason(
-                            step, offset, max_new_tokens
+                            step, completed_steps, max_new_tokens
                         ),
                     }
 
@@ -248,13 +248,13 @@ class GenerationMixin:
             "output_ids": tmp_output_ids,
             "past_key_values": past_key_values,
             "usage": {
-                "offset": offset,
-                "prompt_length": prompt_length,
-                "completed_tokens": step + 1,
-                "total_tokens": prompt_length + 1,
+                "context_length": context_length,
+                "input_length": input_length,
+                "completed_tokens": completed_steps + step + 1,
+                "total_tokens": context_length + 1,
             },
             # finish stream event, which contains finish reason
-            "finish_reason": _get_finish_reason(step, offset, max_new_tokens),
+            "finish_reason": _get_finish_reason(step, completed_steps, max_new_tokens),
         }
 
     @overload

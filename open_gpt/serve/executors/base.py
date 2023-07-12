@@ -72,6 +72,8 @@ class CausualLMExecutor(Executor):
             if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
                 parameters[k] = int(v)
 
+        completed_steps = parameters.pop('completed_steps', 0)
+
         for d in docs:
             prompt = d.tags.get('prompt') or d.text
             input_ids = d.tags.get('input_ids')
@@ -87,6 +89,7 @@ class CausualLMExecutor(Executor):
                 prompt=prompt,
                 input_ids=input_ids,
                 past_key_values=past_key_values,
+                completed_steps=completed_steps,
                 **parameters,
             )
             resp = next(generated_text)

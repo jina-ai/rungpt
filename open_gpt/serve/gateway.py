@@ -120,14 +120,11 @@ class Gateway(BaseGateway, CompositeServer):
                 )
 
                 async def event_generator():
-                    offset = 0
+                    completed_steps = 0
 
                     stop_flag = False
-                    while True:
-                        if stop_flag:
-                            break
-
-                        parameters['offset'] = offset
+                    while not stop_flag:
+                        parameters['completed_steps'] = completed_steps
 
                         async for docs, error in self.streamer.stream(
                             docs=input_docs,
@@ -147,7 +144,7 @@ class Gateway(BaseGateway, CompositeServer):
                                 'stop',
                                 'length',
                             ]
-                            offset += 1
+                            completed_steps += 1
 
                             yield {
                                 "data": json.dumps(
