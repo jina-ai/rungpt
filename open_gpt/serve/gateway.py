@@ -107,10 +107,8 @@ class Gateway(BaseGateway, CompositeServer):
             async def generate_stream(payload: GenerateRequest = Body(...)):
                 """Generate text from a prompt in streaming."""
 
-                import pickle
-
-                from sse_starlette.sse import EventSourceResponse
                 from fastapi import HTTPException
+                from sse_starlette.sse import EventSourceResponse
 
                 parameters = payload.dict(
                     exclude_unset=True,
@@ -128,9 +126,9 @@ class Gateway(BaseGateway, CompositeServer):
                             break
                         # Checks for new generated token and return them to client if any
                         async for docs, error in self.streamer.stream(
-                                docs=input_docs,
-                                exec_endpoint='/generate_stream',
-                                parameters=parameters,
+                            docs=input_docs,
+                            exec_endpoint='/generate_stream',
+                            parameters=parameters,
                         ):
                             if error:
                                 # TODO: find best practice to handle errors in sse

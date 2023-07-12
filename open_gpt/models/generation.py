@@ -1,5 +1,5 @@
 import logging
-from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, overload, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, overload
 
 import torch
 
@@ -94,7 +94,8 @@ class GenerationMixin:
             input_ids = prompt.to(self._device)
         else:
             raise TypeError(
-                f"prompt must be str or torch.tensor, got {type(prompt)}, {prompt}")
+                f"prompt must be str or torch.tensor, got {type(prompt)}, {prompt}"
+            )
 
         input_length = len(input_ids[0])
 
@@ -118,14 +119,12 @@ class GenerationMixin:
 
         for step in range(max_new_tokens):
             if step == 0:
-                print(f"===> step: {step}, input_ids: {input_ids}")
                 outputs = self.model(
                     input_ids, use_cache=True, past_key_values=past_key_values
                 )
                 logits = outputs.logits
                 past_key_values = outputs.past_key_values
             else:
-                print(f"===> step: {step}, input_ids: {input_ids}")
                 outputs = self.model(
                     input_ids=torch.as_tensor([[next_token]], device=self._device),
                     use_cache=True,
@@ -154,8 +153,6 @@ class GenerationMixin:
             else:
                 probs = torch.softmax(last_token_logits, dim=-1)
                 next_token = int(torch.multinomial(probs, num_samples=1))
-
-            print(f"===> step: {step}, input_ids: {next_token}")
 
             output_ids.append(next_token)
             stopped = next_token in stop_token_ids
