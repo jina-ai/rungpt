@@ -231,6 +231,7 @@ class GenerationMixin:
         self,
         prompt: str,
         max_new_tokens: Optional[int] = None,
+        max_context_length: int = CONTEXT_LEN,
         num_beams: int = 1,
         do_sample: bool = False,
         temperature: float = 1.0,
@@ -246,6 +247,7 @@ class GenerationMixin:
 
         :param prompt: The prompt input text.
         :param max_new_tokens: The maximum number of tokens to generate, not including the prompt.
+        :param max_context_length: The maximum length of the context, including the prompt.
         :param num_beams: Number of beams for beam search. 1 means no beam search.
         :param do_sample: Whether to use sampling instead of greedy decoding.
         :param temperature: The temperature to use for sampling. Only relevant if do_sample is True. Higher means more stochastic.
@@ -261,7 +263,7 @@ class GenerationMixin:
         """
         ...
 
-    def generate(self, prompt: str, **kwargs):
+    def generate(self, prompt: str, max_context_length: int = CONTEXT_LEN, **kwargs):
         inputs = self.tokenizer(
             prompt,
             return_tensors="pt",
@@ -275,6 +277,16 @@ class GenerationMixin:
         clean_up_tokenization_spaces = kwargs.pop('clean_up_tokenization_spaces', True)
         skip_special_tokens = kwargs.pop("skip_special_tokens", True)
         echo = kwargs.pop("echo", False)
+
+        max_length = kwargs.pop("max_length", max_context_length)
+        max_new_tokens = kwargs.pop("max_new_tokens", max_length - input_length)
+
+        kwargs.update(
+            {
+                "max_length": max_length,
+                "max_new_tokens": max_new_tokens,
+            }
+        )
 
         with torch.inference_mode():
             outputs = self.model.generate(**inputs, **kwargs)[0].tolist()
