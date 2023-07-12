@@ -1,7 +1,7 @@
 import logging as _logging
 import os as _os
 
-__version__ = '0.0.11'
+__version__ = '0.0.10'
 
 _logging.captureWarnings(True)
 
