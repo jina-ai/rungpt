@@ -41,7 +41,7 @@ class CausualLMExecutor(Executor):
         )
 
         # warmup the model to avoid the first-time slowness
-        self.model.generate('Hello world!')
+        self.model.generate('Hello world!', max_new_tokens=64)
 
     @requests(on='/generate')
     def generate(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
