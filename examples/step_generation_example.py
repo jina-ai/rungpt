@@ -1,14 +1,13 @@
-import json
-
 import requests
 import sseclient
 
+prompt = 'Once upon a time,'
 url = 'http://0.0.0.0:51002/generate_stream'
 response = requests.post(
     url,
     json={
-        "prompt": "The quick brown fox jumps over the lazy dog.",
-        "max_new_tokens": 10,
+        "prompt": prompt,
+        "max_new_tokens": 15,
         "temperature": 0.9,
         "top_k": 50,
         "top_p": 0.95,
@@ -20,4 +19,4 @@ response = requests.post(
 )
 client = sseclient.SSEClient(response)
 for event in client.events():
-    print(json.loads(event.data))
+    print(event.data)
