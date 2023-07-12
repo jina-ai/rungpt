@@ -107,10 +107,10 @@ class GenerationMixin:
             raise ValueError("Only one of prompt or input_ids can be provided.")
 
         if input_ids is None:
-            len_prompt = len(prompt)
             input_ids = self.tokenizer(prompt, return_tensors="pt")["input_ids"].to(
                 self._device
             )
+            len_prompt = len(input_ids[0])
         else:
             assert isinstance(input_ids[0], int), (
                 f"input_ids must be list of int, " f"got list of {type(input_ids[0])}"
