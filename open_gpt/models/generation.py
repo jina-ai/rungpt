@@ -52,7 +52,7 @@ class GenerationMixin:
     @torch.inference_mode()
     def step_generate(
         self,
-        prompt: Union[str, List],
+        prompt: Union[str, torch.Tensor],
         max_new_tokens: Optional[int] = None,
         temperature: float = 1.0,
         top_k: int = 1,
@@ -93,7 +93,8 @@ class GenerationMixin:
             prompt = torch.Tensor([prompt]).to(dtype=int)
             input_ids = prompt.to(self._device)
         else:
-            raise TypeError(f"prompt must be str or torch.tensor, got {type(prompt)}, {prompt}")
+            raise TypeError(
+                f"prompt must be str or torch.tensor, got {type(prompt)}, {prompt}")
 
         input_length = len(input_ids[0])
 
@@ -132,9 +133,6 @@ class GenerationMixin:
                 )
                 logits = outputs.logits
                 past_key_values = outputs.past_key_values
-            logging.debug(
-                f"===> step: {step}, past_key_values: {type(past_key_values)}, {type(past_key_values[0])}"
-            )
 
             if logits_processor:
                 if repetition_penalty > 1.0:
