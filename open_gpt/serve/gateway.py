@@ -107,6 +107,8 @@ class Gateway(BaseGateway, CompositeServer):
             async def generate_stream(payload: GenerateRequest = Body(...)):
                 """Generate text from a prompt in streaming."""
 
+                import json
+
                 from fastapi import HTTPException
                 from sse_starlette.sse import EventSourceResponse
 
@@ -118,13 +120,15 @@ class Gateway(BaseGateway, CompositeServer):
                 )
 
                 async def event_generator():
-                    MAX_TOKENS = parameters.pop('max_new_tokens', 20)
-                    NUM_TOKENS = 0
+                    offset = 0
 
+                    stop_flag = False
                     while True:
-                        if NUM_TOKENS == MAX_TOKENS:
+                        if stop_flag:
                             break
-                        # Checks for new generated token and return them to client if any
+
+                        parameters['offset'] = offset
+
                         async for docs, error in self.streamer.stream(
                             docs=input_docs,
                             exec_endpoint='/generate_stream',
@@ -139,8 +143,30 @@ class Gateway(BaseGateway, CompositeServer):
                             )
                             input_docs[0].blob = docs[0].blob
 
-                            NUM_TOKENS += 1
-                            yield {"data": docs[0].tags['generated_text']}
+                            stop_flag = docs[0].tags.get('finish_reason') in [
+                                'stop',
+                                'length',
+                            ]
+                            offset += 1
+
+                            yield {
+                                "data": json.dumps(
+                                    {
+                                        "generated_text": docs[0].tags[
+                                            'generated_text'
+                                        ],
+                                        "output_ids": [
+                                            int(item)
+                                            for item in docs[0].tags['output_ids']
+                                        ],
+                                        "usage": {
+                                            k: int(v)
+                                            for k, v in docs[0].tags['usage'].items()
+                                        },
+                                        "finish_reason": docs[0].tags['finish_reason'],
+                                    }
+                                )
+                            }
 
                 input_docs = DocumentArray(
                     [

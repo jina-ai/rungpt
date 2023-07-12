@@ -1,6 +1,4 @@
 """The executor wraps the model and provides a simple way to run inference on the model."""
-
-import logging
 import pickle
 from multiprocessing.pool import ThreadPool
 from typing import Dict, List, Optional, Union
@@ -10,8 +8,6 @@ from jina import Executor, requests
 
 from open_gpt.factory import create_model
 from open_gpt.logs import logger
-
-import pickle
 
 
 class CausualLMExecutor(Executor):
@@ -73,22 +69,23 @@ class CausualLMExecutor(Executor):
     @requests(on='/generate_stream')
     def generate_stream(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
         for k, v in parameters.items():
-            if k in ['top_k', 'num_return_sequences']:
+            if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
                 parameters[k] = int(v)
-            if k == 'max_new_tokens':
-                logger.info(
-                    f"executor got max_new_tokens: {v} from gateway but it will be ignored")
-                parameters.pop('max_new_tokens')
 
         for d in docs:
-            prompt = d.tags.get('input_ids') or d.tags.get('prompt') or d.text
+            prompt = d.tags.get('prompt') or d.text
+            input_ids = d.tags.get('input_ids')
             past_key_values = pickle.loads(d.blob) if len(d.blob) > 0 else None
             if not prompt:
                 continue
 
+            if input_ids is not None:
+                input_ids = list(map(lambda x: int(x), input_ids))
+                prompt = None
+
             generated_text = self.model.step_generate(
-                prompt,
-                max_new_tokens=1,
+                prompt=prompt,
+                input_ids=input_ids,
                 past_key_values=past_key_values,
                 **parameters,
             )

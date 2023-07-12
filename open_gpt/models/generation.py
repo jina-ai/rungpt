@@ -52,8 +52,10 @@ class GenerationMixin:
     @torch.inference_mode()
     def step_generate(
         self,
-        prompt: Union[str, torch.Tensor],
+        prompt: Optional[str] = None,
+        input_ids: Optional[List[int]] = None,
         max_new_tokens: Optional[int] = None,
+        offset: int = 0,
         temperature: float = 1.0,
         top_k: int = 1,
         top_p: float = 0.9,
@@ -69,7 +71,9 @@ class GenerationMixin:
         """Generate tokens in a streaming fashion. This method is a modified version of `fastchat.server.inference.generate_stream`.
 
         :param prompt: The prompt is the context that the model will use to generate the response.
+        :param input_ids: The input ids to use for generation.
         :param max_new_tokens: The maximum number of tokens to generate. If None, the model will generate until it predicts a stop token.
+        :param offset: The number of tokens that has been generated before.
         :param temperature: The temperature to use when sampling from the logits.
         :param top_k: The number of highest probability vocabulary tokens to keep for top-k-filtering.
         :param top_p: The cumulative probability of parameter highest probability vocabulary tokens to keep for nucleus sampling.
@@ -81,21 +85,38 @@ class GenerationMixin:
         :param stop_token_ids: A list of token ids that will cause the model to stop generating.
         :param past_key_values: A list of past key values to use for generation. If None, the model will generate from scratch.
         :param kwargs: Additional keyword arguments to pass to the model.
-        :return:
+        :return: A dictionary contains generated text, output ids, past_key_values, finish reason and usage information.
+                usage information: {'offset': int,
+                                    'prompt_length': int, the length of past_key_values passed to model.forward() when generating this token
+                                    'completed_tokens': int, how many tokens have been generated
+                                    'total_tokens': int, completed_tokens + input_tokens
+                                }
         """
-        if isinstance(prompt, str):
+
+        def _get_finish_reason(step, offset, max_new_tokens):
+            if step + 1 + offset == max_new_tokens:
+                return "length"
+            elif stopped:
+                return "stop"
+            else:
+                return None
+
+        if prompt is None and input_ids is None:
+            raise ValueError("Either prompt or input_ids must be provided.")
+        if prompt and input_ids:
+            raise ValueError("Only one of prompt or input_ids can be provided.")
+
+        if input_ids is None:
             len_prompt = len(prompt)
             input_ids = self.tokenizer(prompt, return_tensors="pt")["input_ids"].to(
                 self._device
             )
-        elif isinstance(prompt, List):
-            len_prompt = None
-            prompt = torch.Tensor([prompt]).to(dtype=int)
-            input_ids = prompt.to(self._device)
         else:
-            raise TypeError(
-                f"prompt must be str or torch.tensor, got {type(prompt)}, {prompt}"
+            assert isinstance(input_ids[0], int), (
+                f"input_ids must be list of int, " f"got list of {type(input_ids[0])}"
             )
+            len_prompt = None
+            input_ids = torch.Tensor([input_ids]).to(dtype=int).to(self._device)
 
         input_length = len(input_ids[0])
 
@@ -118,6 +139,7 @@ class GenerationMixin:
         next_token = None
 
         for step in range(max_new_tokens):
+            prompt_length = past_key_values[0][0].shape[2] if past_key_values else 0
             if step == 0:
                 outputs = self.model(
                     input_ids, use_cache=True, past_key_values=past_key_values
@@ -157,7 +179,11 @@ class GenerationMixin:
             output_ids.append(next_token)
             stopped = next_token in stop_token_ids
 
-            if step % stream_interval == 0 or step == max_new_tokens - 1 or stopped:
+            if (
+                step % stream_interval == 0
+                or step + offset == max_new_tokens - 1
+                or stopped
+            ):
                 if echo:
                     if len_prompt is None:
                         raise ValueError(f"echo is True but prompt is not a string")
@@ -203,34 +229,32 @@ class GenerationMixin:
                         "output_ids": tmp_output_ids,
                         "past_key_values": past_key_values,
                         "usage": {
-                            "prompt_length": input_length,
+                            "offset": offset,
+                            "prompt_length": prompt_length,
                             "completed_tokens": step + 1,
-                            "total_tokens": input_length + step + 1,
+                            "total_tokens": prompt_length + 1,
                         },
-                        "finish_reason": None,
+                        # finish stream event, which contains finish reason
+                        "finish_reason": _get_finish_reason(
+                            step, offset, max_new_tokens
+                        ),
                     }
 
             if stopped:
                 break
-
-        # finish stream event, which contains finish reason
-        if step == max_new_tokens - 1:
-            finish_reason = "length"
-        elif stopped:
-            finish_reason = "stop"
-        else:
-            finish_reason = None
 
         yield {
             "generated_text": output,
             "output_ids": tmp_output_ids,
             "past_key_values": past_key_values,
             "usage": {
-                "prompt_length": input_length,
+                "offset": offset,
+                "prompt_length": prompt_length,
                 "completed_tokens": step + 1,
-                "total_tokens": input_length + step + 1,
+                "total_tokens": prompt_length + 1,
             },
-            "finish_reason": finish_reason,
+            # finish stream event, which contains finish reason
+            "finish_reason": _get_finish_reason(step, offset, max_new_tokens),
         }
 
     @overload
