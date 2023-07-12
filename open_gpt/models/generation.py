@@ -281,6 +281,11 @@ class GenerationMixin:
         max_length = kwargs.pop("max_length", max_context_length)
         max_new_tokens = kwargs.pop("max_new_tokens", max_length - input_length)
 
+        if max_new_tokens + input_length >= max_length:
+            raise ValueError(
+                f"max_new_tokens + input_length ({max_new_tokens + input_length}) must be less than max_length ({max_length})"
+            )
+
         kwargs.update(
             {
                 "max_length": max_length,

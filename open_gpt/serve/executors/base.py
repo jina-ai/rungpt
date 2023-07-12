@@ -19,6 +19,7 @@ class CausualLMExecutor(Executor):
         device_map: Optional[Union[str, List[int]]] = None,
         precision: Optional[str] = None,
         num_workers: int = 4,
+        max_context_length: int = 1024,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -31,6 +32,7 @@ class CausualLMExecutor(Executor):
         self._adapter_name_or_path = adapter_name_or_path
         self._minibatch_size = minibatch_size
         self._thread_pool = ThreadPool(processes=num_workers)
+        self._max_context_length = max_context_length
 
         self.model = create_model(
             model_name_or_path,
@@ -46,7 +48,7 @@ class CausualLMExecutor(Executor):
     @requests(on='/generate')
     def generate(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
         # TEMPORARY FIX: remove the `__results__` key from the parameters dict
-        parameters.pop('__results__')
+        parameters.pop('__results__', None)
 
         for k, v in parameters.items():
             if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
