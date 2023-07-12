@@ -279,7 +279,7 @@ class GenerationMixin:
         echo = kwargs.pop("echo", False)
 
         max_length = kwargs.pop("max_length", max_context_length)
-        max_new_tokens = kwargs.pop("max_new_tokens", max_length - input_length)
+        max_new_tokens = kwargs.pop("max_new_tokens", max_length - input_length - 1)
 
         if max_new_tokens + input_length >= max_length:
             raise ValueError(
