@@ -49,6 +49,9 @@ class CausualLMExecutor(Executor):
     def generate(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
         # TEMPORARY FIX: remove the `__results__` key from the parameters dict
         parameters.pop('__results__', None)
+        max_context_length = int(
+            parameters.pop('max_context_length', self._max_context_length)
+        )
 
         for k, v in parameters.items():
             if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
@@ -59,4 +62,6 @@ class CausualLMExecutor(Executor):
             if not prompt:
                 continue
 
-            d.tags['generated_text'] = self.model.generate(prompt, **parameters)
+            d.tags['generated_text'] = self.model.generate(
+                prompt, max_context_length=max_context_length, **parameters
+            )
