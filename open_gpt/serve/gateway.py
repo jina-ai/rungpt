@@ -1,4 +1,5 @@
 """The serve module provides a simple way to serve a model using Jina."""
+import logging
 
 import jina
 from jina import Document, DocumentArray
@@ -101,6 +102,78 @@ class Gateway(BaseGateway, CompositeServer):
                                 'generated_text': docs[0].tags.get('generated_text'),
                             },
                         )
+
+            @app.api_route(path='/generate_stream', methods=['POST'])
+            async def generate_stream(payload: GenerateRequest = Body(...)):
+                """Generate text from a prompt in streaming."""
+
+                import json
+
+                from fastapi import HTTPException
+                from sse_starlette.sse import EventSourceResponse
+
+                parameters = payload.dict(
+                    exclude_unset=True,
+                    exclude_none=True,
+                    exclude_defaults=True,
+                    exclude={'prompt'},
+                )
+
+                async def event_generator():
+                    completed_steps = 0
+
+                    stop_flag = False
+                    while not stop_flag:
+                        parameters['completed_steps'] = completed_steps
+
+                        async for docs, error in self.streamer.stream(
+                            docs=input_docs,
+                            exec_endpoint='/generate_stream',
+                            parameters=parameters,
+                        ):
+                            if error:
+                                # TODO: find best practice to handle errors in sse
+                                raise HTTPException(status_code=500, detail=error)
+
+                            input_docs[0].tags['input_ids'] = docs[0].tags.get(
+                                'output_ids'
+                            )
+                            input_docs[0].blob = docs[0].blob
+
+                            stop_flag = docs[0].tags.get('finish_reason') in [
+                                'stop',
+                                'length',
+                            ]
+                            completed_steps += 1
+
+                            yield {
+                                "data": json.dumps(
+                                    {
+                                        "generated_text": docs[0].tags[
+                                            'generated_text'
+                                        ],
+                                        "output_ids": [
+                                            int(item)
+                                            for item in docs[0].tags['output_ids']
+                                        ],
+                                        "usage": {
+                                            k: int(v)
+                                            for k, v in docs[0].tags['usage'].items()
+                                        },
+                                        "finish_reason": docs[0].tags['finish_reason'],
+                                    }
+                                )
+                            }
+
+                input_docs = DocumentArray(
+                    [
+                        Document(
+                            tags={'prompt': payload.prompt},
+                        )
+                    ]
+                )
+
+                return EventSourceResponse(event_generator())
 
             return app
 
