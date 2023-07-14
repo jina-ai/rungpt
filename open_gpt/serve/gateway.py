@@ -1,4 +1,5 @@
 """The serve module provides a simple way to serve a model using Jina."""
+import json
 import logging
 
 import jina
@@ -96,16 +97,17 @@ class Gateway(BaseGateway, CompositeServer):
                             content={'message': error.name},
                         )
                     else:
+                        _tags = docs[0].tags.copy()
+                        _tags['usage'] = {k: int(v) for k, v in _tags['usage'].items()}
+
                         return JSONResponse(
                             status_code=status.HTTP_200_OK,
-                            content=docs[0].tags,
+                            content=_tags,
                         )
 
             @app.api_route(path='/generate_stream', methods=['POST'])
             async def generate_stream(payload: GenerateRequest = Body(...)):
                 """Generate text from a prompt in streaming."""
-
-                import json
 
                 from fastapi import HTTPException
                 from sse_starlette.sse import EventSourceResponse
@@ -147,8 +149,11 @@ class Gateway(BaseGateway, CompositeServer):
                             completion_tokens += 1
 
                             _tags = docs[0].tags.copy()
-                            for item in ['input_ids', 'output_ids', 'past_key_values']:
-                                _tags.pop(item) if item in _tags else None
+                            for k in ['input_ids', 'output_ids', 'past_key_values']:
+                                _tags.pop(k) if k in _tags else None
+                            _tags['usage'] = {
+                                k: int(v) for k, v in _tags['usage'].items()
+                            }
                             yield {"data": json.dumps(_tags)}
 
                 input_docs = DocumentArray(

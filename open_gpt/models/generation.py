@@ -86,10 +86,10 @@ class GenerationMixin:
         :param past_key_values: A list of past key values to use for generation. If None, the model will generate from scratch.
         :param kwargs: Additional keyword arguments to pass to the model.
         :return: A dictionary contains generated text, output ids, past_key_values, finish reason and usage information.
-                usage information: {'completion_tokens': int,
-                                    'prompt_length': int, the length of past_key_values passed to model.forward() when generating this token
-                                    'completed_tokens': int, how many tokens have been generated
-                                    'total_tokens': int, completed_tokens + input_tokens
+                usage information: {'completion_tokens': int, how many tokens have been generated.
+                                    'input_length': int, the length of input ids or prompt.
+                                    'prompt_tokens': int, the length of past_key_values passed to model.forward() when generating this token.
+                                    'total_tokens': int, completed_tokens + input_tokens.
                                 }
         """
 
@@ -140,7 +140,7 @@ class GenerationMixin:
         next_token = None
 
         for step in range(max_new_tokens):
-            context_length = past_key_values[0][0].shape[2] if past_key_values else 0
+            prompt_tokens = past_key_values[0][0].shape[2] if past_key_values else 0
             if step == 0:
                 outputs = self.model(
                     input_ids, use_cache=True, past_key_values=past_key_values
@@ -239,10 +239,10 @@ class GenerationMixin:
                         "output_ids": tmp_output_ids,
                         "past_key_values": past_key_values,
                         "usage": {
-                            "prompt_tokens": context_length,
+                            "prompt_tokens": prompt_tokens,
                             "input_length": input_length,
                             "completion_tokens": completion_tokens + step + 1,
-                            "total_tokens": context_length + 1,
+                            "total_tokens": prompt_tokens + 1,
                         },
                     }
 
@@ -263,10 +263,10 @@ class GenerationMixin:
             "output_ids": tmp_output_ids,
             "past_key_values": past_key_values,
             "usage": {
-                "prompt_tokens": context_length,
+                "prompt_tokens": prompt_tokens,
                 "input_length": input_length,
                 "completion_tokens": completion_tokens + step + 1,
-                "total_tokens": context_length + 1,
+                "total_tokens": prompt_tokens + 1,
             },
         }
 

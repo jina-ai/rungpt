@@ -92,5 +92,5 @@ class CausualLMExecutor(Executor):
             )
             resp = next(generated_text)
 
-            d.blob = pickle.dumps(resp['past_key_values'])
+            d.blob = pickle.dumps(resp.pop('past_key_values'))
             d.tags.update(resp)
