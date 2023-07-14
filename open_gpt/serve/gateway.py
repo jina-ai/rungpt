@@ -98,9 +98,7 @@ class Gateway(BaseGateway, CompositeServer):
                     else:
                         return JSONResponse(
                             status_code=status.HTTP_200_OK,
-                            content={
-                                'generated_text': docs[0].tags.get('generated_text'),
-                            },
+                            content=docs[0].tags,
                         )
 
             @app.api_route(path='/generate_stream', methods=['POST'])
@@ -140,30 +138,15 @@ class Gateway(BaseGateway, CompositeServer):
                             )
                             input_docs[0].blob = docs[0].blob
 
-                            stop_flag = docs[0].tags.get('finish_reason') in [
+                            stop_flag = docs[0].tags.get('choices')[0].get(
+                                'finish_reason'
+                            ) in [
                                 'stop',
                                 'length',
                             ]
                             completed_steps += 1
 
-                            yield {
-                                "data": json.dumps(
-                                    {
-                                        "generated_text": docs[0].tags[
-                                            'generated_text'
-                                        ],
-                                        "output_ids": [
-                                            int(item)
-                                            for item in docs[0].tags['output_ids']
-                                        ],
-                                        "usage": {
-                                            k: int(v)
-                                            for k, v in docs[0].tags['usage'].items()
-                                        },
-                                        "finish_reason": docs[0].tags['finish_reason'],
-                                    }
-                                )
-                            }
+                            yield {"data": json.dumps(docs[0].tags)}
 
                 input_docs = DocumentArray(
                     [

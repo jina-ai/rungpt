@@ -2,10 +2,10 @@ from collections import OrderedDict
 
 
 class SessionManager:
-    def __init__(self, max_size=100, max_context_length=1024):
+    def __init__(self, max_size=100, max_length=1024):
         self._session = OrderedDict()
         self.max_size = max_size
-        self.max_context_length = max_context_length
+        self.max_length = max_length
 
     def get(self, session_id):
         return self._session[session_id] if session_id in self._session else None
@@ -22,14 +22,14 @@ class SessionManager:
         # past_key_values is a tuple with length of num_layers
         # each layer contains a tuple with length of 2: (key, value)
         # shape of key / value: [batch_size, num_headers, seq_length, dim]
-        if past_key_values[0][0].shape[2] > self.max_context_length:
+        if past_key_values[0][0].shape[2] > self.max_length:
             new_past_key_values = []
             for layers, kv in enumerate(past_key_values):
                 new_past_key_values.append(
                     tuple(
                         [
-                            kv[0][:, :, -self.max_context_length :, :],
-                            kv[1][:, :, -self.max_context_length :, :],
+                            kv[0][:, :, -self.max_length :, :],
+                            kv[1][:, :, -self.max_length :, :],
                         ]
                     )
                 )

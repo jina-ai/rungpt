@@ -19,7 +19,7 @@ class CausualLMExecutor(Executor):
         device_map: Optional[Union[str, List[int]]] = None,
         precision: Optional[str] = None,
         num_workers: int = 4,
-        max_context_length: int = 1024,
+        max_length: int = 1024,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -32,7 +32,7 @@ class CausualLMExecutor(Executor):
         self._adapter_name_or_path = adapter_name_or_path
         self._minibatch_size = minibatch_size
         self._thread_pool = ThreadPool(processes=num_workers)
-        self._max_context_length = max_context_length
+        self._max_length = max_length
 
         self.model = create_model(
             model_name_or_path,
@@ -49,9 +49,7 @@ class CausualLMExecutor(Executor):
     def generate(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
         # TEMPORARY FIX: remove the `__results__` key from the parameters dict
         parameters.pop('__results__', None)
-        max_context_length = int(
-            parameters.pop('max_context_length', self._max_context_length)
-        )
+        max_length = int(parameters.pop('max_length', self._max_length))
 
         for k, v in parameters.items():
             if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
@@ -62,8 +60,8 @@ class CausualLMExecutor(Executor):
             if not prompt:
                 continue
 
-            d.tags['generated_text'] = self.model.generate(
-                prompt, max_context_length=max_context_length, **parameters
+            d.tags.update(
+                self.model.generate(prompt, max_length=max_length, **parameters)
             )
 
     @requests(on='/generate_stream')
@@ -95,7 +93,4 @@ class CausualLMExecutor(Executor):
             resp = next(generated_text)
 
             d.blob = pickle.dumps(resp['past_key_values'])
-            d.tags['generated_text'] = resp['generated_text']
-            d.tags['output_ids'] = resp['output_ids']
-            d.tags['usage'] = resp['usage']
-            d.tags['finish_reason'] = resp['finish_reason']
+            d.tags.update(resp)

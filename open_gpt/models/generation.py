@@ -16,7 +16,7 @@ from transformers.generation.logits_process import (
 
 MIN_TEMPERATURE = 1e-5
 MIN_TOP_P = 1e-8
-CONTEXT_LEN = 2048
+MAX_LENGTH = 2048
 
 
 def prepare_logits_processor(
@@ -60,7 +60,7 @@ class GenerationMixin:
         top_k: int = 1,
         top_p: float = 0.9,
         repetition_penalty: float = 1.0,
-        max_context_length: int = CONTEXT_LEN,
+        max_length: int = MAX_LENGTH,
         echo: bool = False,
         stream_interval: int = 1,
         stop_str: Optional[str] = None,
@@ -78,7 +78,7 @@ class GenerationMixin:
         :param top_k: The number of highest probability vocabulary tokens to keep for top-k-filtering.
         :param top_p: The cumulative probability of parameter highest probability vocabulary tokens to keep for nucleus sampling.
         :param repetition_penalty: The parameter for repetition penalty. 1.0 means no penalty. See `this paper <https://arxiv.org/pdf/1909.05858.pdf>`__ for more details.
-        :param max_context_length: Maximum length of the context. If the context is longer than this, it will be truncated.
+        :param max_length: Maximum length of the sequence which includes prompt and generated text. If the context is longer than this, it will be truncated.
         :param echo: If True, the prompt will be included in the generated response.
         :param stream_interval: The number of tokens to generate before returning the generated tokens.
         :param stop_str: If not None, the model will stop generating when the generated tokens end with this string.
@@ -131,7 +131,7 @@ class GenerationMixin:
 
         output_ids = input_ids.tolist()[0]
 
-        max_src_len = max_context_length - max_new_tokens - 8
+        max_src_len = max_length - max_new_tokens - 8
         if input_length > max_src_len:
             input_ids = input_ids[:, -max_src_len:]
             input_length = max_src_len
@@ -225,36 +225,48 @@ class GenerationMixin:
                 # prevent yielding partial stop sequence
                 if not partially_stopped:
                     yield {
-                        "generated_text": output,
+                        "choices": [
+                            {
+                                "index": step,
+                                "text": output,
+                                "finish_reason": _get_finish_reason(
+                                    step, completed_steps, max_new_tokens
+                                ),
+                            },
+                        ],
+                        "prompt": prompt,
                         "output_ids": tmp_output_ids,
                         "past_key_values": past_key_values,
                         "usage": {
-                            "context_length": context_length,
+                            "prompt_tokens": context_length,
                             "input_length": input_length,
-                            "completed_tokens": completed_steps + step + 1,
+                            "completion_tokens": completed_steps + step + 1,
                             "total_tokens": context_length + 1,
                         },
-                        # finish stream event, which contains finish reason
-                        "finish_reason": _get_finish_reason(
-                            step, completed_steps, max_new_tokens
-                        ),
                     }
 
             if stopped:
                 break
 
         yield {
-            "generated_text": output,
+            "choices": [
+                {
+                    "index": step,
+                    "text": output,
+                    "finish_reason": _get_finish_reason(
+                        step, completed_steps, max_new_tokens
+                    ),
+                },
+            ],
+            "prompt": prompt,
             "output_ids": tmp_output_ids,
             "past_key_values": past_key_values,
             "usage": {
-                "context_length": context_length,
+                "prompt_tokens": context_length,
                 "input_length": input_length,
-                "completed_tokens": completed_steps + step + 1,
+                "completion_tokens": completed_steps + step + 1,
                 "total_tokens": context_length + 1,
             },
-            # finish stream event, which contains finish reason
-            "finish_reason": _get_finish_reason(step, completed_steps, max_new_tokens),
         }
 
     @overload
@@ -266,7 +278,6 @@ class GenerationMixin:
         self,
         prompt: str,
         max_new_tokens: Optional[int] = None,
-        max_context_length: int = CONTEXT_LEN,
         num_beams: int = 1,
         do_sample: bool = False,
         temperature: float = 1.0,
@@ -282,7 +293,6 @@ class GenerationMixin:
 
         :param prompt: The prompt input text.
         :param max_new_tokens: The maximum number of tokens to generate, not including the prompt.
-        :param max_context_length: The maximum length of the context, including the prompt.
         :param num_beams: Number of beams for beam search. 1 means no beam search.
         :param do_sample: Whether to use sampling instead of greedy decoding.
         :param temperature: The temperature to use for sampling. Only relevant if do_sample is True. Higher means more stochastic.
@@ -298,7 +308,7 @@ class GenerationMixin:
         """
         ...
 
-    def generate(self, prompt: str, max_context_length: int = CONTEXT_LEN, **kwargs):
+    def generate(self, prompt: str, **kwargs):
         inputs = self.tokenizer(
             prompt,
             return_tensors="pt",
@@ -313,7 +323,7 @@ class GenerationMixin:
         skip_special_tokens = kwargs.pop("skip_special_tokens", True)
         echo = kwargs.pop("echo", False)
 
-        max_length = kwargs.pop("max_length", max_context_length)
+        max_length = MAX_LENGTH
         max_new_tokens = kwargs.pop("max_new_tokens", max_length - input_length - 1)
 
         if max_new_tokens + input_length >= max_length:
@@ -336,4 +346,17 @@ class GenerationMixin:
                 skip_special_tokens=skip_special_tokens,
             )
 
-            return text
+            resp = {
+                "choices": [
+                    {"index": 0, "text": text, "finish_reason": "length"},
+                ],
+                "prompt": prompt,
+                "usage": {
+                    "prompt_tokens": 0,
+                    "input_length": input_length,
+                    "completion_tokens": len(outputs),
+                    "total_tokens": input_length + len(outputs),
+                },
+            }
+
+            return resp
