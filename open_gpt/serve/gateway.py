@@ -13,13 +13,11 @@ class GenerateRequest(BaseModel):
     prompt: str = Field(..., description='The prompt to generate from.')
 
     # session id
-    session_id: str = Field(
-        description='The session id of the generation.', default=None
-    )
+    id: str = Field(description='The session id of the generation.', default=None)
 
     # generation parameters
     num_beams: int = Field(description='The number of beams to use.', default=None)
-    max_new_tokens: int = Field(
+    max_tokens: int = Field(
         description='The maximum length of the generated text.', default=None
     )
     temperature: float = Field(
@@ -30,12 +28,19 @@ class GenerateRequest(BaseModel):
     repetition_penalty: float = Field(
         description='The repetition penalty of the generation.', default=None
     )
+    logprobs: int = Field(
+        description='Include the log probabilities on the logprobs '
+        'most likely tokens, as well the chosen tokens',
+        default=None,
+    )
+    echo: bool = Field(
+        description='Echo back the prompt in the completion.', default=None
+    )
+    stop: str = Field(description='Stop sequence generation on token.', default=None)
     do_sample: bool = Field(
         description='Whether to sample from the generation.', default=None
     )
-    num_return_sequences: int = Field(
-        description='The number of sequences to return.', default=None
-    )
+    n: int = Field(description='The number of sequences to return.', default=None)
 
     class Config:
         allow_population_by_field_name = True
@@ -44,15 +49,18 @@ class GenerateRequest(BaseModel):
         schema_extra = {
             'example': {
                 'prompt': 'Hello, my name is',
-                'session_id': '18d92585-7b66-4b7c-b818-71287c122c57',
+                'id': '18d92585-7b66-4b7c-b818-71287c122c57',
                 'num_beams': 5,
-                'max_new_tokens': 50,
+                'max_tokens': 50,
                 'temperature': 0.7,
                 'top_k': 50,
                 'top_p': 0.95,
                 'repetition_penalty': 1.0,
+                'echo': False,
+                'stop': '\n',
                 'do_sample': True,
-                'num_return_sequences': 3,
+                'logprobs': None,
+                'n': 3,
             }
         }
 
@@ -68,6 +76,17 @@ class Gateway(BaseGateway, CompositeServer):
         from fastapi import Body, status
         from fastapi.responses import JSONResponse
 
+        def _update_key(parameters):
+            key_maps = {
+                'max_tokens': 'max_new_tokens',
+                'n': 'num_return_sequences',
+                'stop': 'stop_str',
+            }
+            for openai_key, hf_key in key_maps.items():
+                if openai_key in parameters:
+                    parameters[hf_key] = parameters.pop(openai_key)
+            return parameters
+
         def _extend_rest_function(app):
             @app.api_route(path='/generate', methods=['POST'])
             async def generate(payload: GenerateRequest = Body(...)):
@@ -79,6 +98,8 @@ class Gateway(BaseGateway, CompositeServer):
                     exclude_defaults=True,
                     exclude={'prompt'},
                 )
+
+                parameters = _update_key(parameters)
 
                 async for docs, error in self.streamer.stream(
                     docs=DocumentArray(
@@ -118,6 +139,8 @@ class Gateway(BaseGateway, CompositeServer):
                     exclude_defaults=True,
                     exclude={'prompt'},
                 )
+
+                parameters = _update_key(parameters)
 
                 async def event_generator():
                     completion_tokens = 0

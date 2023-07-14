@@ -185,12 +185,18 @@ class GenerationMixin:
                 or step + completion_tokens == max_new_tokens - 1
                 or stopped
             ):
-                if echo:
-                    if len_prompt is None:
-                        raise ValueError(f"echo is True but prompt is not a string")
-                    tmp_output_ids = output_ids
-                    rfind_start = len_prompt
+                if echo and len_prompt is not None:
+                    # TODO: this is a HOTFIX to keep the same behavior as setting echo=False
+                    # tmp_output_ids = output_ids
+                    # rfind_start = len_prompt
+                    tmp_output_ids = output_ids[input_length:]
+                    rfind_start = 0
                 else:
+                    if echo and len_prompt is None:
+                        logging.warning(
+                            f"echo is set to True but prompt is not provided. "
+                            f"Back to non-echo mode."
+                        )
                     tmp_output_ids = output_ids[input_length:]
                     rfind_start = 0
 
@@ -309,7 +315,7 @@ class GenerationMixin:
         """
         ...
 
-    def generate(self, prompt: str, **kwargs):
+    def generate(self, prompt: str, max_length: int = MAX_LENGTH, **kwargs):
         inputs = self.tokenizer(
             prompt,
             return_tensors="pt",
@@ -319,12 +325,17 @@ class GenerationMixin:
 
         input_length = inputs["input_ids"].shape[-1]
 
+        # validate kwargs
+        if 'stop_str' in kwargs:
+            kwargs.pop('stop_str')
+            logging.warning(f"stop_str is not supported in generate mode.")
+
         # overwrite default values with kwargs
         clean_up_tokenization_spaces = kwargs.pop('clean_up_tokenization_spaces', True)
         skip_special_tokens = kwargs.pop("skip_special_tokens", True)
         echo = kwargs.pop("echo", False)
 
-        max_length = MAX_LENGTH
+        max_length = kwargs.pop("max_length", max_length)
         max_new_tokens = kwargs.pop("max_new_tokens", max_length - input_length - 1)
 
         if max_new_tokens + input_length >= max_length:
