@@ -118,11 +118,11 @@ class Gateway(BaseGateway, CompositeServer):
                 )
 
                 async def event_generator():
-                    completed_steps = 0
+                    completion_tokens = 0
 
                     stop_flag = False
                     while not stop_flag:
-                        parameters['completed_steps'] = completed_steps
+                        parameters['completion_tokens'] = completion_tokens
 
                         async for docs, error in self.streamer.stream(
                             docs=input_docs,
@@ -144,9 +144,12 @@ class Gateway(BaseGateway, CompositeServer):
                                 'stop',
                                 'length',
                             ]
-                            completed_steps += 1
+                            completion_tokens += 1
 
-                            yield {"data": json.dumps(docs[0].tags)}
+                            _tags = docs[0].tags.copy()
+                            for item in ['input_ids', 'output_ids', 'past_key_values']:
+                                _tags.pop(item) if item in _tags else None
+                            yield {"data": json.dumps(_tags)}
 
                 input_docs = DocumentArray(
                     [
