@@ -1,5 +1,6 @@
 import logging as _logging
 import os as _os
+import sys as _sys
 
 __version__ = '0.0.11'
 
@@ -10,6 +11,12 @@ import jina as _jina
 # hide jina user survey
 _os.environ['JINA_HIDE_SURVEY'] = '1'
 
+
+# import importlib.metadata if available, otherwise importlib_metadata
+if _sys.version_info >= (3, 8):
+    import importlib.metadata as importlib_metadata  # noqa: F401
+else:
+    import importlib_metadata  # noqa: F401
 
 try:
     __jina_version__ = _jina.__version__
