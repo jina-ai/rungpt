@@ -10,7 +10,7 @@ def run_benchmark(model, max_new_tokens, llm_measure):
         generated_text = model.generate(
             PROMPT, max_new_tokens=max_new_tokens, do_sample=args.do_sample
         )
-        llm_measure.end_record(generated_text)
+        llm_measure.end_record(generated_text['choices'][0]['text'])
     llm_measure.stats(stage='prefill' if max_new_tokens == 1 else 'decoding')
     llm_measure.clear()
 
@@ -71,7 +71,7 @@ if __name__ == '__main__':
         '--precision', type=str, default='fp16', help='precision used for inference'
     )
     parser.add_argument(
-        '--repeat-time', type=int, default=10, help='repeat time for benchmark'
+        '--repeat-time', type=int, default=100, help='repeat time for benchmark'
     )
     parser.add_argument(
         '--do-sample',
@@ -90,10 +90,5 @@ if __name__ == '__main__':
         'bit4',
         'bit8',
     ], 'precision must be fp16 or bit4 or bit8'
-    if args.adapter_name is not None:
-        assert args.precision in [
-            'bit4',
-            'bit8',
-        ], 'precision must be bit4 or bit8 when using adapter'
 
     main(args)

@@ -117,11 +117,13 @@ def end_measure(start_measures):
     # GPU mem
     for i in range(torch.cuda.device_count()):
         measures[str(i)] = (
-            torch.cuda.memory_allocated(i) - start_measures[str(i)]
-        ) / GB
+                                   torch.cuda.memory_allocated(i) - start_measures[
+                               str(i)]
+                           ) / GB
         measures[f"{i}-peak"] = (
-            torch.cuda.max_memory_allocated(i) - start_measures[str(i)]
-        ) / GB
+                                        torch.cuda.max_memory_allocated(i) -
+                                        start_measures[str(i)]
+                                ) / GB
 
     return measures
 
@@ -165,7 +167,8 @@ class LLMMeasure:
             )
         else:
             num_tokens = sum(
-                list(map(lambda x: len(self._tokenizer(x)) - 2, generation_outputs))
+                list(map(lambda x: len(self._tokenizer(x)['input_ids']) - 2,
+                         generation_outputs))
             )
             self._generation_length.append(num_tokens)
         self._time_stamp = None
