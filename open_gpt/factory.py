@@ -114,6 +114,16 @@ def create_model(
             device_map=device_map,
             **kwargs,
         )
+    elif model_name.startswith('Salesforce/codegen'):
+        from .models.codegen.modeling import CodeGenModel
+
+        return CodeGenModel(
+            model_name,
+            device=device,
+            precision=precision,
+            device_map=device_map,
+            **kwargs,
+        )
     else:
         from .models.modeling import BaseModel
 
