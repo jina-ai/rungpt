@@ -24,7 +24,7 @@ def load_model_and_tokenizer(
     tokenizer = AutoTokenizer.from_pretrained(
         tokenizer_name_or_path or model_name_or_path,
         trust_remote_code=True,
-        use_fast=use_fast,
+        # use_fast=use_fast,
     )
 
     if tokenizer.pad_token is None:
