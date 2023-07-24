@@ -90,7 +90,7 @@ def _get_device_map(device, device_map):
         if str(device) == 'cpu':
             device_map = {'': 'cpu'}
         elif ':' in str(device):
-            device_map = {'': f"cuda:{str(device).split(':')[0]}"}
+            device_map = {'': f"cuda:{str(device).split(':')[1]}"}
         else:
             # GPU index must be specified if bit4 or bit8 is used
             device_map = {'': "cuda:0"}
