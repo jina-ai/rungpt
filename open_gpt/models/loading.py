@@ -84,9 +84,9 @@ def load_model_and_tokenizer(
 
 
 def _get_device_map(device, device_map):
-    if device is not None and device_map is not None:
+    if device_map is not None:
         logger.warning(f"Both `device={device}` and `device_map={device_map}` are specified. `device` will be ignored.")
-    if device is not None and device_map is None:
+    else:
         if str(device) == 'cpu':
             device_map = {'': 'cpu'}
         elif ':' in str(device):
