@@ -3,6 +3,7 @@ from typing import List, Optional, Union
 import torch
 
 from open_gpt.logs import logger
+from open_gpt.helper import set_device_map
 
 
 def load_model_and_tokenizer(
@@ -73,7 +74,7 @@ def load_model_and_tokenizer(
         model_name_or_path,
         torch_dtype=dtype or torch.float16,
         quantization_config=quantization_config,
-        device_map=_get_device_map(device=device, device_map=device_map),
+        device_map=set_device_map(device=device, device_map=device_map),
         # split large weight files into smaller ones and use the disk as temporary storage. This is useful for
         # loading large models on machines with low RAM.
         low_cpu_mem_usage=True,
@@ -81,18 +82,3 @@ def load_model_and_tokenizer(
     )
 
     return model, tokenizer
-
-
-def _get_device_map(device, device_map):
-    if device_map is not None:
-        logger.warning(f"Both `device`={device} and `device_map`={device_map} are specified. `device` will be ignored.")
-    else:
-        if str(device) == 'cpu':
-            device_map = {'': 'cpu'}
-        elif ':' in str(device):
-            device_map = {'': f"cuda:{str(device).split(':')[1]}"}
-        else:
-            # GPU index must be specified if bit4 or bit8 is used
-            device_map = {'': "cuda:0"}
-        logger.warning(f"`device` is specified as {device}, we transform it to `device_map`={device_map}.")
-    return device_map

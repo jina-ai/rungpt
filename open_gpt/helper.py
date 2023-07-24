@@ -118,3 +118,19 @@ def asyncify(f):
         return asyncio.get_event_loop().run_until_complete(f(*args, **kwargs))
 
     return wrapper
+
+
+def set_device_map(device, device_map):
+    from open_gpt.logs import logger
+    if device_map is not None:
+        logger.warning(f"Both `device`={device} and `device_map`={device_map} are specified. `device` will be ignored.")
+    else:
+        if str(device) == 'cpu':
+            device_map = {'': 'cpu'}
+        elif ':' in str(device):
+            device_map = {'': f"cuda:{str(device).split(':')[1]}"}
+        else:
+            # GPU index must be specified if bit4 or bit8 is used
+            device_map = {'': "cuda:0"}
+        logger.warning(f"`device` is specified as {device}, we transform it to `device_map`={device_map}.")
+    return device_map

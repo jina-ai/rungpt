@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 import torch
 
 from open_gpt.logs import logger
-from open_gpt.models.loading import _get_device_map
+from open_gpt.helper import set_device_map
 
 
 def load_model_and_tokenizer(
@@ -73,7 +73,7 @@ def load_model_and_tokenizer(
         model_name_or_path,
         torch_dtype=dtype or torch.float16,
         quantization_config=quantization_config,
-        device_map=_get_device_map(device, device_map),
+        device_map=set_device_map(device, device_map),
         low_cpu_mem_usage=True,
         trust_remote_code=True,
     )
