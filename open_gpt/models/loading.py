@@ -87,10 +87,10 @@ def _get_device_map(device, device_map):
     if device is not None and device_map is not None:
         logger.warning(f"Both `device={device}` and `device_map={device_map}` are specified. `device` will be ignored.")
     if device is not None and device_map is None:
-        if device == 'cpu':
+        if str(device) == 'cpu':
             device_map = {'': 'cpu'}
-        elif ':' in device:
-            device_map = {'': f"cuda:{device.split(':')[0]}"}
+        elif ':' in str(device):
+            device_map = {'': f"cuda:{str(device).split(':')[0]}"}
         else:
             # GPU index must be specified if bit4 or bit8 is used
             device_map = {'': "cuda: 0"}
