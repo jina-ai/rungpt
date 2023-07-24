@@ -93,6 +93,6 @@ def _get_device_map(device, device_map):
             device_map = {'': f"cuda:{str(device).split(':')[0]}"}
         else:
             # GPU index must be specified if bit4 or bit8 is used
-            device_map = {'': "cuda: 0"}
+            device_map = {'': "cuda:0"}
         logger.warning(f"`device` is specified as {device}, we transform it to `device_map={device_map}`.")
     return device_map
