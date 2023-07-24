@@ -7,6 +7,7 @@ from jina import Document, DocumentArray
 from jina import Gateway as BaseGateway
 from jina.serve.runtimes.servers.composite import CompositeServer
 from pydantic import BaseModel, Field
+from typing import Union, List
 
 
 class GenerateRequest(BaseModel):
@@ -36,7 +37,7 @@ class GenerateRequest(BaseModel):
     echo: bool = Field(
         description='Echo back the prompt in the completion.', default=None
     )
-    stop: str = Field(description='Stop sequence generation on token.', default=None)
+    stop: Union[str, List[str]] = Field(description='Stop sequence generation on token.', default=None)
     do_sample: bool = Field(
         description='Whether to sample from the generation.', default=None
     )
