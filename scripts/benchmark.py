@@ -22,14 +22,14 @@ def main(args):
     model_load_start = start_measure()
     if args.precision == 'fp16':
         model = open_gpt.create_model(
-            args.model_name, precision='fp16', device_map='balanced'
+            args.model_name, precision='fp16', device_map=args.device_map
         )
     else:
         model = open_gpt.create_model(
             args.model_name,
             precision=args.precision,
             adapter_name_or_path=args.adapter_name,
-            device_map='balanced',
+            device_map=args.device_map,
         )
     model_load_end = end_measure(model_load_start)
     log_measures(model_load_end, "Resource measure")
@@ -69,6 +69,9 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--precision', type=str, default='fp16', help='precision used for inference'
+    )
+    parser.add_argument(
+        '--device-map', type=str, default='balanced', help='device map for inference'
     )
     parser.add_argument(
         '--repeat-time', type=int, default=100, help='repeat time for benchmark'

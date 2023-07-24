@@ -73,7 +73,7 @@ def load_model_and_tokenizer(
         model_name_or_path,
         torch_dtype=dtype or torch.float16,
         quantization_config=quantization_config,
-        device_map={'': device or 0} if (device_map is None) else device_map,
+        device_map=_get_device_map(device=device, device_map=device_map),
         # split large weight files into smaller ones and use the disk as temporary storage. This is useful for
         # loading large models on machines with low RAM.
         low_cpu_mem_usage=True,
@@ -81,3 +81,18 @@ def load_model_and_tokenizer(
     )
 
     return model, tokenizer
+
+
+def _get_device_map(device, device_map):
+    if device is not None and device_map is not None:
+        logger.warning(f"Both `device={device}` and `device_map={device_map}` are specified. `device` will be ignored.")
+    if device is not None and device_map is None:
+        if device == 'cpu':
+            device_map = {'': 'cpu'}
+        elif ':' in device:
+            device_map = {'': f"cuda:{device.split(':')[0]}"}
+        else:
+            # GPU index must be specified if bit4 or bit8 is used
+            device_map = {'': "cuda: 0"}
+        logger.warning(f"`device` is specified as {device}, we transform it to `device_map={device_map}`.")
+    return device_map
