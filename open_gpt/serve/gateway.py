@@ -90,6 +90,7 @@ class Gateway(BaseGateway, CompositeServer):
 
         def _extend_rest_function(app):
             @app.api_route(path='/generate', methods=['POST'])
+            @app.api_route(path='/codegen/completions', methods=['POST'])
             async def generate(payload: GenerateRequest = Body(...)):
                 """Generate text from a prompt."""
 
