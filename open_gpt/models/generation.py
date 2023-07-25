@@ -211,7 +211,6 @@ class GenerationMixin:
                 or stopped
             ):
                 tmp_output_ids = output_ids[input_length:]
-                rfind_start = 0
 
                 output = self.tokenizer.decode(
                     tmp_output_ids,
@@ -222,14 +221,14 @@ class GenerationMixin:
                 partially_stopped = False
                 if stop_str:
                     if isinstance(stop_str, str):
-                        pos = output.rfind(stop_str, rfind_start)
+                        pos = output.rfind(stop_str, 0)
                         if pos != -1:
                             stopped = True
                         else:
                             partially_stopped = partial_stop(output, stop_str)
                     elif isinstance(stop_str, Iterable):
                         for each_stop in stop_str:
-                            pos = output.rfind(each_stop, rfind_start)
+                            pos = output.rfind(each_stop, 0)
                             if pos != -1:
                                 stopped = True
                                 break
@@ -340,7 +339,6 @@ class GenerationMixin:
             stop_str = kwargs.pop('stop_str')
             stop_ids = get_stop_ids(stop_str, self.tokenizer)
             stopping_criteria = StoppingCriteriaList([StopOnTokens(stop_ids)])
-            print(f"===> stop_str: {stop_str}, stop_ids: {stop_ids}")
         else:
             stopping_criteria = None
 
@@ -367,7 +365,6 @@ class GenerationMixin:
 
         with torch.inference_mode():
             outputs = self.model.generate(**inputs, **kwargs)[0].tolist()
-            print(f"===> outputs: {outputs}")
             text = self.tokenizer.decode(
                 outputs if echo else outputs[input_length:],
                 clean_up_tokenization_spaces=clean_up_tokenization_spaces,
