@@ -1,27 +1,26 @@
 import open_gpt
 from open_gpt.profile import end_measure, log_measures, start_measure
 
-start_measures = start_measure()
+is_step = True
+
+# start_measures = start_measure()
 model = open_gpt.create_model(
     'decapoda-research/llama-7b-hf', precision='fp16', device_map='balanced'
 )
 
-# model = open_gpt.create_model(
-#     'yahma/llama-7b-hf', precision='bit8', device_map='balanced'
-# )
-
-# model = open_gpt.create_model(
-#     'openlm-research/open_llama_7b_700bt_preview',
-#     precision='bit4',
-#     device_map='balanced',
-# )
-
 prompt = 'The goal of life is'
 
-
-generated_text = model.generate(
-    prompt, max_new_tokens=256, do_sample=True, temperature=0.9
-)
-print(f'==> {prompt} {generated_text}')
-end_measures = end_measure(start_measures)
-log_measures(end_measures, "Model generation")
+if not is_step:
+    generated_text = model.generate(
+        prompt, max_new_tokens=10, do_sample=False, temperature=0.9
+    )
+    print(generated_text)
+else:
+    generated_text = model.step_generate(
+        prompt, max_new_tokens=10, do_sample=False, temperature=0.9, stop_str=['happy']
+    )
+    for _ in generated_text:
+        _['past_key_values'] = None
+        print(_)
+# end_measures = end_measure(start_measures)
+# log_measures(end_measures, "Model generation")

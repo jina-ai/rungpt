@@ -48,7 +48,8 @@ def partial_stop(output, stop_str):
 def get_stop_ids(stop_str: Union[str, List[str]], tokenizer: 'AutoTokenizer'):
     stop_ids = []
     for stop in stop_str:
-        ids = tokenizer(stop)['input_ids'][1:]
+        # remove eos token
+        ids = tokenizer(stop, add_special_tokens=False)['input_ids']
         stop_ids.append(ids)
     return stop_ids
 
@@ -209,20 +210,8 @@ class GenerationMixin:
                 or step + completion_tokens == max_new_tokens - 1
                 or stopped
             ):
-                if echo and len_prompt is not None:
-                    # TODO: this is a HOTFIX to keep the same behavior as setting echo=False
-                    # tmp_output_ids = output_ids
-                    # rfind_start = len_prompt
-                    tmp_output_ids = output_ids[input_length:]
-                    rfind_start = 0
-                else:
-                    if echo and len_prompt is None:
-                        logging.warning(
-                            f"echo is set to True but prompt is not provided. "
-                            f"Back to non-echo mode."
-                        )
-                    tmp_output_ids = output_ids[input_length:]
-                    rfind_start = 0
+                tmp_output_ids = output_ids[input_length:]
+                rfind_start = 0
 
                 output = self.tokenizer.decode(
                     tmp_output_ids,
@@ -235,7 +224,6 @@ class GenerationMixin:
                     if isinstance(stop_str, str):
                         pos = output.rfind(stop_str, rfind_start)
                         if pos != -1:
-                            output = output[:pos]
                             stopped = True
                         else:
                             partially_stopped = partial_stop(output, stop_str)
@@ -243,7 +231,6 @@ class GenerationMixin:
                         for each_stop in stop_str:
                             pos = output.rfind(each_stop, rfind_start)
                             if pos != -1:
-                                output = output[:pos]
                                 stopped = True
                                 break
                             else:
@@ -350,8 +337,10 @@ class GenerationMixin:
         input_length = inputs["input_ids"].shape[-1]
 
         if 'stop_str' in kwargs:
-            stop_ids = get_stop_ids(kwargs.pop('stop_str'), self.tokenizer)
+            stop_str = kwargs.pop('stop_str')
+            stop_ids = get_stop_ids(stop_str, self.tokenizer)
             stopping_criteria = StoppingCriteriaList([StopOnTokens(stop_ids)])
+            print(f"===> stop_str: {stop_str}, stop_ids: {stop_ids}")
         else:
             stopping_criteria = None
 
@@ -378,15 +367,17 @@ class GenerationMixin:
 
         with torch.inference_mode():
             outputs = self.model.generate(**inputs, **kwargs)[0].tolist()
+            print(f"===> outputs: {outputs}")
             text = self.tokenizer.decode(
                 outputs if echo else outputs[input_length:],
                 clean_up_tokenization_spaces=clean_up_tokenization_spaces,
                 skip_special_tokens=skip_special_tokens,
             )
 
+            finish_reason = "length" if len(outputs) - input_length == max_new_tokens else "stop"
             resp = {
                 "choices": [
-                    {"index": 0, "text": text, "finish_reason": "length"},
+                    {"index": 0, "text": text, "finish_reason": finish_reason},
                 ],
                 "prompt": prompt,
                 "usage": {
