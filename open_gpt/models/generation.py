@@ -14,6 +14,8 @@ from transformers.generation.logits_process import (
     TopPLogitsWarper,
 )
 
+from transformers import StoppingCriteria, StoppingCriteriaList
+
 MIN_TEMPERATURE = 1e-5
 MIN_TOP_P = 1e-8
 MAX_LENGTH = 2048
@@ -41,6 +43,28 @@ def partial_stop(output, stop_str):
         if stop_str.startswith(output[-i:]):
             return True
     return False
+
+
+def get_stop_ids(stop_str: Union[str, List[str]], tokenizer: 'AutoTokenizer'):
+    stop_ids = []
+    for stop in stop_str:
+        ids = tokenizer(stop)['input_ids'][1:]
+        stop_ids.append(ids)
+    return stop_ids
+
+
+class StopOnTokens(StoppingCriteria):
+    def __init__(self, stop_ids):
+        self.stop_ids = stop_ids
+
+    def __call__(
+        self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+    ) -> bool:
+        # stop_ids = [50278, 50279, 50277, 1, 0]
+        for stop_id in self.stop_ids:
+            if list(input_ids[0][-len(stop_id):].cpu().numpy()) == stop_id:
+                return True
+        return False
 
 
 class GenerationMixin:
@@ -325,10 +349,11 @@ class GenerationMixin:
 
         input_length = inputs["input_ids"].shape[-1]
 
-        # validate kwargs
         if 'stop_str' in kwargs:
-            kwargs.pop('stop_str')
-            logging.warning(f"stop_str is not supported in generate mode.")
+            stop_ids = get_stop_ids(kwargs.pop('stop_str'), self.tokenizer)
+            stopping_criteria = StoppingCriteriaList([StopOnTokens(stop_ids)])
+        else:
+            stopping_criteria = None
 
         # overwrite default values with kwargs
         clean_up_tokenization_spaces = kwargs.pop('clean_up_tokenization_spaces', True)
@@ -347,6 +372,7 @@ class GenerationMixin:
             {
                 "max_length": max_length,
                 "max_new_tokens": max_new_tokens,
+                "stopping_criteria": stopping_criteria,
             }
         )
 
