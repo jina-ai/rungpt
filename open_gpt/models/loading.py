@@ -3,6 +3,7 @@ from typing import List, Optional, Union
 import torch
 
 from open_gpt.logs import logger
+from open_gpt.helper import set_device_map
 
 
 def load_model_and_tokenizer(
@@ -73,7 +74,7 @@ def load_model_and_tokenizer(
         model_name_or_path,
         torch_dtype=dtype or torch.float16,
         quantization_config=quantization_config,
-        device_map={'': device or 0} if (device_map is None) else device_map,
+        device_map=set_device_map(device=device, device_map=device_map),
         # split large weight files into smaller ones and use the disk as temporary storage. This is useful for
         # loading large models on machines with low RAM.
         low_cpu_mem_usage=True,
