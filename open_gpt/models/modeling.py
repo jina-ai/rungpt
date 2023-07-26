@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 import torch
 from torch import nn
 
-from ..helper import auto_dtype_and_device
+from ..helper import auto_dtype_and_device, validate_device
 from .embedding import EmbeddingMixin
 from .generation import GenerationMixin
 
@@ -37,6 +37,8 @@ class BaseModel(nn.Module, GenerationMixin, EmbeddingMixin):
         self._dtype, self._device = auto_dtype_and_device(precision, device)
 
         self._device_map = device_map
+
+        self._device, self._device_map = validate_device(self._device, self._device_map)
 
         self._eval_mode = eval_mode
 

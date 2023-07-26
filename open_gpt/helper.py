@@ -63,6 +63,18 @@ def auto_dtype_and_device(
     return dtype, device
 
 
+def validate_device(device: 'torch.device', device_map: Optional[Union[str, list]]):
+    """
+    Make sure that input data and model parameters are in the same device.
+    This is important when device_map='balanced'. In this case, the model are distributed
+    across multiple GPUs, and the input data should also be distributed across multiple
+    GPUs as well. In this case, GPU index should not be specified for input data.
+    """
+    if device_map is not None and device.type == 'cuda':
+        device = torch.device('cuda')
+    return device, device_map
+
+
 def get_envs():
     from torch.utils import collect_env
 
