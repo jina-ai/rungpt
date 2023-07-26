@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 import torch
 from torch import nn
 
-from ..helper import auto_dtype_and_device, validate_device
+from ..helper import auto_dtype_and_device
 from .embedding import EmbeddingMixin
 from .generation import GenerationMixin
 
