@@ -38,8 +38,6 @@ class BaseModel(nn.Module, GenerationMixin, EmbeddingMixin):
 
         self._device_map = device_map
 
-        self._device, self._device_map = validate_device(self._device, self._device_map)
-
         self._eval_mode = eval_mode
 
         self.load_model_and_transforms(
