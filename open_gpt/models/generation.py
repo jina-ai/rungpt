@@ -47,6 +47,8 @@ def partial_stop(output, stop_str):
 
 def get_stop_ids(stop_str: Union[str, List[str]], tokenizer: 'AutoTokenizer'):
     stop_ids = []
+    if isinstance(stop_str, str):
+        stop_str = [stop_str]
     for stop in stop_str:
         # remove eos token
         ids = tokenizer(stop, add_special_tokens=False)['input_ids']
