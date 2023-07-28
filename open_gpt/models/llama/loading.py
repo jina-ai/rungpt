@@ -24,6 +24,7 @@ def load_model_and_tokenizer(
     from transformers import AutoModelForCausalLM
     from transformers.models.llama.tokenization_llama import LlamaTokenizer
 
+    # TODO: this is a hot fix since we don't have a tokenizer model for Llama-2
     try:
         tokenizer = LlamaTokenizer.from_pretrained(
             model_name_or_path or tokenizer_name_or_path
