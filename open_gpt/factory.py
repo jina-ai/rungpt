@@ -26,7 +26,7 @@ def create_model(
 
     if model_name.startswith('facebook/llama') or model_name.startswith(
         'decapoda-research/llama'
-    ):
+    ) or 'Llama-2' in model_name:
         from .models.llama.modeling import LlamaModel
 
         return LlamaModel(
