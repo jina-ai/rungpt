@@ -24,15 +24,9 @@ def load_model_and_tokenizer(
     from transformers import AutoModelForCausalLM
     from transformers.models.llama.tokenization_llama import LlamaTokenizer
 
-    # TODO: this is a hot fix since we don't have a tokenizer model for Llama-2
-    try:
-        tokenizer = LlamaTokenizer.from_pretrained(
-            model_name_or_path or tokenizer_name_or_path
-        )
-    except:
-        tokenizer = LlamaTokenizer.from_pretrained(
-            'decapoda-research/llama-7b-hf'
-        )
+    tokenizer = LlamaTokenizer.from_pretrained(
+        model_name_or_path or tokenizer_name_or_path
+    )
 
     if tokenizer.pad_token is None:
         # Issue: GPT models don't have a pad token
