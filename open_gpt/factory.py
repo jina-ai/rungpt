@@ -29,7 +29,7 @@ def create_model(
     if model_name is None and model_path is None:
         raise ValueError(f"must specify either `model_name` or `model_path`")
 
-    model_name_or_path = model_name or model_path
+    model_name_or_path = model_path or model_name
 
     if 'llama' in model_name_or_path.lower():
         from .models.llama.modeling import LlamaModel
