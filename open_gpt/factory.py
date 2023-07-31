@@ -29,21 +29,35 @@ def create_model(
     if model_name is None and model_path is None:
         raise ValueError(f"must specify either `model_name` or `model_path`")
 
-    model_name_or_path = model_path or model_name
+    if model_path:
+        from .models.modeling import BaseModel
 
-    if 'llama' in model_name_or_path.lower():
-        from .models.llama.modeling import LlamaModel
-
-        return LlamaModel(
-            model_name_or_path=model_name_or_path,
+        return BaseModel(
+            model_name_or_path=model_path,
             adapter_name_or_path=adapter_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
             **kwargs,
         )
-    elif 'vicuna' in model_name_or_path.lower():
-        assert not model_name_or_path.endswith(
+
+    if model_name.startswith('facebook/llama') or model_name.startswith(
+        'decapoda-research/llama'
+    ):
+        from .models.llama.modeling import LlamaModel
+
+        return LlamaModel(
+            model_name_or_path=model_name,
+            adapter_name_or_path=adapter_name_or_path,
+            device=device,
+            precision=precision,
+            device_map=device_map,
+            **kwargs,
+        )
+    elif model_name.startswith('lmsys/vicuna') or model_name.startswith(
+        'CarperAI/stable-vicuna'
+    ):
+        assert not model_name.endswith(
             'v0'
         ), 'You are using an outdated model, please use the newer version ``v1.1+``'
         from .models.vicuna.modeling import VicunaModel
@@ -51,65 +65,67 @@ def create_model(
         assert adapter_name_or_path is None, 'Vicuna does not support adapter'
 
         return VicunaModel(
-            model_name_or_path=model_name_or_path,
+            model_name_or_path=model_name,
             device=device,
             precision=precision,
             device_map=device_map,
             **kwargs,
         )
-    elif 'pythia' in model_name_or_path.lower():
+    elif model_name.startswith('EleutherAI/pythia'):
         from .models.pythia.modeling import PythiaModel
 
         assert adapter_name_or_path is None, 'Pythia does not support adapter'
 
         return PythiaModel(
-            model_name_or_path=model_name_or_path,
+            model_name_or_path=model_name,
             device=device,
             precision=precision,
             device_map=device_map,
             **kwargs,
         )
-    elif 'stablelm' in model_name_or_path.lower():
+    elif model_name.startswith('stabilityai/stablelm'):
         from .models.stablelm.modeling import StableLMModel
 
         assert adapter_name_or_path is None, 'StableLM does not support adapter'
 
         return StableLMModel(
-            model_name_or_path=model_name_or_path,
+            model_name_or_path=model_name,
             device=device,
             precision=precision,
             device_map=device_map,
             **kwargs,
         )
-    elif 'moss' in model_name_or_path.lower():
+    elif model_name.startswith('fnlp/moss'):
         from .models.moss.modeling import MossModel
 
         assert adapter_name_or_path is None, 'Moss does not support adapter'
 
         return MossModel(
-            model_name_or_path=model_name_or_path,
+            model_name_or_path=model_name,
             device=device,
             precision=precision,
             device_map=device_map,
             **kwargs,
         )
-    elif 'OpenFlamingo' in model_name_or_path.lower():
+    elif model_name.startswith('openflamingo/OpenFlamingo'):
         from .models.flamingo.modeling import FlamingoModel
 
         assert adapter_name_or_path is None, 'Flamingo does not support adapter'
 
         return FlamingoModel(
-            model_name_or_path=model_name_or_path,
+            model_name_or_path=model_name,
             device=device,
             precision=precision,
             device_map=device_map,
             **kwargs,
         )
-    elif 'rwkv' in model_name_or_path.lower():
+    elif model_name.startswith('sgugger/rwkv') or model_name.startswith(
+        'ybelkada/rwkv'
+    ):
         from .models.rwkv.modeling import RWKVModel
 
         return RWKVModel(
-            model_name_or_path=model_name_or_path,
+            model_name_or_path=model_name,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -119,7 +135,7 @@ def create_model(
         from .models.modeling import BaseModel
 
         return BaseModel(
-            model_name_or_path=model_name_or_path,
+            model_name_or_path=model_name,
             adapter_name_or_path=adapter_name_or_path,
             device=device,
             precision=precision,
