@@ -14,6 +14,8 @@ from transformers.generation.logits_process import (
     TopPLogitsWarper,
 )
 
+from transformers import StoppingCriteria, StoppingCriteriaList
+
 MIN_TEMPERATURE = 1e-5
 MIN_TOP_P = 1e-8
 MAX_LENGTH = 2048
@@ -41,6 +43,31 @@ def partial_stop(output, stop_str):
         if stop_str.startswith(output[-i:]):
             return True
     return False
+
+
+def get_stop_ids(stop_str: Union[str, List[str]], tokenizer: 'AutoTokenizer'):
+    stop_ids = []
+    if isinstance(stop_str, str):
+        stop_str = [stop_str]
+    for stop in stop_str:
+        # remove eos token
+        ids = tokenizer(stop, add_special_tokens=False)['input_ids']
+        stop_ids.append(ids)
+    return stop_ids
+
+
+class StopOnTokens(StoppingCriteria):
+    def __init__(self, stop_ids):
+        self.stop_ids = stop_ids
+
+    def __call__(
+        self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
+    ) -> bool:
+        # stop_ids = [50278, 50279, 50277, 1, 0]
+        for stop_id in self.stop_ids:
+            if list(input_ids[0][-len(stop_id):].cpu().numpy()) == stop_id:
+                return True
+        return False
 
 
 class GenerationMixin:
@@ -185,20 +212,7 @@ class GenerationMixin:
                 or step + completion_tokens == max_new_tokens - 1
                 or stopped
             ):
-                if echo and len_prompt is not None:
-                    # TODO: this is a HOTFIX to keep the same behavior as setting echo=False
-                    # tmp_output_ids = output_ids
-                    # rfind_start = len_prompt
-                    tmp_output_ids = output_ids[input_length:]
-                    rfind_start = 0
-                else:
-                    if echo and len_prompt is None:
-                        logging.warning(
-                            f"echo is set to True but prompt is not provided. "
-                            f"Back to non-echo mode."
-                        )
-                    tmp_output_ids = output_ids[input_length:]
-                    rfind_start = 0
+                tmp_output_ids = output_ids[input_length:]
 
                 output = self.tokenizer.decode(
                     tmp_output_ids,
@@ -209,17 +223,15 @@ class GenerationMixin:
                 partially_stopped = False
                 if stop_str:
                     if isinstance(stop_str, str):
-                        pos = output.rfind(stop_str, rfind_start)
+                        pos = output.rfind(stop_str, 0)
                         if pos != -1:
-                            output = output[:pos]
                             stopped = True
                         else:
                             partially_stopped = partial_stop(output, stop_str)
                     elif isinstance(stop_str, Iterable):
                         for each_stop in stop_str:
-                            pos = output.rfind(each_stop, rfind_start)
+                            pos = output.rfind(each_stop, 0)
                             if pos != -1:
-                                output = output[:pos]
                                 stopped = True
                                 break
                             else:
@@ -325,10 +337,12 @@ class GenerationMixin:
 
         input_length = inputs["input_ids"].shape[-1]
 
-        # validate kwargs
         if 'stop_str' in kwargs:
-            kwargs.pop('stop_str')
-            logging.warning(f"stop_str is not supported in generate mode.")
+            stop_str = kwargs.pop('stop_str')
+            stop_ids = get_stop_ids(stop_str, self.tokenizer)
+            stopping_criteria = StoppingCriteriaList([StopOnTokens(stop_ids)])
+        else:
+            stopping_criteria = None
 
         # overwrite default values with kwargs
         clean_up_tokenization_spaces = kwargs.pop('clean_up_tokenization_spaces', True)
@@ -347,6 +361,7 @@ class GenerationMixin:
             {
                 "max_length": max_length,
                 "max_new_tokens": max_new_tokens,
+                "stopping_criteria": stopping_criteria,
             }
         )
 
@@ -358,9 +373,10 @@ class GenerationMixin:
                 skip_special_tokens=skip_special_tokens,
             )
 
+            finish_reason = "length" if len(outputs) - input_length == max_new_tokens else "stop"
             resp = {
                 "choices": [
-                    {"index": 0, "text": text, "finish_reason": "length"},
+                    {"index": 0, "text": text, "finish_reason": finish_reason},
                 ],
                 "prompt": prompt,
                 "usage": {
