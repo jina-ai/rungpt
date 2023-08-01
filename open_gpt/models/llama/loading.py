@@ -7,13 +7,13 @@ from open_gpt.helper import set_device_map
 
 
 def load_model_and_tokenizer(
-    model_name_or_path: str,
-    tokenizer_name_or_path: Optional[str] = None,
-    device: Optional[torch.device] = None,
-    precision: Optional[str] = None,
-    dtype: Optional[torch.dtype] = None,
-    device_map: Optional[Union[str, List[int]]] = None,
-    **kwargs,
+        model_name_or_path: str,
+        tokenizer_name_or_path: Optional[str] = None,
+        device: Optional[torch.device] = None,
+        precision: Optional[str] = None,
+        dtype: Optional[torch.dtype] = None,
+        device_map: Optional[Union[str, List[int]]] = None,
+        **kwargs,
 ):
     """Load model and tokenizer from HuggingFace / local.
 

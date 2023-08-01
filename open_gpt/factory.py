@@ -6,7 +6,8 @@ import torch
 
 
 def create_model(
-    model_name: str,
+    model_name: Optional[str] = None,
+    model_path: Optional[str] = None,
     precision: str = 'fp16',
     adapter_name_or_path: Optional[str] = None,
     device: Optional[Union[str, torch.device]] = None,
@@ -15,7 +16,8 @@ def create_model(
 ):
     """Create a model.
 
-    :param model_name: The name of the model to create.
+    :param model_name: The name of the model to create. Defaults to ``None``.
+    :param model_path: The local path to the model to create. Will override ``model_name`` if provided. Defaults to ``None``.
     :param adapter_name_or_path: The name or path of the adapter to use for the model.
             This is only used for models that support adapters for fine-tuning. Defaults to ``None``.
     :param precision: The precision to use for the model. Can be one of ``"fp16"``, ``"fp32"``, ``"bit8"`` or ``"bit4"``. Defaults to ``"fp16"``.
@@ -24,13 +26,28 @@ def create_model(
     :param kwargs: Additional keyword arguments to pass to the model.
     """
 
+    if model_name is None and model_path is None:
+        raise ValueError(f"must specify either `model_name` or `model_path`")
+
+    if model_path:
+        from .models.modeling import BaseModel
+
+        return BaseModel(
+            model_name_or_path=model_path,
+            adapter_name_or_path=adapter_name_or_path,
+            device=device,
+            precision=precision,
+            device_map=device_map,
+            **kwargs,
+        )
+
     if model_name.startswith('facebook/llama') or model_name.startswith(
         'decapoda-research/llama'
     ):
         from .models.llama.modeling import LlamaModel
 
         return LlamaModel(
-            model_name,
+            model_name_or_path=model_name,
             adapter_name_or_path=adapter_name_or_path,
             device=device,
             precision=precision,
@@ -48,7 +65,7 @@ def create_model(
         assert adapter_name_or_path is None, 'Vicuna does not support adapter'
 
         return VicunaModel(
-            model_name,
+            model_name_or_path=model_name,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -60,7 +77,7 @@ def create_model(
         assert adapter_name_or_path is None, 'Pythia does not support adapter'
 
         return PythiaModel(
-            model_name,
+            model_name_or_path=model_name,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -72,7 +89,7 @@ def create_model(
         assert adapter_name_or_path is None, 'StableLM does not support adapter'
 
         return StableLMModel(
-            model_name,
+            model_name_or_path=model_name,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -84,7 +101,7 @@ def create_model(
         assert adapter_name_or_path is None, 'Moss does not support adapter'
 
         return MossModel(
-            model_name,
+            model_name_or_path=model_name,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -96,7 +113,7 @@ def create_model(
         assert adapter_name_or_path is None, 'Flamingo does not support adapter'
 
         return FlamingoModel(
-            model_name,
+            model_name_or_path=model_name,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -108,7 +125,7 @@ def create_model(
         from .models.rwkv.modeling import RWKVModel
 
         return RWKVModel(
-            model_name,
+            model_name_or_path=model_name,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -118,7 +135,7 @@ def create_model(
         from .models.modeling import BaseModel
 
         return BaseModel(
-            model_name,
+            model_name_or_path=model_name,
             adapter_name_or_path=adapter_name_or_path,
             device=device,
             precision=precision,
