@@ -50,11 +50,14 @@ class ChatMixin:
                                             do_sample=do_sample, temperature=temperature,
                                             top_k=top_k, top_p=top_p, repetition_penalty=repetition_penalty,
                                             length_penalty=length_penalty,
-                                            no_repeat_ngram_size=no_repeat_ngram_size, echo=echo,
-                                            output_mode='chat', **kwargs)
+                                            no_repeat_ngram_size=no_repeat_ngram_size, echo=echo, **kwargs)
         # normalize output
         choices = completion_response.pop('choices')
-        return {'choices': [{'role': 'assistant', 'content': choices[0]['text']}],
+        return {'choices': [{'index': 0, 'message': {'role': 'assistant',
+                                                     'content': choices[0]['text'],
+                                                     'finish_reason': choices[0]['finish_reason']}
+                             }
+                            ],
                 **completion_response}
 
     @torch.inference_mode()
@@ -73,5 +76,9 @@ class ChatMixin:
         # normalize output
         for response in completion_response:
             choices = response.pop('choices')
-            yield {'choices': [{'role': 'assistant', 'content': choices[0]['text']}],
+            yield {'choices': [{'index': 0, 'message': {'role': 'assistant',
+                                                        'content': choices[0]['text'],
+                                                        'finish_reason': choices[0]['finish_reason']}
+                                }
+                               ],
                    **response}
