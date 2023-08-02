@@ -1,5 +1,3 @@
-from open_gpt.models.generation import GenerationMixin
-from open_gpt.models.helper import messages_to_prompt
 import torch
 
 from typing import Optional, List
