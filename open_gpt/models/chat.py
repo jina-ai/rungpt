@@ -50,9 +50,12 @@ class ChatMixin:
                                             do_sample=do_sample, temperature=temperature,
                                             top_k=top_k, top_p=top_p, repetition_penalty=repetition_penalty,
                                             length_penalty=length_penalty,
-                                            no_repeat_ngram_size=no_repeat_ngram_size, echo=echo, **kwargs)
+                                            no_repeat_ngram_size=no_repeat_ngram_size, echo=echo,
+                                            output_mode='chat', **kwargs)
         # normalize output
-        return {'role': 'assistant', 'content': completion_response.choice[0].text}
+        choices = completion_response.pop('choices')
+        return {'choices': [{'role': 'assistant', 'content': choices[0]['text']}],
+                **completion_response}
 
     @torch.inference_mode()
     def step_chat(self, messages: Optional[List[dict]] = None, input_ids: Optional[List[int]] = None, **kwargs):
@@ -68,6 +71,7 @@ class ChatMixin:
         else:
             completion_response = self.step_generate(input_ids=input_ids, **kwargs)
         # normalize output
-        return {'role': 'assistant', 'content': completion_response.choice[0].text,
-                'output_ids': completion_response.outpud_ids,
-                'past_key_values': completion_response.past_key_values}
+        for response in completion_response:
+            choices = response.pop('choices')
+            yield {'choices': [{'role': 'assistant', 'content': choices[0]['text']}],
+                   **response}
