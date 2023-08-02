@@ -105,7 +105,7 @@ class CausualLMExecutor(Executor):
                 parameters[k] = int(v)
 
         for d in docs:
-            messages = d.tags.get('messages')
+            messages = d.tags.get('prompt')
             if not messages:
                 continue
 
@@ -122,7 +122,7 @@ class CausualLMExecutor(Executor):
         completion_tokens = parameters.pop('completion_tokens', 0)
 
         for d in docs:
-            messages = d.tags.get('messages') or d.text
+            messages = d.tags.get('prompt') or d.text
             input_ids = d.tags.get('input_ids')
             past_key_values = pickle.loads(d.blob) if len(d.blob) > 0 else None
             if not messages:

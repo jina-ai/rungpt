@@ -54,9 +54,8 @@ class ChatMixin:
         # normalize output
         choices = completion_response.pop('choices')
         return {'choices': [{'index': 0, 'message': {'role': 'assistant',
-                                                     'content': choices[0]['text'],
-                                                     'finish_reason': choices[0]['finish_reason']}
-                             }
+                                                     'content': choices[0]['text']},
+                             'finish_reason': choices[0]['finish_reason']}
                             ],
                 **completion_response}
 
@@ -77,8 +76,7 @@ class ChatMixin:
         for response in completion_response:
             choices = response.pop('choices')
             yield {'choices': [{'index': 0, 'message': {'role': 'assistant',
-                                                        'content': choices[0]['text'],
-                                                        'finish_reason': choices[0]['finish_reason']}
-                                }
+                                                        'content': choices[0]['text']},
+                                'finish_reason': choices[0]['finish_reason']}
                                ],
                    **response}

@@ -292,7 +292,7 @@ class Gateway(BaseGateway, CompositeServer):
                     docs=DocumentArray(
                         [
                             Document(
-                                tags={'messages': payload.messages},
+                                tags={'prompt': payload.messages},
                             )
                         ]
                     ),
@@ -369,7 +369,7 @@ class Gateway(BaseGateway, CompositeServer):
                 input_docs = DocumentArray(
                     [
                         Document(
-                            tags={'messages': payload.messages},
+                            tags={'prompt': payload.messages},
                         )
                     ]
                 )
