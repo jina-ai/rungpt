@@ -45,7 +45,7 @@ class ChatMixin:
        """
 
         # normalize input
-        prompt = messages_to_prompt(messages)
+        prompt = self.create_prompt_for_chat(messages)
         completion_response = self.generate(prompt=prompt, max_new_tokens=max_new_tokens, num_beams=num_beams,
                                             do_sample=do_sample, temperature=temperature,
                                             top_k=top_k, top_p=top_p, repetition_penalty=repetition_penalty,
@@ -68,7 +68,7 @@ class ChatMixin:
 
         if messages:
             # normalize input
-            prompt = messages_to_prompt(messages)
+            prompt = self.create_prompt_for_chat(messages)
             completion_response = self.step_generate(prompt=prompt, **kwargs)
         else:
             completion_response = self.step_generate(input_ids=input_ids, **kwargs)
