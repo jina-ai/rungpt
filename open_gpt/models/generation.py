@@ -1,3 +1,4 @@
+import functools
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, overload
 
 import torch
@@ -5,6 +6,7 @@ import torch
 if TYPE_CHECKING:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
+from transformers import StoppingCriteria, StoppingCriteriaList
 from transformers.generation.logits_process import (
     LogitsProcessorList,
     RepetitionPenaltyLogitsProcessor,
@@ -13,13 +15,12 @@ from transformers.generation.logits_process import (
     TopPLogitsWarper,
 )
 
-from transformers import StoppingCriteria, StoppingCriteriaList
-
 MIN_TEMPERATURE = 1e-5
 MIN_TOP_P = 1e-8
 MAX_LENGTH = 2048
 
 
+@functools.cache
 def prepare_logits_processor(
     temperature: float, repetition_penalty: float, top_p: float, top_k: int
 ) -> LogitsProcessorList:
@@ -37,13 +38,7 @@ def prepare_logits_processor(
     return processor_list
 
 
-def partial_stop(output, stop_str):
-    for i in range(0, min(len(output), len(stop_str))):
-        if stop_str.startswith(output[-i:]):
-            return True
-    return False
-
-
+@functools.cache
 def get_stop_ids(stop_str: Union[str, List[str]], tokenizer: 'AutoTokenizer'):
     stop_ids = []
     if isinstance(stop_str, str):
@@ -55,6 +50,13 @@ def get_stop_ids(stop_str: Union[str, List[str]], tokenizer: 'AutoTokenizer'):
     return stop_ids
 
 
+def partial_stop(output, stop_str):
+    for i in range(0, min(len(output), len(stop_str))):
+        if stop_str.startswith(output[-i:]):
+            return True
+    return False
+
+
 class StopOnTokens(StoppingCriteria):
     def __init__(self, stop_ids):
         self.stop_ids = stop_ids
@@ -62,9 +64,8 @@ class StopOnTokens(StoppingCriteria):
     def __call__(
         self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs
     ) -> bool:
-        # stop_ids = [50278, 50279, 50277, 1, 0]
         for stop_id in self.stop_ids:
-            if list(input_ids[0][-len(stop_id):].cpu().numpy()) == stop_id:
+            if list(input_ids[0][-len(stop_id) :].cpu().numpy()) == stop_id:
                 return True
         return False
 
@@ -258,7 +259,8 @@ class GenerationMixin:
                         "usage": {
                             "prompt_tokens": prompt_tokens + input_length,
                             "completion_tokens": completion_tokens + step + 1,
-                            "total_tokens": (prompt_tokens + input_length) + (completion_tokens + step + 1),
+                            "total_tokens": (prompt_tokens + input_length)
+                            + (completion_tokens + step + 1),
                         },
                     }
 
@@ -281,7 +283,8 @@ class GenerationMixin:
             "usage": {
                 "prompt_tokens": prompt_tokens + input_length,
                 "completion_tokens": completion_tokens + step + 1,
-                "total_tokens": (prompt_tokens + input_length) + (completion_tokens + step + 1),
+                "total_tokens": (prompt_tokens + input_length)
+                + (completion_tokens + step + 1),
             },
         }
 
@@ -370,7 +373,9 @@ class GenerationMixin:
                 skip_special_tokens=skip_special_tokens,
             )
 
-            finish_reason = "length" if len(outputs) - input_length == max_new_tokens else "stop"
+            finish_reason = (
+                "length" if len(outputs) - input_length == max_new_tokens else "stop"
+            )
             resp = {
                 "choices": [
                     {"index": 0, "text": text, "finish_reason": finish_reason},

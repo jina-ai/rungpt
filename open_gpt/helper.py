@@ -7,17 +7,28 @@ import torch
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 
+
+def is_bf16_available():
+    try:
+        return torch.cuda.is_bf16_supported()
+    except:  # noqa
+        return False
+
+
+_DEFAULT_DTYPE = torch.float32
+_DEFAULT_FP16_DTYPE = torch.bfloat16 if is_bf16_available() else torch.float16
+_DEFAULT_DEVICE_MAP = 'balanced'
+
+
 _PRECISION_TO_DTYPE = {
-    'fp16': torch.float16,
+    'fp16': _DEFAULT_FP16_DTYPE,
     'fp32': torch.float32,
-    'int8': torch.float16,
+    'int8': torch.int8,
     'bit8': torch.float16,
     'bit4': torch.float16,
     'float32': torch.float32,
     'float16': torch.float16,
 }
-
-_DEFAULT_DTYPE = torch.float32
 
 
 def cast_torch_dtype(precision: Union[str, 'torch.dtype']):
@@ -37,6 +48,8 @@ def cast_to_precision(dtype: Optional[Union[str, 'torch.dtype']]) -> str:
         return 'fp32'
     elif dtype == torch.float16:
         return 'fp16'
+    elif is_bf16_available() and dtype == torch.bfloat16:
+        return 'fp16'
     elif dtype == torch.int8:
         return 'int8'
     else:
@@ -54,7 +67,7 @@ def auto_dtype_and_device(
 
     if precision is None:
         if device.type == 'cuda':
-            dtype = torch.float16
+            dtype = _DEFAULT_FP16_DTYPE
         else:
             dtype = _DEFAULT_DTYPE
     else:
@@ -120,17 +133,17 @@ def asyncify(f):
     return wrapper
 
 
-def set_device_map(device, device_map):
-    from open_gpt.logs import logger
-    if device_map is not None:
-        logger.warning(f"Both `device`={device} and `device_map`={device_map} are specified. `device` will be ignored.")
+def get_device_map(device):
+    if device is None:
+        return _DEFAULT_DEVICE_MAP if torch.cuda.is_available() else {'': 'cpu'}
+
+    if isinstance(device, str):
+        device = torch.device(device)
+
+    if device.type == 'cpu':
+        return {'': 'cpu'}
+    elif device.type == 'cuda':
+        # bitsandbytes quantization need the device index to be specified
+        return {'': f"cuda:{device.index or 0}"}
     else:
-        if str(device) == 'cpu':
-            device_map = {'': 'cpu'}
-        elif ':' in str(device):
-            device_map = {'': f"cuda:{str(device).split(':')[1]}"}
-        else:
-            # GPU index must be specified if bit4 or bit8 is used
-            device_map = {'': "cuda:0"}
-        logger.warning(f"`device` is specified as {device}, we transform it to `device_map`={device_map}.")
-    return device_map
+        raise ValueError(f"Invalid `device`={device}")
