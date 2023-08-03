@@ -4,9 +4,9 @@ import torch
 from torch import nn
 
 from ..helper import auto_dtype_and_device
+from .chat import ChatMixin
 from .embedding import EmbeddingMixin
 from .generation import GenerationMixin
-from .chat import ChatMixin
 
 if TYPE_CHECKING:
     from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -75,7 +75,19 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
             self.load_adapter(adapter_name_or_path)
 
     def post_init(self, **kwargs):
-        pass
+
+        if kwargs.get('use_compiled', False):
+
+            import sys
+
+            if torch.__version__ >= "2" and sys.platform != "win32":
+                # TODO: use hidet backend in future: https://github.com/hidet-org/hidet
+                self.model.forward = torch.compile(
+                    self.model.forward,
+                    dynamic=True,
+                )
+            else:
+                self.model = torch.jit.script(self.model)
 
     def load_adapter(self, adapter_name_or_path: str):
         from peft import PeftModel
