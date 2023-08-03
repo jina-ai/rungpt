@@ -51,7 +51,7 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
         if self._eval_mode:
             self.model.eval()
 
-        self.post_init(**kwargs)
+        self.post_init(eval_mode=eval_mode, **kwargs)
 
     def load_model_and_transforms(
         self,
@@ -74,7 +74,7 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
         if adapter_name_or_path is not None:
             self.load_adapter(adapter_name_or_path)
 
-    def post_init(self, **kwargs):
+    def post_init(self, eval_mode: bool = True, **kwargs):
 
         if kwargs.get('use_compiled', False):
 
@@ -88,6 +88,8 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
                 )
             else:
                 self.model = torch.jit.script(self.model)
+                if eval_mode:
+                    self.model = torch.jit.optimize_for_inference(self.model)
 
     def load_adapter(self, adapter_name_or_path: str):
         from peft import PeftModel
