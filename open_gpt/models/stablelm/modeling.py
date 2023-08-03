@@ -5,7 +5,6 @@ Some code is copied from https://github.com/Stability-AI/StableLM
 Original Apache 2.0 License
 
 """
-import logging
 from typing import List, Optional, Union
 
 import torch
