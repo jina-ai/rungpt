@@ -2,18 +2,18 @@ from typing import List, Optional, Union
 
 import torch
 
+from open_gpt.helper import get_device_map
 from open_gpt.logs import logger
-from open_gpt.helper import set_device_map
 
 
 def load_model_and_tokenizer(
-        model_name_or_path: str,
-        tokenizer_name_or_path: Optional[str] = None,
-        device: Optional[torch.device] = None,
-        precision: Optional[str] = None,
-        dtype: Optional[torch.dtype] = None,
-        device_map: Optional[Union[str, List[int]]] = None,
-        **kwargs,
+    model_name_or_path: str,
+    tokenizer_name_or_path: Optional[str] = None,
+    device: Optional[torch.device] = None,
+    precision: Optional[str] = None,
+    dtype: Optional[torch.dtype] = None,
+    device_map: Optional[Union[str, List[int]]] = None,
+    **kwargs,
 ):
     """Load model and tokenizer from HuggingFace / local.
 
@@ -73,7 +73,7 @@ def load_model_and_tokenizer(
         model_name_or_path,
         torch_dtype=dtype or torch.float16,
         quantization_config=quantization_config,
-        device_map=set_device_map(device, device_map),
+        device_map=device_map or get_device_map(device),
         low_cpu_mem_usage=True,
         trust_remote_code=True,
     )
