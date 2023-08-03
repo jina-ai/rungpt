@@ -138,6 +138,6 @@ def get_device_map(device):
     if device.type == 'cpu':
         return {'': 'cpu'}
     elif device.type == 'cuda':
-        return {'': f"{device.index}"}
+        return {'': f"cuda:{device.index}"}
     else:
         raise ValueError(f"Invalid `device`={device}")
