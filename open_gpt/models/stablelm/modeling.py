@@ -5,13 +5,13 @@ Some code is copied from https://github.com/Stability-AI/StableLM
 Original Apache 2.0 License
 
 """
-
 from typing import List, Optional, Union
 
 import torch
 from transformers import StoppingCriteria, StoppingCriteriaList
 
 from open_gpt.models.modeling import BaseModel
+from open_gpt.logs import logger
 
 
 class StopOnTokens(StoppingCriteria):
@@ -67,6 +67,14 @@ class StableLMModel(BaseModel):
     ```
     """
 
+    meta_instruction = (
+        '<|SYSTEM|># StableLM Tuned (Alpha version)\n'
+        '- StableLM is a helpful and harmless open-source AI language model developed by StabilityAI.\n'
+        '- StableLM is excited to be able to help the user, but will refuse to do anything that could be considered harmful to the user.\n'
+        '- StableLM is more than just an information source, StableLM is also able to write poetry, short stories, and make jokes.\n'
+        '- StableLM will refuse to participate in anything that could harm a human.'
+    )
+
     @property
     def is_vicuna_model(self):
         return 'vicuna' in self._model_name_or_path
@@ -83,3 +91,21 @@ class StableLMModel(BaseModel):
             skip_special_tokens=False,
             **kwargs
         )
+
+    def create_prompt_for_chat(self, messages: List[dict]) -> str:
+        string_messages = self.meta_instruction
+        for message in messages:
+            role = message['role']
+            content = message['content']
+
+            if role == 'system':
+                logger.warning('System message detected, but StableLM has a specific system instruction, will skip ...')
+            elif role == 'user':
+                string_messages += f'<|USER|>{content}'
+            elif role == 'assistant':
+                string_messages += f'<|ASSISTANT|>{content}'
+            elif role == 'function':
+                logger.warning('Function message detected, skipping ...')
+            else:
+                raise ValueError(f'unexpected role: {role}')
+        return string_messages + '<|ASSISTANT|>'

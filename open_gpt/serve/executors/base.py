@@ -94,3 +94,52 @@ class CausualLMExecutor(Executor):
 
             d.blob = pickle.dumps(resp.pop('past_key_values'))
             d.tags.update(resp)
+
+    @requests(on='/chat')
+    def chat(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
+        parameters.pop('__results__', None)
+        max_length = int(parameters.pop('max_length', self._max_length))
+
+        for k, v in parameters.items():
+            if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
+                parameters[k] = int(v)
+
+        for d in docs:
+            messages = d.tags.get('prompt')
+            if not messages:
+                continue
+
+            d.tags.update(
+                self.model.chat(messages, max_length=max_length, **parameters)
+            )
+
+    @requests(on='/chat_stream')
+    def chat_stream(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
+        for k, v in parameters.items():
+            if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
+                parameters[k] = int(v)
+
+        completion_tokens = parameters.pop('completion_tokens', 0)
+
+        for d in docs:
+            messages = d.tags.get('prompt') or d.text
+            input_ids = d.tags.get('input_ids')
+            past_key_values = pickle.loads(d.blob) if len(d.blob) > 0 else None
+            if not messages:
+                continue
+
+            if input_ids is not None:
+                input_ids = list(map(lambda x: int(x), input_ids))
+                messages = None
+
+            generated_text = self.model.step_chat(
+                messages=messages,
+                input_ids=input_ids,
+                past_key_values=past_key_values,
+                completion_tokens=completion_tokens,
+                **parameters,
+            )
+            resp = next(generated_text)
+
+            d.blob = pickle.dumps(resp.pop('past_key_values'))
+            d.tags.update(resp)

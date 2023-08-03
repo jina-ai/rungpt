@@ -38,9 +38,20 @@ class GenerateRequest(BaseModel):
         description='Echo back the prompt in the completion.', default=None
     )
     stop: Union[str, List[str]] = Field(description='Stop sequence generation on token.', default=None)
+    stop_str: Union[str, List[str]] = Field(description='Stop sequence generation on token.', default=None)
     do_sample: bool = Field(
         description='Whether to sample from the generation.', default=None
     )
+    presence_penalty: float = Field(description='Positive values penalize new tokens based on whether they appear in '
+                                                'the text so far, increasing the likelihood to talk about new topics.',
+                                    default=0)
+    frequency_penalty: float = Field(description='Positive values penalize new tokens based on their existing '
+                                                 'frequency in the text so far, decreasing the likelihood to repeat '
+                                                 'the same line verbatim.',
+                                     default=0)
+    best_of: int = Field(description='Generates best_of completions server-side and returns the "best" (the one with '
+                                     'the highest log probability per token). Results cannot be streamed.',
+                         default=None)
     n: int = Field(description='The number of sequences to return.', default=None)
 
     class Config:
@@ -60,6 +71,80 @@ class GenerateRequest(BaseModel):
                 'echo': False,
                 'stop': '\n',
                 'do_sample': True,
+                'presence_penalty': 0.0,
+                'frequency_penalty': 0.0,
+                'best_of': 5,
+                'logprobs': None,
+                'n': 3,
+            }
+        }
+
+
+class ChatRequest(BaseModel):
+    messages: List[dict] = Field(..., description='The prompt to generate from.')
+
+    # session id
+    id: str = Field(description='The session id of the generation.', default=None)
+
+    # generation parameters
+    num_beams: int = Field(description='The number of beams to use.', default=None)
+    max_tokens: int = Field(
+        description='The maximum length of the generated text.', default=None
+    )
+    temperature: float = Field(
+        description='The temperature of the generation.', default=None
+    )
+    top_k: int = Field(description='The top k of the generation.', default=None)
+    top_p: float = Field(description='The top p of the generation.', default=None)
+    repetition_penalty: float = Field(
+        description='The repetition penalty of the generation.', default=None
+    )
+    logprobs: int = Field(
+        description='Include the log probabilities on the logprobs '
+                    'most likely tokens, as well the chosen tokens',
+        default=None,
+    )
+    echo: bool = Field(
+        description='Echo back the prompt in the completion.', default=None
+    )
+    stop: Union[str, List[str]] = Field(description='Stop sequence generation on token.', default=None)
+    stop_str: Union[str, List[str]] = Field(description='Stop sequence generation on token.', default=None)
+    do_sample: bool = Field(
+        description='Whether to sample from the generation.', default=None
+    )
+    presence_penalty: float = Field(description='Positive values penalize new tokens based on whether they appear in '
+                                                'the text so far, increasing the likelihood to talk about new topics.',
+                                    default=0)
+    frequency_penalty: float = Field(description='Positive values penalize new tokens based on their existing '
+                                                 'frequency in the text so far, decreasing the likelihood to repeat '
+                                                 'the same line verbatim.',
+                                     default=0)
+    best_of: int = Field(description='Generates best_of completions server-side and returns the "best" (the one with '
+                                     'the highest log probability per token). Results cannot be streamed.',
+                         default=None)
+    n: int = Field(description='The number of sequences to return.', default=None)
+
+    class Config:
+        allow_population_by_field_name = True
+        arbitrary_types_allowed = True
+
+        schema_extra = {
+            'example': {
+                'messages': [{"role": "system", "content": "You are a helpful assistant."},
+                             {"role": "user", "content": "Hello!"}],
+                'id': '18d92585-7b66-4b7c-b818-71287c122c57',
+                'num_beams': 5,
+                'max_tokens': 50,
+                'temperature': 0.7,
+                'top_k': 50,
+                'top_p': 0.95,
+                'repetition_penalty': 1.0,
+                'echo': False,
+                'stop': '\n',
+                'do_sample': True,
+                'presence_penalty': 0.0,
+                'frequency_penalty': 0.0,
+                'best_of': 5,
                 'logprobs': None,
                 'n': 3,
             }
@@ -185,6 +270,106 @@ class Gateway(BaseGateway, CompositeServer):
                     [
                         Document(
                             tags={'prompt': payload.prompt},
+                        )
+                    ]
+                )
+
+                return EventSourceResponse(event_generator())
+
+            @app.api_route(path='/chat', methods=['POST'])
+            async def chat(payload: ChatRequest = Body(...)):
+                """Chat with a model."""
+                parameters = payload.dict(
+                    exclude_unset=True,
+                    exclude_none=True,
+                    exclude_defaults=True,
+                    exclude={'messages'},
+                )
+
+                parameters = _update_key(parameters)
+
+                async for docs, error in self.streamer.stream(
+                    docs=DocumentArray(
+                        [
+                            Document(
+                                tags={'prompt': payload.messages},
+                            )
+                        ]
+                    ),
+                    exec_endpoint='/chat',
+                    parameters=parameters,
+                ):
+                    if error:
+                        return JSONResponse(
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            content={'message': error.name},
+                        )
+                    else:
+                        _tags = docs[0].tags.copy()
+                        _tags['usage'] = {k: int(v) for k, v in _tags['usage'].items()}
+
+                        return JSONResponse(
+                            status_code=status.HTTP_200_OK,
+                            content=_tags,
+                        )
+
+            @app.api_route(path='/chat_stream', methods=['POST'])
+            async def chat_stream(payload: ChatRequest = Body(...)):
+                """Generate chat response in streaming mode."""
+
+                from fastapi import HTTPException
+                from sse_starlette.sse import EventSourceResponse
+
+                parameters = payload.dict(
+                    exclude_unset=True,
+                    exclude_none=True,
+                    exclude_defaults=True,
+                    exclude={'messages'},
+                )
+
+                parameters = _update_key(parameters)
+
+                async def event_generator():
+                    completion_tokens = 0
+
+                    stop_flag = False
+                    while not stop_flag:
+                        parameters['completion_tokens'] = completion_tokens
+
+                        async for docs, error in self.streamer.stream(
+                                docs=input_docs,
+                                exec_endpoint='/chat_stream',
+                                parameters=parameters,
+                        ):
+                            if error:
+                                # TODO: find best practice to handle errors in sse
+                                raise HTTPException(status_code=500, detail=error)
+
+                            input_docs[0].tags['input_ids'] = docs[0].tags.get(
+                                'output_ids'
+                            )
+                            input_docs[0].blob = docs[0].blob
+
+                            stop_flag = docs[0].tags.get('choices')[0].get(
+                                'finish_reason'
+                            ) in [
+                                    'stop',
+                                    'length',
+                                ]
+                            completion_tokens += 1
+
+                            _tags = docs[0].tags.copy()
+                            for k in ['input_ids', 'output_ids', 'past_key_values']:
+                                _tags.pop(k) if k in _tags else None
+                            _tags['usage'] = {
+                                k: int(v) for k, v in _tags['usage'].items()
+                            }
+                            yield {"data": json.dumps(_tags)}
+
+                input_docs = DocumentArray(
+                    [
+                        Document(
+                            tags={'prompt': payload.messages},
                         )
                     ]
                 )

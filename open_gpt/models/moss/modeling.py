@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import List
 
 from open_gpt.models.modeling import BaseModel
+from open_gpt.logs import logger
 
 
 class MossModel(BaseModel):
@@ -66,3 +67,21 @@ class MossModel(BaseModel):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def create_prompt_for_chat(self, messages: List[dict]) -> str:
+        string_messages = self.meta_instruction
+        for message in messages:
+            role = message['role']
+            content = message['content']
+
+            if role == 'system':
+                logger.warning('System message detected, but MOSS has a specific system instruction, will skip ...')
+            elif role == 'user':
+                string_messages += f'<|Human|>: {content}<eoh>\n'
+            elif role == 'assistant':
+                string_messages += f'<|MOSS|>: {content}\n'
+            elif role == 'function':
+                logger.warning('Function message detected, skipping ...')
+            else:
+                raise ValueError(f'unexpected role: {role}')
+        return string_messages + '<|MOSS|>: '

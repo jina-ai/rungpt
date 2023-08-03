@@ -6,12 +6,13 @@ from torch import nn
 from ..helper import auto_dtype_and_device
 from .embedding import EmbeddingMixin
 from .generation import GenerationMixin
+from .chat import ChatMixin
 
 if TYPE_CHECKING:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-class BaseModel(nn.Module, GenerationMixin, EmbeddingMixin):
+class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
     model: 'AutoModelForCausalLM'
     tokenizer: 'AutoTokenizer'
 
@@ -86,3 +87,16 @@ class BaseModel(nn.Module, GenerationMixin, EmbeddingMixin):
             if (self._device_map is None)
             else self._device_map,
         )
+
+    def create_prompt_for_chat(self, messages: List[dict]) -> str:
+        """Convert messages to a prompt string."""
+        string_messages = []
+        for message in messages:
+            role = message['role']
+            content = message['content']
+            string_message = f"{role}: {content}"
+
+            string_messages.append(string_message)
+
+        string_messages.append(f"assistant: ")
+        return "\n".join(string_messages)
