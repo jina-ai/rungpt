@@ -1,12 +1,13 @@
 """The serve module provides a simple way to serve a model using Jina."""
-import json
 
 import jina
 from jina import Document, DocumentArray
 from jina import Gateway as BaseGateway
 from jina.serve.runtimes.servers.composite import CompositeServer
-from .pydantic_models import GenerateRequest, ChatRequest, BaseResponse
+from .pydantic_models import GenerateRequest, ChatRequest, BaseResponse, ResponseObjectEnum
 from fastapi.encoders import jsonable_encoder
+
+from datetime import datetime
 
 
 class Gateway(BaseGateway, CompositeServer):
@@ -34,15 +35,15 @@ class Gateway(BaseGateway, CompositeServer):
                 )
 
                 async for docs, error in self.streamer.stream(
-                    docs=DocumentArray(
-                        [
-                            Document(
-                                tags={'prompt': payload.prompt},
-                            )
-                        ]
-                    ),
-                    exec_endpoint='/generate',
-                    parameters=parameters,
+                        docs=DocumentArray(
+                            [
+                                Document(
+                                    tags={'prompt': payload.prompt},
+                                )
+                            ]
+                        ),
+                        exec_endpoint='/generate',
+                        parameters=parameters,
                 ):
                     if error:
                         return JSONResponse(
@@ -55,7 +56,9 @@ class Gateway(BaseGateway, CompositeServer):
 
                         return JSONResponse(
                             status_code=status.HTTP_200_OK,
-                            content=jsonable_encoder(BaseResponse(**_tags)),
+                            content=jsonable_encoder(BaseResponse(**_tags, object=ResponseObjectEnum.GENERATION,
+                                                                  created=int(datetime.now().timestamp()))
+                                                     )
                         )
 
             @app.api_route(path='/generate_stream', methods=['POST'])
@@ -80,9 +83,9 @@ class Gateway(BaseGateway, CompositeServer):
                         parameters['completion_tokens'] = completion_tokens
 
                         async for docs, error in self.streamer.stream(
-                            docs=input_docs,
-                            exec_endpoint='/generate_stream',
-                            parameters=parameters,
+                                docs=input_docs,
+                                exec_endpoint='/generate_stream',
+                                parameters=parameters,
                         ):
                             if error:
                                 # TODO: find best practice to handle errors in sse
@@ -96,9 +99,9 @@ class Gateway(BaseGateway, CompositeServer):
                             stop_flag = docs[0].tags.get('choices')[0].get(
                                 'finish_reason'
                             ) in [
-                                'stop',
-                                'length',
-                            ]
+                                            'stop',
+                                            'length',
+                                        ]
                             completion_tokens += 1
 
                             _tags = docs[0].tags.copy()
@@ -107,7 +110,9 @@ class Gateway(BaseGateway, CompositeServer):
                             _tags['usage'] = {
                                 k: int(v) for k, v in _tags['usage'].items()
                             }
-                            yield {"data": jsonable_encoder(BaseResponse(**_tags))}
+                            yield {"data": jsonable_encoder(BaseResponse(**_tags, object=ResponseObjectEnum.GENERATION,
+                                                                         created=int(datetime.now().timestamp()))
+                                                            )}
 
                 input_docs = DocumentArray(
                     [
@@ -130,15 +135,15 @@ class Gateway(BaseGateway, CompositeServer):
                 )
 
                 async for docs, error in self.streamer.stream(
-                    docs=DocumentArray(
-                        [
-                            Document(
-                                tags={'prompt': payload.messages},
-                            )
-                        ]
-                    ),
-                    exec_endpoint='/chat',
-                    parameters=parameters,
+                        docs=DocumentArray(
+                            [
+                                Document(
+                                    tags={'prompt': payload.messages},
+                                )
+                            ]
+                        ),
+                        exec_endpoint='/chat',
+                        parameters=parameters,
                 ):
                     if error:
                         return JSONResponse(
@@ -151,7 +156,9 @@ class Gateway(BaseGateway, CompositeServer):
 
                         return JSONResponse(
                             status_code=status.HTTP_200_OK,
-                            content=jsonable_encoder(BaseResponse(**_tags)),
+                            content=jsonable_encoder(BaseResponse(**_tags, object=ResponseObjectEnum.CHAT,
+                                                                  created=int(datetime.now().timestamp()))
+                                                     ),
                         )
 
             @app.api_route(path='/chat_stream', methods=['POST'])
@@ -192,9 +199,9 @@ class Gateway(BaseGateway, CompositeServer):
                             stop_flag = docs[0].tags.get('choices')[0].get(
                                 'finish_reason'
                             ) in [
-                                    'stop',
-                                    'length',
-                                ]
+                                            'stop',
+                                            'length',
+                                        ]
                             completion_tokens += 1
 
                             _tags = docs[0].tags.copy()
@@ -203,7 +210,9 @@ class Gateway(BaseGateway, CompositeServer):
                             _tags['usage'] = {
                                 k: int(v) for k, v in _tags['usage'].items()
                             }
-                            yield {"data": jsonable_encoder(BaseResponse(**_tags))}
+                            yield {"data": jsonable_encoder(BaseResponse(**_tags, object=ResponseObjectEnum.CHAT,
+                                                                         created=int(datetime.now().timestamp()))
+                                                            )}
 
                 input_docs = DocumentArray(
                     [

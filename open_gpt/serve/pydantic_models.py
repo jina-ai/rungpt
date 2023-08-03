@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from enum import Enum
 from typing import Union, List, Tuple, Any
 
 
@@ -114,10 +115,17 @@ class ChatRequest(BaseRequest):
         }
 
 
+class ResponseObjectEnum(str, Enum):
+    GENERATION = 'text_completion'
+    CHAT = 'chat.completion'
+
+
 class BaseResponse(BaseModel):
     # session id
     id: str = Field(description='The session id of the generation.', default=None)
 
+    object: ResponseObjectEnum = Field(description='The task type of the response.', default=None)
+    created: int = Field(description='The timestamp of the response.', default=None)
     choices: List[dict] = Field(description='The generated text. It contains 5 keys: `index`, `text`, `message`, `logprobs`, '
                                             '`finish_reason`. For generation mode, `message` is None. For chat mode, '
                                             '`text` is None.')
@@ -138,15 +146,17 @@ class BaseResponse(BaseModel):
         schema_extra = {
             'example': {
                 'id': '18d92585-7b66-4b7c-b818-71287c122c57',
+                'object': 'chat.completion',
+                'create': 12345678,
                 'choices': [{"index": 0,
-                             "text": "\n\nHello there, how may I assist you today?",
+                             "text": None,
                              "message": {
                                           "role": "assistant",
                                           "content": "\n\nHello there, how may I assist you today?",
                                         },
                              "logprobs": None,
                              "finish_reason": "length"}],
-                'prompt': 'Hello, my name is',
+                'prompt': 'Hello there.',
                 'usage': {'prompt_tokens': 0, 'input_length': 10, 'completion_tokens': 10, 'total_tokens': 20},
                 'output_ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
                 'past_key_values': None
