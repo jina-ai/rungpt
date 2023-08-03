@@ -8,8 +8,8 @@ import torch
 def create_model(
     model_name: Optional[str] = None,
     model_path: Optional[str] = None,
-    precision: str = 'fp16',
     adapter_name_or_path: Optional[str] = None,
+    precision: str = 'fp16',
     device: Optional[Union[str, torch.device]] = None,
     device_map: Optional[Union[str, List[int]]] = None,
     **kwargs,
@@ -26,14 +26,16 @@ def create_model(
     :param kwargs: Additional keyword arguments to pass to the model.
     """
 
-    if model_name is None and model_path is None:
+    model_name_or_path = model_path or model_name
+
+    if not model_name_or_path:
         raise ValueError(f"must specify either `model_name` or `model_path`")
 
-    if model_path and os.path.isdir(model_path):
+    if os.path.isdir(model_name_or_path):
         from .models.modeling import BaseModel
 
         return BaseModel(
-            model_name_or_path=model_path,
+            model_name_or_path=model_name_or_path,
             adapter_name_or_path=adapter_name_or_path,
             device=device,
             precision=precision,
@@ -41,91 +43,89 @@ def create_model(
             **kwargs,
         )
 
-    if model_name.startswith('facebook/llama') or model_name.startswith(
-        'decapoda-research/llama'
-    ):
+    if model_name_or_path.startswith('decapoda-research/llama'):
         from .models.llama.modeling import LlamaModel
 
         return LlamaModel(
-            model_name_or_path=model_name,
+            model_name_or_path=model_name_or_path,
             adapter_name_or_path=adapter_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
             **kwargs,
         )
-    elif model_name.startswith('lmsys/vicuna') or model_name.startswith(
+    elif model_name_or_path.startswith('lmsys/vicuna') or model_name_or_path.startswith(
         'CarperAI/stable-vicuna'
     ):
-        assert not model_name.endswith(
+        assert not model_name_or_path.endswith(
             'v0'
         ), 'You are using an outdated model, please use the newer version ``v1.1+``'
         from .models.vicuna.modeling import VicunaModel
 
-        assert adapter_name_or_path is None, 'Vicuna does not support adapter'
+        assert adapter_name_or_path is None, 'Vicuna models do not support adapter yet'
 
         return VicunaModel(
-            model_name_or_path=model_name,
+            model_name_or_path=model_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
             **kwargs,
         )
-    elif model_name.startswith('EleutherAI/pythia'):
+    elif model_name_or_path.startswith('EleutherAI/pythia'):
         from .models.pythia.modeling import PythiaModel
 
         assert adapter_name_or_path is None, 'Pythia does not support adapter'
 
         return PythiaModel(
-            model_name_or_path=model_name,
+            model_name_or_path=model_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
             **kwargs,
         )
-    elif model_name.startswith('stabilityai/stablelm'):
+    elif model_name_or_path.startswith('stabilityai/stablelm'):
         from .models.stablelm.modeling import StableLMModel
 
         assert adapter_name_or_path is None, 'StableLM does not support adapter'
 
         return StableLMModel(
-            model_name_or_path=model_name,
+            model_name_or_path=model_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
             **kwargs,
         )
-    elif model_name.startswith('fnlp/moss'):
+    elif model_name_or_path.startswith('fnlp/moss'):
         from .models.moss.modeling import MossModel
 
         assert adapter_name_or_path is None, 'Moss does not support adapter'
 
         return MossModel(
-            model_name_or_path=model_name,
+            model_name_or_path=model_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
             **kwargs,
         )
-    elif model_name.startswith('openflamingo/OpenFlamingo'):
+    elif model_name_or_path.startswith('openflamingo/OpenFlamingo'):
         from .models.flamingo.modeling import FlamingoModel
 
         assert adapter_name_or_path is None, 'Flamingo does not support adapter'
 
         return FlamingoModel(
-            model_name_or_path=model_name,
+            model_name_or_path=model_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
             **kwargs,
         )
-    elif model_name.startswith('sgugger/rwkv') or model_name.startswith(
+    elif model_name_or_path.startswith('sgugger/rwkv') or model_name_or_path.startswith(
         'ybelkada/rwkv'
     ):
         from .models.rwkv.modeling import RWKVModel
 
         return RWKVModel(
-            model_name_or_path=model_name,
+            model_name_or_path=model_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
@@ -135,7 +135,7 @@ def create_model(
         from .models.modeling import BaseModel
 
         return BaseModel(
-            model_name_or_path=model_name,
+            model_name_or_path=model_name_or_path,
             adapter_name_or_path=adapter_name_or_path,
             device=device,
             precision=precision,
