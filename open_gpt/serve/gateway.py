@@ -21,6 +21,16 @@ class Gateway(BaseGateway, CompositeServer):
         from fastapi import Body, status
         from fastapi.responses import JSONResponse
 
+        def _update_key(parameters):
+            key_maps = {
+                'max_tokens': 'max_new_tokens',
+                'n': 'num_return_sequences',
+                'stop': 'stop_str',
+            }
+            for openai_key, hf_key in key_maps.items():
+                parameters[hf_key] = parameters[openai_key] or parameters[hf_key]
+            return parameters
+
         def _extend_rest_function(app):
             @app.api_route(path='/generate', methods=['POST'])
             @app.api_route(path='/codegen/completions', methods=['POST'])
@@ -33,6 +43,8 @@ class Gateway(BaseGateway, CompositeServer):
                     exclude_defaults=True,
                     exclude={'prompt'},
                 )
+
+                parameters = _update_key(parameters)
 
                 async for docs, error in self.streamer.stream(
                         docs=DocumentArray(
@@ -74,6 +86,8 @@ class Gateway(BaseGateway, CompositeServer):
                     exclude_defaults=True,
                     exclude={'prompt'},
                 )
+
+                parameters = _update_key(parameters)
 
                 async def event_generator():
                     completion_tokens = 0
@@ -134,6 +148,8 @@ class Gateway(BaseGateway, CompositeServer):
                     exclude={'messages'},
                 )
 
+                parameters = _update_key(parameters)
+
                 async for docs, error in self.streamer.stream(
                         docs=DocumentArray(
                             [
@@ -174,6 +190,8 @@ class Gateway(BaseGateway, CompositeServer):
                     exclude_defaults=True,
                     exclude={'messages'},
                 )
+
+                parameters = _update_key(parameters)
 
                 async def event_generator():
                     completion_tokens = 0
