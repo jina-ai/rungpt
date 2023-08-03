@@ -256,10 +256,9 @@ class GenerationMixin:
                         "output_ids": tmp_output_ids,
                         "past_key_values": past_key_values,
                         "usage": {
-                            "prompt_tokens": prompt_tokens,
-                            "input_length": input_length,
+                            "prompt_tokens": prompt_tokens + input_length,
                             "completion_tokens": completion_tokens + step + 1,
-                            "total_tokens": prompt_tokens + 1,
+                            "total_tokens": (prompt_tokens + input_length) + (completion_tokens + step + 1),
                         },
                     }
 
@@ -280,10 +279,9 @@ class GenerationMixin:
             "output_ids": tmp_output_ids,
             "past_key_values": past_key_values,
             "usage": {
-                "prompt_tokens": prompt_tokens,
-                "input_length": input_length,
+                "prompt_tokens": prompt_tokens + input_length,
                 "completion_tokens": completion_tokens + step + 1,
-                "total_tokens": prompt_tokens + 1,
+                "total_tokens": (prompt_tokens + input_length) + (completion_tokens + step + 1),
             },
         }
 
@@ -379,8 +377,7 @@ class GenerationMixin:
                 ],
                 "prompt": prompt,
                 "usage": {
-                    "prompt_tokens": 0,
-                    "input_length": input_length,
+                    "prompt_tokens": input_length,
                     "completion_tokens": len(outputs),
                     "total_tokens": input_length + len(outputs),
                 },
