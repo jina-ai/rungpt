@@ -28,7 +28,7 @@ class Gateway(BaseGateway, CompositeServer):
                 'stop': 'stop_str',
             }
             for openai_key, hf_key in key_maps.items():
-                parameters[hf_key] = parameters[openai_key] or parameters[hf_key]
+                parameters[hf_key] = parameters.pop(openai_key) or parameters[hf_key]
             return parameters
 
         def _extend_rest_function(app):
