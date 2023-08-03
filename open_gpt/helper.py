@@ -143,6 +143,7 @@ def get_device_map(device):
     if device.type == 'cpu':
         return {'': 'cpu'}
     elif device.type == 'cuda':
-        return {'': f"cuda:{device.index}"}
+        # bitsandbytes quantization need the device index to be specified
+        return {'': f"cuda:{device.index or 0}"}
     else:
         raise ValueError(f"Invalid `device`={device}")
