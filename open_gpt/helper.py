@@ -9,7 +9,10 @@ import torch.distributed as dist
 
 
 def is_bf16_available():
-    return torch.cuda.is_bf16_supported()
+    try:
+        return torch.cuda.is_bf16_supported()
+    except:  # noqa
+        return False
 
 
 _DEFAULT_DTYPE = torch.float32
