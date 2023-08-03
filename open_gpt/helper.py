@@ -12,8 +12,13 @@ def is_bf16_available():
     return torch.cuda.is_bf16_supported()
 
 
+_DEFAULT_DTYPE = torch.float32
+_DEFAULT_FP16_DTYPE = torch.bfloat16 if is_bf16_available() else torch.float16
+_DEFAULT_DEVICE_MAP = 'balanced'
+
+
 _PRECISION_TO_DTYPE = {
-    'fp16': torch.bfloat16 if is_bf16_available() else torch.float16,
+    'fp16': _DEFAULT_FP16_DTYPE,
     'fp32': torch.float32,
     'int8': torch.int8,
     'bit8': torch.float16,
@@ -21,9 +26,6 @@ _PRECISION_TO_DTYPE = {
     'float32': torch.float32,
     'float16': torch.float16,
 }
-
-_DEFAULT_DTYPE = torch.float32
-_DEFAULT_DEVICE_MAP = 'balanced'
 
 
 def cast_torch_dtype(precision: Union[str, 'torch.dtype']):
@@ -62,7 +64,7 @@ def auto_dtype_and_device(
 
     if precision is None:
         if device.type == 'cuda':
-            dtype = torch.bfloat16 if is_bf16_available() else torch.float16
+            dtype = _DEFAULT_FP16_DTYPE
         else:
             dtype = _DEFAULT_DTYPE
     else:

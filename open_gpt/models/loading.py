@@ -2,7 +2,7 @@ from typing import List, Optional, Union
 
 import torch
 
-from open_gpt.helper import get_device_map
+from open_gpt.helper import _DEFAULT_FP16_DTYPE, get_device_map
 from open_gpt.logs import logger
 
 
@@ -57,7 +57,7 @@ def load_model_and_tokenizer(
             trf_version = '.'.join(trf_version.split('.')[:-1])
         supports_kbit = version.parse(trf_version) >= version.parse("4.30.0")
         assert supports_kbit, (
-            f"Vicuna model k-bit quantization requires transformers >= v4.30.0, you have transformers=={trf_version}.\n"
+            f"4-bit quantization requires transformers >= v4.30.0, you have transformers=={trf_version}.\n"
             f"You can install the latest transformers with `pip install git+https://github.com/huggingface/transformers`."
         )
 
@@ -65,7 +65,7 @@ def load_model_and_tokenizer(
 
         quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
-            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_compute_dtype=_DEFAULT_FP16_DTYPE,
             bnb_4bit_use_double_quant=True,
             bnb_4bit_quant_type='nf4',
         )
