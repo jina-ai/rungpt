@@ -129,15 +129,13 @@ class BaseResponse(BaseModel):
     choices: List[dict] = Field(description='The generated text. It contains 5 keys: `index`, `text`, `message`, `logprobs`, '
                                             '`finish_reason`. For generation mode, `message` is None. For chat mode, '
                                             '`text` is None.')
-    prompt: str = Field(description='The prompt used to generate the response.')
+    prompt: str = Field(description='The prompt used to generate the response.', default=None)
     usage: dict = Field(description='The usage of the model. It contains 3 keys: `prompt_tokens`, '
                                     '`completion_tokens`, `total_tokens`. `prompt_tokens` is the length of input, '
                                     'in streaming mode this also includes the length of past_key_values. '
                                     '`completion_tokens` is the length of the generated text, in streaming mode this '
                                     'also includes the length of text generated in previous steps.'
                                     '`total_tokens` is the total length of the `prompt_tokens` and `completion_tokens`.')
-    output_ids: List[int] = Field(description='The output ids of the generation. Only used in streaming mode.', default=None)
-    past_key_values: Tuple[Any] = Field(description='The past key values used for next iteration. Only used in streaming mode.', default=None)
 
     class Config:
         allow_population_by_field_name = True
@@ -158,7 +156,5 @@ class BaseResponse(BaseModel):
                              "finish_reason": "length"}],
                 'prompt': 'Hello there.',
                 'usage': {'prompt_tokens': 0, 'input_length': 10, 'completion_tokens': 10, 'total_tokens': 20},
-                'output_ids': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-                'past_key_values': None
             }
         }
