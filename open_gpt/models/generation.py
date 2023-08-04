@@ -87,6 +87,7 @@ class GenerationMixin:
         top_k: int = 1,
         top_p: float = 0.9,
         repetition_penalty: float = 1.0,
+        do_sample: bool = False,
         max_length: int = MAX_LENGTH,
         echo: bool = False,
         stream_interval: int = 1,
@@ -105,6 +106,7 @@ class GenerationMixin:
         :param top_k: The number of highest probability vocabulary tokens to keep for top-k-filtering.
         :param top_p: The cumulative probability of parameter highest probability vocabulary tokens to keep for nucleus sampling.
         :param repetition_penalty: The parameter for repetition penalty. 1.0 means no penalty. See `this paper <https://arxiv.org/pdf/1909.05858.pdf>`__ for more details.
+        :param do_sample: Whether to use sampling instead of greedy decoding.
         :param max_length: Maximum length of the sequence which includes prompt and generated text. If the context is longer than this, it will be truncated.
         :param echo: If True, the prompt will be included in the generated response.
         :param stream_interval: The number of tokens to generate before returning the generated tokens.
@@ -158,13 +160,19 @@ class GenerationMixin:
 
         output_ids = input_ids.tolist()[0]
 
-        # TODO: figure out what 8 means here
+        # truncate input if needed
+        # `8` is the minimum length of the context for model to generate a token.
         max_src_len = max_length - max_new_tokens - 8
-        if input_length > max_src_len:
+        if max_src_len <= 0:
+            raise ValueError(
+                f"max_new_tokens ({max_new_tokens}) must be less than max_length ({max_length})"
+            )
+        elif input_length > max_src_len:
             input_ids = input_ids[:, -max_src_len:]
             input_length = max_src_len
 
         next_token = None
+        stopped = False
 
         for step in range(max_new_tokens):
             prompt_tokens = past_key_values[0][0].shape[2] if past_key_values else 0
@@ -198,7 +206,9 @@ class GenerationMixin:
                 # Switch to CPU by avoiding some bugs in mps backend.
                 last_token_logits = last_token_logits.float().to("cpu")
 
-            if temperature < MIN_TEMPERATURE or top_p < MIN_TOP_P:  # greedy
+            if (
+                temperature < MIN_TEMPERATURE or top_p < MIN_TOP_P or (not do_sample)
+            ):  # greedy
                 next_token = int(torch.argmax(last_token_logits))
             else:
                 probs = torch.softmax(last_token_logits, dim=-1)
@@ -267,26 +277,27 @@ class GenerationMixin:
             if stopped:
                 break
 
-        yield {
-            "choices": [
-                {
-                    "index": step,
-                    "text": output,
-                    "finish_reason": _get_finish_reason(
-                        step, completion_tokens, max_new_tokens
-                    ),
+        if not stopped:
+            yield {
+                "choices": [
+                    {
+                        "index": step,
+                        "text": output,
+                        "finish_reason": _get_finish_reason(
+                            step, completion_tokens, max_new_tokens
+                        ),
+                    },
+                ],
+                "prompt": prompt,
+                "output_ids": tmp_output_ids,
+                "past_key_values": past_key_values,
+                "usage": {
+                    "prompt_tokens": prompt_tokens + input_length,
+                    "completion_tokens": completion_tokens + step + 1,
+                    "total_tokens": (prompt_tokens + input_length)
+                    + (completion_tokens + step + 1),
                 },
-            ],
-            "prompt": prompt,
-            "output_ids": tmp_output_ids,
-            "past_key_values": past_key_values,
-            "usage": {
-                "prompt_tokens": prompt_tokens + input_length,
-                "completion_tokens": completion_tokens + step + 1,
-                "total_tokens": (prompt_tokens + input_length)
-                + (completion_tokens + step + 1),
-            },
-        }
+            }
 
     @overload
     def generate(self, prompt: str, inplace_images: List = [], **kwargs):
@@ -327,7 +338,8 @@ class GenerationMixin:
         """
         ...
 
-    def generate(self, prompt: str, max_length: int = MAX_LENGTH, **kwargs):
+    @torch.inference_mode()
+    def generate(self, prompt: str, **kwargs):
         inputs = self.tokenizer(
             prompt,
             return_tensors="pt",
@@ -349,13 +361,18 @@ class GenerationMixin:
         skip_special_tokens = kwargs.pop("skip_special_tokens", True)
         echo = kwargs.pop("echo", False)
 
-        max_length = kwargs.pop("max_length", max_length)
+        max_length = kwargs.pop("max_length", MAX_LENGTH)
         max_new_tokens = kwargs.pop("max_new_tokens", max_length - input_length - 1)
 
-        if max_new_tokens + input_length >= max_length:
+        # `8` is the minimum length of the context for model to generate a token.
+        max_src_len = max_length - max_new_tokens - 8
+        if max_src_len <= 0:
             raise ValueError(
-                f"max_new_tokens + input_length ({max_new_tokens + input_length}) must be less than max_length ({max_length})"
+                f"max_new_tokens ({max_new_tokens}) must be less than max_length ({max_length})"
             )
+        elif input_length > max_src_len:
+            inputs['input_ids'] = inputs['input_ids'][:, -max_src_len:]
+            input_length = max_src_len
 
         kwargs.update(
             {
@@ -365,7 +382,7 @@ class GenerationMixin:
             }
         )
 
-        with torch.inference_mode():
+        with torch.no_grad():
             outputs = self.model.generate(**inputs, **kwargs)[0].tolist()
             text = self.tokenizer.decode(
                 outputs if echo else outputs[input_length:],
