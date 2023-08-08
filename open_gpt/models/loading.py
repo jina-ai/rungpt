@@ -13,6 +13,7 @@ def load_model_and_tokenizer(
     precision: Optional[str] = None,
     dtype: Optional[torch.dtype] = None,
     device_map: Optional[Union[str, List[int]]] = None,
+    use_tp: Optional[bool] = False,
     use_fast: bool = False,
     **kwargs,
 ):
@@ -80,5 +81,10 @@ def load_model_and_tokenizer(
         low_cpu_mem_usage=True,
         trust_remote_code=True,
     )
+
+    if use_tp:
+        import tensor_parallel as tp
+
+        model = tp.tensor_parallel(model, device_map)
 
     return model, tokenizer
