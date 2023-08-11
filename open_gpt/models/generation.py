@@ -327,7 +327,7 @@ class GenerationMixin:
         """
         ...
 
-    def generate(self, prompt: str, max_length: int = MAX_LENGTH, **kwargs):
+    def generate(self, prompt: str, max_length: int = MAX_LENGTH, backend: str = 'hf', **kwargs):
         inputs = self.tokenizer(
             prompt,
             return_tensors="pt",
@@ -337,6 +337,7 @@ class GenerationMixin:
 
         input_length = inputs["input_ids"].shape[-1]
 
+        stop_str = None
         if 'stop_str' in kwargs:
             stop_str = kwargs.pop('stop_str')
             stop_ids = get_stop_ids(stop_str, self.tokenizer)
@@ -365,26 +366,61 @@ class GenerationMixin:
             }
         )
 
-        with torch.inference_mode():
-            outputs = self.model.generate(**inputs, **kwargs)[0].tolist()
-            text = self.tokenizer.decode(
-                outputs if echo else outputs[input_length:],
-                clean_up_tokenization_spaces=clean_up_tokenization_spaces,
-                skip_special_tokens=skip_special_tokens,
-            )
+        if backend == 'hf':
+            with torch.inference_mode():
+                outputs = self.model.generate(**inputs, **kwargs)[0].tolist()
+                text = self.tokenizer.decode(
+                    outputs if echo else outputs[input_length:],
+                    clean_up_tokenization_spaces=clean_up_tokenization_spaces,
+                    skip_special_tokens=skip_special_tokens,
+                )
 
-            finish_reason = (
-                "length" if len(outputs) - input_length == max_new_tokens else "stop"
-            )
+                finish_reason = (
+                    "length" if len(outputs) - input_length == max_new_tokens else "stop"
+                )
+                resp = {
+                    "choices": [
+                        {"index": 0, "text": text, "finish_reason": finish_reason},
+                    ],
+                    "prompt": prompt,
+                    "usage": {
+                        "prompt_tokens": input_length,
+                        "completion_tokens": len(outputs),
+                        "total_tokens": input_length + len(outputs),
+                    },
+                }
+
+                return resp
+
+        elif backend == 'vllm':
+            from vllm.sampling_params import SamplingParams
+
+            # TODO: need to check the default values in huggingface
+            sampling_params = SamplingParams(n=kwargs.pop('num_return_sequences', 1),
+                                             best_of=kwargs.pop('best_of', None),
+                                             presence_penalty=kwargs.pop('presence_penalty', 0.0),
+                                             frequency_penalty=kwargs.pop('frequency_penalty', 0.0),
+                                             temperature=kwargs.pop('temperature', 1.0),
+                                             top_p=kwargs.pop('top_p', 0.9),
+                                             top_k=kwargs.pop('top_k', 1),
+                                             use_beam_search=kwargs.pop('do_sample', False),
+                                             stop=stop_str,
+                                             ignore_eos=True,
+                                             max_tokens=max_new_tokens,
+                                             logprobs=kwargs.pop('logprobs', None),
+                                             )
+            output = self.model.generate(prompt, sampling_params=sampling_params, use_tqdm=False, **kwargs)[0]
+
             resp = {
                 "choices": [
-                    {"index": 0, "text": text, "finish_reason": finish_reason},
+                    # output.outputs[0] means the first choice
+                    {"index": 0, "text": output.outputs[0].text, "finish_reason": output.outputs[0].finish_reason},
                 ],
                 "prompt": prompt,
                 "usage": {
                     "prompt_tokens": input_length,
-                    "completion_tokens": len(outputs),
-                    "total_tokens": input_length + len(outputs),
+                    "completion_tokens": len(output.outputs[0].token_ids),
+                    "total_tokens": input_length + len(output.outputs[0].token_ids),
                 },
             }
 

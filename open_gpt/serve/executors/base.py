@@ -12,15 +12,16 @@ from open_gpt.logs import logger
 
 class CausualLMExecutor(Executor):
     def __init__(
-        self,
-        model_name_or_path: str = '',
-        minibatch_size: int = 1,
-        adapter_name_or_path: Optional[str] = None,
-        device_map: Optional[Union[str, List[int]]] = None,
-        precision: Optional[str] = None,
-        num_workers: int = 4,
-        max_length: int = 1024,
-        **kwargs,
+            self,
+            model_name_or_path: str = '',
+            minibatch_size: int = 1,
+            adapter_name_or_path: Optional[str] = None,
+            device_map: Optional[Union[str, List[int]]] = None,
+            precision: Optional[str] = None,
+            num_workers: int = 4,
+            max_length: int = 1024,
+            backend: str = 'hf',
+            **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -39,6 +40,7 @@ class CausualLMExecutor(Executor):
             precision=precision,
             adapter_name_or_path=adapter_name_or_path,
             device_map=device_map,
+            backend=backend,
             **kwargs,
         )
 
@@ -50,6 +52,7 @@ class CausualLMExecutor(Executor):
         # TEMPORARY FIX: remove the `__results__` key from the parameters dict
         parameters.pop('__results__', None)
         max_length = int(parameters.pop('max_length', self._max_length))
+        backend = parameters.pop('backend', 'hf')
 
         for k, v in parameters.items():
             if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
@@ -61,11 +64,15 @@ class CausualLMExecutor(Executor):
                 continue
 
             d.tags.update(
-                self.model.generate(prompt, max_length=max_length, **parameters)
+                self.model.generate(prompt, max_length=max_length, backend=backend, **parameters)
             )
 
     @requests(on='/generate_stream')
     def generate_stream(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
+        backend = parameters.pop('backend', 'hf')
+        if backend != 'hf':
+            raise NotImplementedError(f'Stream generation is only supported for HF models. Got: {backend}')
+
         for k, v in parameters.items():
             if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
                 parameters[k] = int(v)
@@ -97,6 +104,10 @@ class CausualLMExecutor(Executor):
 
     @requests(on='/chat')
     def chat(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
+        backend = parameters.pop('backend', 'hf')
+        if backend != 'hf':
+            raise NotImplementedError(f'Chat is only supported for HF models. Got: {backend}')
+
         parameters.pop('__results__', None)
         max_length = int(parameters.pop('max_length', self._max_length))
 
@@ -115,6 +126,10 @@ class CausualLMExecutor(Executor):
 
     @requests(on='/chat_stream')
     def chat_stream(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
+        backend = parameters.pop('backend', 'hf')
+        if backend != 'hf':
+            raise NotImplementedError(f'Stream chat is only supported for HF models. Got: {backend}')
+
         for k, v in parameters.items():
             if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
                 parameters[k] = int(v)

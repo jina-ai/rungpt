@@ -1,3 +1,4 @@
+import logging
 from typing import TYPE_CHECKING, List, Optional, Union
 
 import torch
@@ -25,6 +26,9 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
         device: Optional[torch.device] = None,
         device_map: Optional[Union[str, List[int]]] = None,
         eval_mode: bool = True,
+        backend: str = 'hf',
+        tensor_parallel_size: Optional[int] = None,
+        pipeline_parallel_size: Optional[int] = None,
         **kwargs,
     ):
         """Create a model of the given name."""
@@ -34,12 +38,16 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
         self._model_name_or_path = model_name_or_path
         self._adapter_name_or_path = adapter_name_or_path
 
+        self._backend = backend
         self._precision = precision
         self._dtype, self._device = auto_dtype_and_device(precision, device)
 
         self._device_map = device_map or get_device_map(self._device)
 
         self._eval_mode = eval_mode
+
+        self._tensor_parallel_size = tensor_parallel_size
+        self._pipeline_parallel_size = pipeline_parallel_size
 
         self.load_model_and_transforms(
             model_name_or_path,
@@ -61,18 +69,33 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
     ):
         from .loading import load_model_and_tokenizer
 
-        self.model, self.tokenizer = load_model_and_tokenizer(
-            model_name_or_path,
-            tokenizer_name_or_path=tokenizer_name_or_path,
-            precision=self._precision,
-            dtype=self._dtype,
-            device=self._device,
-            device_map=self._device_map,
-            use_fast=False,
-        )
+        if self._backend == 'hf':
+            self.model, self.tokenizer = load_model_and_tokenizer(
+                model_name_or_path,
+                tokenizer_name_or_path=tokenizer_name_or_path,
+                precision=self._precision,
+                dtype=self._dtype,
+                device=self._device,
+                device_map=self._device_map,
+                use_fast=False,
+            )
 
-        if adapter_name_or_path is not None:
-            self.load_adapter(adapter_name_or_path)
+            if adapter_name_or_path is not None:
+                self.load_adapter(adapter_name_or_path)
+        elif self._backend == 'vllm':
+            if not torch.cuda.is_available():
+                raise RuntimeError(f"vllm must be used with cuda.")
+            if self._precision not in ['fp32', 'fp16']:
+                raise ValueError(f"vllm only supports `float32`, `float16`, and `bfloat16`, got: {self._precision}")
+
+            from vllm import LLM
+
+            self.model = LLM(model=model_name_or_path,
+                             tokenizer=tokenizer_name_or_path,
+                             tokenizer_mode='slow',
+                             tensor_parallel_size=self._tensor_parallel_size or torch.cuda.device_count(),
+                             pipeline_parallel_size=self._pipeline_parallel_size or torch.cuda.device_count(),
+                             trust_remote_code=True)
 
     def post_init(self, eval_mode: bool = True, **kwargs):
 
