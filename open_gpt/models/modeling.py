@@ -56,7 +56,7 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
         )
 
         # turn the eval mode off `eval_mode=False` in training
-        if self._eval_mode:
+        if self._eval_mode and self._backend == 'hf':
             self.model.eval()
 
         self.post_init(eval_mode=eval_mode, **kwargs)
@@ -94,8 +94,10 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
                              tokenizer=tokenizer_name_or_path,
                              tokenizer_mode='slow',
                              tensor_parallel_size=self._tensor_parallel_size or torch.cuda.device_count(),
-                             pipeline_parallel_size=self._pipeline_parallel_size or torch.cuda.device_count(),
+                             # Pipeline parallelism is not supported yet.
+                             pipeline_parallel_size=1,
                              trust_remote_code=True)
+            self.tokenizer = self.model.get_tokenizer()
 
     def post_init(self, eval_mode: bool = True, **kwargs):
 

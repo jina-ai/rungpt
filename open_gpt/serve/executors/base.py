@@ -34,6 +34,7 @@ class CausualLMExecutor(Executor):
         self._minibatch_size = minibatch_size
         self._thread_pool = ThreadPool(processes=num_workers)
         self._max_length = max_length
+        self._backend = backend
 
         self.model = create_model(
             model_name_or_path,
@@ -52,7 +53,6 @@ class CausualLMExecutor(Executor):
         # TEMPORARY FIX: remove the `__results__` key from the parameters dict
         parameters.pop('__results__', None)
         max_length = int(parameters.pop('max_length', self._max_length))
-        backend = parameters.pop('backend', 'hf')
 
         for k, v in parameters.items():
             if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
@@ -64,7 +64,7 @@ class CausualLMExecutor(Executor):
                 continue
 
             d.tags.update(
-                self.model.generate(prompt, max_length=max_length, backend=backend, **parameters)
+                self.model.generate(prompt, backend=self._backend, max_length=max_length, **parameters)
             )
 
     @requests(on='/generate_stream')

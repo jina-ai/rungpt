@@ -327,7 +327,7 @@ class GenerationMixin:
         """
         ...
 
-    def generate(self, prompt: str, max_length: int = MAX_LENGTH, backend: str = 'hf', **kwargs):
+    def generate(self, prompt: str, backend: str, max_length: int = MAX_LENGTH, **kwargs):
         inputs = self.tokenizer(
             prompt,
             return_tensors="pt",
