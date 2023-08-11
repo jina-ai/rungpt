@@ -55,10 +55,12 @@ setup(
         'peft>=0.3.0',
         'loguru',
         'tqdm',
+        'scipy',
         'sse_starlette>=1.6.1',
     ],
     extras_require={
         'test': ['pytest', 'pytest-cov', 'pytest-xdist', 'pytest-mock'],
+        'vllm': ['vllm'],
     },
     entry_points={
         'console_scripts': [
