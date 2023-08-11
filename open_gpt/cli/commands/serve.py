@@ -43,8 +43,8 @@ class ServeCommand(Command):
         ),
         option(
             'backend',
-            None,
             'The backend of the model.',
+            flag=False,
             default='hf',
         ),
         option(

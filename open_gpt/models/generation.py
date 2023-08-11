@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, overlo
 
 import torch
 
-if TYPE_CHECKING:
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+# if TYPE_CHECKING:
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from transformers import StoppingCriteria, StoppingCriteriaList
 from transformers.generation.logits_process import (
@@ -73,7 +73,7 @@ class StopOnTokens(StoppingCriteria):
 class GenerationMixin:
     """Mixin for generation methods."""
 
-    model: 'AutoModelForCausalLM'
+    model: Union['AutoModelForCausalLM', 'vllm.entrypoints.llm']
     tokenizer: 'AutoTokenizer'
 
     @torch.inference_mode()
@@ -327,7 +327,7 @@ class GenerationMixin:
         """
         ...
 
-    def generate(self, prompt: str, backend: str, max_length: int = MAX_LENGTH, **kwargs):
+    def generate(self, prompt: str, max_length: int = MAX_LENGTH, **kwargs):
         inputs = self.tokenizer(
             prompt,
             return_tensors="pt",
@@ -366,7 +366,7 @@ class GenerationMixin:
             }
         )
 
-        if backend == 'hf':
+        if isinstance(self.model, AutoModelForCausalLM):
             with torch.inference_mode():
                 outputs = self.model.generate(**inputs, **kwargs)[0].tolist()
                 text = self.tokenizer.decode(
@@ -392,7 +392,7 @@ class GenerationMixin:
 
                 return resp
 
-        elif backend == 'vllm':
+        else:
             from vllm.sampling_params import SamplingParams
 
             # TODO: need to check the default values in huggingface
@@ -409,7 +409,7 @@ class GenerationMixin:
                                              max_tokens=max_new_tokens,
                                              logprobs=kwargs.pop('logprobs', None),
                                              )
-            output = self.model.generate(prompt, sampling_params=sampling_params, use_tqdm=False, **kwargs)[0]
+            output = self.model.generate(prompt, sampling_params=sampling_params, use_tqdm=False)[0]
 
             resp = {
                 "choices": [
