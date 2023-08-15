@@ -3,7 +3,7 @@ repos:
     rev: 4.0.1
     hooks:
     -   id: flake8
-        exclude: ^(.git|__pycache__|docs/source/conf.py|old|build|dist|tests|open_gpt/resources/)
+        exclude: ^(.git|__pycache__|docs/source/conf.py|old|build|dist|tests|run_gpt/resources/)
         args:
           - --max-complexity=10
           - --max-line-length=127
@@ -12,8 +12,8 @@ repos:
 #  rev: v1.5.8
 #  hooks:
 #  - id: darglint
-#    files: open_gpt/
-#    exclude: ^(docs/|open_gpt/resources/)
+#    files: run_gpt/
+#    exclude: ^(docs/|run_gpt/resources/)
 #    args:
 #    - --message-template={path}:{line} {msg_id} {msg}
 #    - -s=sphinx
@@ -24,7 +24,7 @@ repos:
   hooks:
   -   id: pydocstyle
       files: client/
-      exclude: ^(docs/|open_gpt/resources/)
+      exclude: ^(docs/|run_gpt/resources/)
       args:
       - --select=D101,D102,D103
 - repo: https://github.com/ambv/black
@@ -32,7 +32,7 @@ repos:
   hooks:
   - id: black
     types: [python]
-    exclude: ^(docs/|open_gpt/resources/)
+    exclude: ^(docs/|run_gpt/resources/)
     args:
       - -S
 - repo: https://github.com/asottile/blacken-docs

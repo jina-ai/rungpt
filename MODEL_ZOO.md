@@ -1,6 +1,6 @@
-# Model Zoo in OpenGPT
+# Model Zoo in RunGPT
 
-OpenGPT supports the following models out of the box:
+RunGPT supports the following models out of the box:
 
 - LLM (Large Language Model)
 

@@ -42,7 +42,7 @@ jobs:
           echo "VCS_REF=$VCS_REF" >> $GITHUB_ENV
           echo "Will build $VCS_REF"
           
-          VERSION=$(sed -n '/^__version__ = /p' ./open_gpt/__init__.py | cut -d \' -f2)
+          VERSION=$(sed -n '/^__version__ = /p' ./run_gpt/__init__.py | cut -d \' -f2)
           
           echo "VERSION=$VERSION" >> $GITHUB_ENV
 

@@ -4,11 +4,11 @@ from os import path
 from setuptools import find_packages, setup
 
 if sys.version_info < (3, 8, 0):
-    raise OSError(f'OpenGPT requires Python >=3.8, but yours is {sys.version}')
+    raise OSError(f'RunGPT requires Python >=3.8, but yours is {sys.version}')
 
 try:
-    pkg_name = 'open-gpt-torch'
-    libinfo_py = path.join(path.dirname(__file__), 'open_gpt', '__init__.py')
+    pkg_name = 'run-gpt-torch'
+    libinfo_py = path.join(path.dirname(__file__), 'run_gpt', '__init__.py')
     libinfo_content = open(libinfo_py, 'r', encoding='utf8').readlines()
     version_line = [l.strip() for l in libinfo_content if l.startswith('__version__')][
         0
@@ -33,8 +33,8 @@ setup(
     author='Jina AI',
     author_email='hello@jina.ai',
     license='Apache 2.0',
-    url='https://https://github.com/jina-ai/opengpt',
-    download_url='https://https://github.com/jina-ai/opengpt/tags',
+    url='https://https://github.com/jina-ai/rungpt',
+    download_url='https://https://github.com/jina-ai/rungpt/tags',
     long_description=_long_description,
     long_description_content_type='text/markdown',
     zip_safe=False,
@@ -62,7 +62,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'opengpt = open_gpt.cli.application:main',
+            'rungpt = run_gpt.cli.application:main',
         ],
     },
     classifiers=[
@@ -84,9 +84,9 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     project_urls={
-        'Documentation': 'https://opengpt.jina.ai',
-        'Source': 'https://github.com/jina-ai/opengpt/',
-        'Tracker': 'https://github.com/jina-ai/opengpt/issues',
+        'Documentation': 'https://rungpt.jina.ai',
+        'Source': 'https://github.com/jina-ai/rungpt/',
+        'Tracker': 'https://github.com/jina-ai/rungpt/issues',
     },
     keywords=[
         "jina",

@@ -1,11 +1,11 @@
-import open_gpt
-from open_gpt.profile import end_measure, log_measures, start_measure
+import run_gpt
+from run_gpt.profile import end_measure, log_measures, start_measure
 
 start_measures = start_measure()
-model = open_gpt.create_model(
+model = run_gpt.create_model(
     'lmsys/vicuna-7b-delta-v1.1', precision='fp16', device_map='balanced'
 )
-# model = open_gpt.create_model(
+# model = run_gpt.create_model(
 #     'CarperAI/stable-vicuna-13b-delta', precision='fp16', device_map='balanced'
 # )
 

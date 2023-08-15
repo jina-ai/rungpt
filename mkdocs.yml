@@ -1,13 +1,13 @@
 # Project information
-site_name: OpenGPT
-# site_url: https://opengpt.dev.jina.ai
+site_name: RunGPT
+# site_url: https://rungpt.dev.jina.ai
 site_author: jina-ai GmbH
 site_description: >-
   Easily and cost-effectively LLM deployments on any cloud. 
 
 # Repository
-repo_url: https://github.com/jina-ai/opengpt
-repo_name: jina-ai/opengpt
+repo_url: https://github.com/jina-ai/rungpt
+repo_name: jina-ai/rungpt
 edit_uri: edit/master/docs/
 
 #Copyright
@@ -111,11 +111,11 @@ extra:
 #    property: G-XXXXXX
   social:
     - icon: /fontawesome/brands/github
-      link: https://github.com/jina-ai/opengpt
+      link: https://github.com/jina-ai/rungpt
     - icon: /fontawesome/brands/python
-      link: https://pypi.org/project/open-gpt-torch
+      link: https://pypi.org/project/run-gpt-torch
 #    - icon: /fontawesome/brands/docker
-#      link: https://hub.docker.com/r/jina-ai/opengpt
+#      link: https://hub.docker.com/r/jina-ai/rungpt
     - icon: /fontawesome/brands/discord
       link: https://discord.gg/yaNVaaGSXZ
     - icon: /fontawesome/brands/twitter
@@ -135,8 +135,8 @@ nav:
           - Kubernetes: docs/deployment/clouds.md
       - Reference:
           - CLI:
-              - opengpt serve: docs/reference/cli/start.md
-              - opengpt deploy: docs/reference/cli/start.md
-  - Examples: https://github.com/jina-ai/opengpt/blob/main/examples
+              - rungpt serve: docs/reference/cli/start.md
+              - rungpt deploy: docs/reference/cli/start.md
+  - Examples: https://github.com/jina-ai/rungpt/blob/main/examples
   - Discord: https://discord.gg/yaNVaaGSXZ
   - Twitter: https://twitter.com/JinaAI_

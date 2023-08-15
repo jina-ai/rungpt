@@ -1,5 +1,5 @@
-import open_gpt
-from open_gpt.profile import LLMMeasure, end_measure, log_measures, start_measure
+import run_gpt
+from run_gpt.profile import LLMMeasure, end_measure, log_measures, start_measure
 
 PROMPT = 'The goal of life is'
 
@@ -21,11 +21,11 @@ def main(args):
     print(f"===> start model loading ...")
     model_load_start = start_measure()
     if args.precision == 'fp16':
-        model = open_gpt.create_model(
+        model = run_gpt.create_model(
             args.model_name, precision='fp16', device_map=args.device_map
         )
     else:
-        model = open_gpt.create_model(
+        model = run_gpt.create_model(
             args.model_name,
             precision=args.precision,
             adapter_name_or_path=args.adapter_name,
@@ -54,7 +54,7 @@ def main(args):
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(description='Benchmark for open_gpt.')
+    parser = argparse.ArgumentParser(description='Benchmark for run_gpt.')
     parser.add_argument(
         '--model-name',
         type=str,

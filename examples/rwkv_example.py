@@ -1,10 +1,10 @@
-import open_gpt
-from open_gpt.profile import end_measure, log_measures, start_measure
+import run_gpt
+from run_gpt.profile import end_measure, log_measures, start_measure
 
 prompt = "\nIn a shocking finding, scientist discovered a herd of dragons living in a remote, previously unexplored valley, in Tibet. Even more surprising to the researchers was the fact that the dragons spoke perfect Chinese."
 
 start_measures = start_measure()
-model = open_gpt.create_model(
+model = run_gpt.create_model(
     'ybelkada/rwkv-raven-1b5',
     precision='fp16',
     device_map='balanced'
