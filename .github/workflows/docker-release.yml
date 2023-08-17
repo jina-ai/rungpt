@@ -34,7 +34,7 @@ jobs:
           echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
           echo "BUILD_TARGET=clip_executor" >> $GITHUB_ENV
         
-          VERSION=$(sed -n '/^__version__ = /p' ./rungpt/__init__.py | cut -d \' -f2)
+          VERSION=$(sed -n '/^__version__ = /p' ./run_gpt/__init__.py | cut -d \' -f2)
           V_VERSION=v${VERSION}
           MINOR_VERSION=${VERSION%.*}
           MAJOR_VERSION=${MINOR_VERSION%.*}
@@ -42,21 +42,21 @@ jobs:
           if [[ "${{ github.event.inputs.triggered_by }}" == "CD" ]]; then
             # on every CD release
             echo "TAG_ALIAS=\
-                            jinaai/rungpt:master" \
+                            jinaai/run_gpt:master" \
                             >> $GITHUB_ENV
 
           elif [[ "${{ github.event.inputs.triggered_by }}" == "TAG" ]]; then
             # on every tag release
             echo "TAG_ALIAS=\
-                            jinaai/rungpt:latest, \
-                            jinaai/rungpt:v${VERSION}, \
-                            jinaai/rungpt:v${MINOR_VERSION} \
+                            jinaai/run_gpt:latest, \
+                            jinaai/run_gpt:v${VERSION}, \
+                            jinaai/run_gpt:v${MINOR_VERSION} \
                             " >> $GITHUB_ENV
             
           elif [[ "${{ github.event.inputs.triggered_by }}" == "MANUAL" ]]; then
             # on every manual release
             echo "TAG_ALIAS=\
-                            jinaai/rungpt:v${VERSION} \
+                            jinaai/run_gpt:v${VERSION} \
                             " >> $GITHUB_ENV
           else
             echo "Bad triggered_by: ${{ github.event.inputs.triggered_by }}!"
@@ -86,7 +86,7 @@ jobs:
         with:
           file: Dockerfiles/Dockerfile
           platforms: linux/amd64
-          cache-from: type=registry,ref=jinaai/rungpt:latest
+          cache-from: type=registry,ref=jinaai/run_gpt:latest
           cache-to: type=inline
           push: true
           tags: ${{env.TAG_ALIAS}}

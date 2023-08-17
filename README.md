@@ -1,7 +1,7 @@
 # ☄️ RunGPT
 
 <p align="center">
-<a href="https://github.com/jina-ai/rungpt"><img src="https://github.com/jina-ai/rungpt/blob/main/.github/images/logo.png" alt="rungpt: An open-source cloud-native large-scale multimodal model serving framework" width="300px"></a>
+<a href="https://github.com/jina-ai/rungpt"><img src="https://github.com/jina-ai/rungpt/blob/main/.github/images/logo.png" alt="RunGPT: An open-source cloud-native large-scale multimodal model serving framework" width="300px"></a>
 <br>
 </p>
 
