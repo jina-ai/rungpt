@@ -93,7 +93,7 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
             self.model = LLM(model=model_name_or_path,
                              tokenizer=tokenizer_name_or_path,
                              tokenizer_mode='slow',
-                             tensor_parallel_size=mself._tensor_parallel_size or torch.cuda.device_count(),
+                             tensor_parallel_size=self._tensor_parallel_size or torch.cuda.device_count(),
                              # Pipeline parallelism is not supported yet.
                              pipeline_parallel_size=1,
                              trust_remote_code=True)
