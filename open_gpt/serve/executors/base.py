@@ -7,7 +7,6 @@ from docarray import DocumentArray
 from jina import Executor, requests
 
 from open_gpt.factory import create_model
-from open_gpt.logs import logger
 
 
 class CausualLMExecutor(Executor):
@@ -33,20 +32,12 @@ class CausualLMExecutor(Executor):
         self._minibatch_size = minibatch_size
         self._thread_pool = ThreadPool(processes=num_workers)
         self._max_length = max_length
-        try:
-            import vllm
-            self._backend = 'vllm'
-            logger.info('Using vLLM as backend ...')
-        except:
-            self._backend = 'hf'
-            logger.info('Using huggingface as backend ...')
 
         self.model = create_model(
             model_name_or_path,
             precision=precision,
             adapter_name_or_path=adapter_name_or_path,
             device_map=device_map,
-            backend=self._backend,
             **kwargs,
         )
 
@@ -69,15 +60,11 @@ class CausualLMExecutor(Executor):
                 continue
 
             d.tags.update(
-                self.model.generate(prompt, backend=self._backend, max_length=max_length, **parameters)
+                self.model.generate(prompt, max_length=max_length, **parameters)
             )
 
     @requests(on='/generate_stream')
     def generate_stream(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
-        backend = parameters.pop('backend', 'hf')
-        if backend != 'hf':
-            raise NotImplementedError(f'Stream generation is only supported for HF models. Got: {backend}')
-
         for k, v in parameters.items():
             if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
                 parameters[k] = int(v)
@@ -109,10 +96,6 @@ class CausualLMExecutor(Executor):
 
     @requests(on='/chat')
     def chat(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
-        backend = parameters.pop('backend', 'hf')
-        if backend != 'hf':
-            raise NotImplementedError(f'Chat is only supported for HF models. Got: {backend}')
-
         parameters.pop('__results__', None)
         max_length = int(parameters.pop('max_length', self._max_length))
 
@@ -131,10 +114,6 @@ class CausualLMExecutor(Executor):
 
     @requests(on='/chat_stream')
     def chat_stream(self, docs: 'DocumentArray', parameters: Dict = {}, **kwargs):
-        backend = parameters.pop('backend', 'hf')
-        if backend != 'hf':
-            raise NotImplementedError(f'Stream chat is only supported for HF models. Got: {backend}')
-
         for k, v in parameters.items():
             if k in ['top_k', 'max_new_tokens', 'num_return_sequences']:
                 parameters[k] = int(v)

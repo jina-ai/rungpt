@@ -2,6 +2,7 @@ import random
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Optional, Union
 
+from open_gpt.logs import logger
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
@@ -147,3 +148,13 @@ def get_device_map(device):
         return {'': f"cuda:{device.index or 0}"}
     else:
         raise ValueError(f"Invalid `device`={device}")
+
+
+def vllm_is_available():
+    try:
+        import vllm
+        logger.info(f'using vllm as backend, vllm version: {vllm.__version__}')
+        return True
+    except ImportError:
+        logger.info(f'using huggingface as backend')
+        return False

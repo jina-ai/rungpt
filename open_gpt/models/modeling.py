@@ -1,3 +1,4 @@
+import logging
 from typing import TYPE_CHECKING, List, Optional, Union
 
 import torch
@@ -26,8 +27,6 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
         device_map: Optional[Union[str, List[int]]] = None,
         eval_mode: bool = True,
         backend: str = 'hf',
-        tensor_parallel_size: Optional[int] = None,
-        pipeline_parallel_size: Optional[int] = None,
         **kwargs,
     ):
         """Create a model of the given name."""
@@ -44,9 +43,6 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
         self._device_map = device_map or get_device_map(self._device)
 
         self._eval_mode = eval_mode
-
-        self._tensor_parallel_size = tensor_parallel_size
-        self._pipeline_parallel_size = pipeline_parallel_size
 
         self.load_model_and_transforms(
             model_name_or_path,
@@ -93,11 +89,14 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
             self.model = LLM(model=model_name_or_path,
                              tokenizer=tokenizer_name_or_path,
                              tokenizer_mode='slow',
-                             tensor_parallel_size=self._tensor_parallel_size or torch.cuda.device_count(),
+                             tensor_parallel_size=torch.cuda.device_count(),
                              # Pipeline parallelism is not supported yet.
                              pipeline_parallel_size=1,
                              trust_remote_code=True)
             self.tokenizer = self.model.get_tokenizer()
+
+            if adapter_name_or_path is not None:
+                logging.warning(f"vllm backend doesn't support adapter yet. Ignoring adapter_name_or_path: {adapter_name_or_path}")
 
     def post_init(self, eval_mode: bool = True, **kwargs):
 
