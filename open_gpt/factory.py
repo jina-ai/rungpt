@@ -1,10 +1,10 @@
-import logging
 import os.path
 from pathlib import Path
 from typing import List, Optional, Union
 from .helper import vllm_is_available
 
 import torch
+from open_gpt.logs import logger
 
 
 def create_model(
@@ -55,7 +55,7 @@ def create_model(
         from .models.llama.modeling import LlamaModel
 
         if backend == 'vllm':
-            logging.warning(f'vllm does not support loading Llama tokenizer, using hf instead')
+            logger.warning(f'vllm does not support loading Llama tokenizer, using hf instead')
 
         return LlamaModel(
             model_name_or_path=model_name_or_path,
@@ -63,6 +63,7 @@ def create_model(
             device=device,
             precision=precision,
             device_map=device_map,
+            backend='hf',
             **kwargs,
         )
     elif model_name_or_path.startswith('lmsys/vicuna') or model_name_or_path.startswith(
@@ -76,13 +77,14 @@ def create_model(
         assert adapter_name_or_path is None, 'Vicuna models do not support adapter yet'
 
         if backend == 'vllm':
-            logging.warning(f'vllm does not support vicuna model, using hf instead')
+            logger.warning(f'vllm does not support vicuna model, using hf instead')
 
         return VicunaModel(
             model_name_or_path=model_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
+            backend='hf',
             **kwargs,
         )
     elif model_name_or_path.startswith('stabilityai/stablelm'):
@@ -95,6 +97,7 @@ def create_model(
             device=device,
             precision=precision,
             device_map=device_map,
+            backend=backend,
             **kwargs,
         )
     elif model_name_or_path.startswith('fnlp/moss'):
@@ -107,6 +110,7 @@ def create_model(
             device=device,
             precision=precision,
             device_map=device_map,
+            backend=backend,
             **kwargs,
         )
     elif model_name_or_path.startswith('openflamingo/OpenFlamingo'):
@@ -115,13 +119,14 @@ def create_model(
         assert adapter_name_or_path is None, 'Flamingo does not support adapter'
 
         if backend == 'vllm':
-            logging.warning(f'vllm does not support OpenFlamingo model, using hf instead')
+            logger.warning(f'vllm does not support OpenFlamingo model, using hf instead')
 
         return FlamingoModel(
             model_name_or_path=model_name_or_path,
             device=device,
             precision=precision,
             device_map=device_map,
+            backend='hf',
             **kwargs,
         )
     elif model_name_or_path.startswith('sgugger/rwkv') or model_name_or_path.startswith(
@@ -134,6 +139,7 @@ def create_model(
             device=device,
             precision=precision,
             device_map=device_map,
+            backend=backend,
             **kwargs,
         )
     else:
