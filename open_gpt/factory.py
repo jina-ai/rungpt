@@ -1,3 +1,4 @@
+import logging
 import os.path
 from pathlib import Path
 from typing import List, Optional, Union
@@ -53,6 +54,9 @@ def create_model(
     if model_name_or_path.startswith('decapoda-research/llama'):
         from .models.llama.modeling import LlamaModel
 
+        if backend == 'vllm':
+            logging.warning(f'vllm does not support loading Llama tokenizer, using hf instead')
+
         return LlamaModel(
             model_name_or_path=model_name_or_path,
             adapter_name_or_path=adapter_name_or_path,
@@ -71,19 +75,10 @@ def create_model(
 
         assert adapter_name_or_path is None, 'Vicuna models do not support adapter yet'
 
+        if backend == 'vllm':
+            logging.warning(f'vllm does not support vicuna model, using hf instead')
+
         return VicunaModel(
-            model_name_or_path=model_name_or_path,
-            device=device,
-            precision=precision,
-            device_map=device_map,
-            **kwargs,
-        )
-    elif model_name_or_path.startswith('EleutherAI/pythia'):
-        from .models.pythia.modeling import PythiaModel
-
-        assert adapter_name_or_path is None, 'Pythia does not support adapter'
-
-        return PythiaModel(
             model_name_or_path=model_name_or_path,
             device=device,
             precision=precision,
@@ -118,6 +113,9 @@ def create_model(
         from .models.flamingo.modeling import FlamingoModel
 
         assert adapter_name_or_path is None, 'Flamingo does not support adapter'
+
+        if backend == 'vllm':
+            logging.warning(f'vllm does not support OpenFlamingo model, using hf instead')
 
         return FlamingoModel(
             model_name_or_path=model_name_or_path,
@@ -186,6 +184,7 @@ def create_flow(
             'adapter_name_or_path': uses_with.get('adapter_name_or_path') or '',
             'precision': uses_with.get('precision', 'fp16'),
             'device_map': uses_with.get('device_map', 'balanced'),
+            'backend': uses_with.get('backend', 'hf'),
         },
         'gateway_params': {'cors': cors},
         'jina_version': __jina_version__,
