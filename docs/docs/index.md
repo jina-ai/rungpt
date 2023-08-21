@@ -1,18 +1,18 @@
 # Quick start
 
-`opengpt` is an open-source _cloud-native_ large-scale **_multimodal models_** (LMMs) serving framework. 
+`rungpt` is an open-source _cloud-native_ large-scale **_multimodal models_** (LMMs) serving framework. 
 It is designed to simplify the deployment and management of large language models, on a distributed cluster of GPUs.
 We aim to make it a one-stop solution for a centralized and accessible place to gather techniques for optimizing large-scale multimodal models and make them easy to use for everyone.
 
 
 ## Installation and setup
 
-To use `opengpt`, install it with `pip`:
+To use `rungpt`, install it with `pip`:
 
 <div class="termy">
 
 ```shell
-$ pip install open_gpt_torch
+$ pip install run_gpt_torch
 ```
 
 </div>
@@ -25,9 +25,9 @@ We use the [stabilityai/stablelm-tuned-alpha-3b](https://huggingface.co/stabilit
 <div class="termy">
 
 ```python
-import open_gpt
+import run_gpt
 
-model = open_gpt.create_model(
+model = run_gpt.create_model(
     'stabilityai/stablelm-tuned-alpha-3b', device='cuda', precision='fp16'
 )
 

@@ -1,9 +1,9 @@
-import open_gpt
-from open_gpt.models.session import SessionManager
+import run_gpt
+from run_gpt.models.session import SessionManager
 
 session_manager = SessionManager()
 
-model = open_gpt.create_model(
+model = run_gpt.create_model(
     'decapoda-research/llama-7b-hf', precision='fp16', device_map='balanced'
 )
 

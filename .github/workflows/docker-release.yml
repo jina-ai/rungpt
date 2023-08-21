@@ -34,7 +34,7 @@ jobs:
           echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
           echo "BUILD_TARGET=clip_executor" >> $GITHUB_ENV
         
-          VERSION=$(sed -n '/^__version__ = /p' ./open_gpt/__init__.py | cut -d \' -f2)
+          VERSION=$(sed -n '/^__version__ = /p' ./run_gpt/__init__.py | cut -d \' -f2)
           V_VERSION=v${VERSION}
           MINOR_VERSION=${VERSION%.*}
           MAJOR_VERSION=${MINOR_VERSION%.*}
@@ -42,21 +42,21 @@ jobs:
           if [[ "${{ github.event.inputs.triggered_by }}" == "CD" ]]; then
             # on every CD release
             echo "TAG_ALIAS=\
-                            jinaai/open_gpt:master" \
+                            jinaai/run_gpt:master" \
                             >> $GITHUB_ENV
 
           elif [[ "${{ github.event.inputs.triggered_by }}" == "TAG" ]]; then
             # on every tag release
             echo "TAG_ALIAS=\
-                            jinaai/open_gpt:latest, \
-                            jinaai/open_gpt:v${VERSION}, \
-                            jinaai/open_gpt:v${MINOR_VERSION} \
+                            jinaai/run_gpt:latest, \
+                            jinaai/run_gpt:v${VERSION}, \
+                            jinaai/run_gpt:v${MINOR_VERSION} \
                             " >> $GITHUB_ENV
             
           elif [[ "${{ github.event.inputs.triggered_by }}" == "MANUAL" ]]; then
             # on every manual release
             echo "TAG_ALIAS=\
-                            jinaai/open_gpt:v${VERSION} \
+                            jinaai/run_gpt:v${VERSION} \
                             " >> $GITHUB_ENV
           else
             echo "Bad triggered_by: ${{ github.event.inputs.triggered_by }}!"
@@ -86,7 +86,7 @@ jobs:
         with:
           file: Dockerfiles/Dockerfile
           platforms: linux/amd64
-          cache-from: type=registry,ref=jinaai/open_gpt:latest
+          cache-from: type=registry,ref=jinaai/run_gpt:latest
           cache-to: type=inline
           push: true
           tags: ${{env.TAG_ALIAS}}
@@ -101,10 +101,10 @@ jobs:
         with:
           file: Dockerfiles/gateway.Dockerfile
           platforms: linux/amd64
-          cache-from: type=registry,ref=jinaai/open_gpt_gateway:latest
+          cache-from: type=registry,ref=jinaai/run_gpt_gateway:latest
           cache-to: type=inline
           push: true
-          tags: jinaai/open_gpt_gateway:v${{env.VERSION}}, jinaai/open_gpt_gateway:latest
+          tags: jinaai/run_gpt_gateway:v${{env.VERSION}}, jinaai/run_gpt_gateway:latest
           build-args: |
             BUILD_DATE=${{env.BUILD_DATE}}
             VERSION=${{env.VERSION}}
@@ -116,10 +116,10 @@ jobs:
         with:
           file: Dockerfiles/executor.Dockerfile
           platforms: linux/amd64
-          cache-from: type=registry,ref=jinaai/open_gpt_executor:latest
+          cache-from: type=registry,ref=jinaai/run_gpt_executor:latest
           cache-to: type=inline
           push: true
-          tags: jinaai/open_gpt_executor:v${{env.VERSION}}, jinaai/open_gpt_executor:latest
+          tags: jinaai/run_gpt_executor:v${{env.VERSION}}, jinaai/run_gpt_executor:latest
           build-args: |
             BUILD_DATE=${{env.BUILD_DATE}}
             VERSION=${{env.VERSION}}

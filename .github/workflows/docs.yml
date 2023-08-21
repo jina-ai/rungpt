@@ -9,12 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          path: opengpt
+          path: rungpt
       - uses: actions/checkout@v3
         with:
-          repository: numb3r3/opengpt.github.io.git
+          repository: numb3r3/rungpt.github.io.git
           ref: 'main'
-          path: ./opengpt.github.io
+          path: ./rungpt.github.io
           token: ${{ secrets.GH_TEST_TOKEN }}
       - uses: actions/setup-python@v2
         with:
@@ -23,5 +23,5 @@ jobs:
           pip install pillow cairosvg
           sudo apt-get install -y libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
           pip install mkdocs-material mkdocs-material-extensions mkdocs-redirects --upgrade
-          mkdocs gh-deploy --config-file ../opengpt/mkdocs.yml --force
-        working-directory: ./opengpt.github.io
+          mkdocs gh-deploy --config-file ../rungpt/mkdocs.yml --force
+        working-directory: ./rungpt.github.io

@@ -1,17 +1,21 @@
-import open_gpt
-from open_gpt.profile import end_measure, log_measures, start_measure
+import run_gpt
+from run_gpt.profile import end_measure, log_measures, start_measure
 
 is_step = False
 
 start_measures = start_measure()
-model = open_gpt.create_model(
+model = run_gpt.create_model(
     'nthngdy/pythia-owt2-70m-100k', precision='fp16', device_map='balanced'
 )
 
-message = [{"role": "user", "content": "What is your name?"},
-           {"role": "assistant", "content": "My name is Pythia."},
-           {"role": "user",  "content": 'Hello Pythia, can you tell me that is the goal of life?'}
-           ]
+message = [
+    {"role": "user", "content": "What is your name?"},
+    {"role": "assistant", "content": "My name is Pythia."},
+    {
+        "role": "user",
+        "content": 'Hello Pythia, can you tell me that is the goal of life?',
+    },
+]
 
 if not is_step:
     generated_text = model.chat(
