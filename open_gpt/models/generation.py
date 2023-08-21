@@ -6,8 +6,8 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers import StoppingCriteriaList
 
-from helper import prepare_logits_processor, get_stop_ids, partial_stop, StopOnTokens
-from helper import MIN_TEMPERATURE, MIN_TOP_P, MAX_LENGTH
+from open_gpt.models.helper import prepare_logits_processor, get_stop_ids, partial_stop, StopOnTokens
+from open_gpt.models.helper import MIN_TEMPERATURE, MIN_TOP_P, MAX_LENGTH
 
 
 class GenerationMixin:
