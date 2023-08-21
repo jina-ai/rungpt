@@ -13,6 +13,7 @@ def create_model(
     precision: str = 'fp16',
     device: Optional[Union[str, torch.device]] = None,
     device_map: Optional[Union[str, List[int]]] = None,
+    backend: str = 'hf',
     **kwargs,
 ):
     """Create a model.
@@ -24,8 +25,12 @@ def create_model(
     :param precision: The precision to use for the model. Can be one of ``"fp16"``, ``"fp32"``, ``"bit8"`` or ``"bit4"``. Defaults to ``"fp16"``.
     :param device: The device to use. Can be one of ``"cpu"``, ``"cuda"``, ``"cuda:X"`` or ``None``.
     :param device_map: The device map to use. Can be one of ``"balanced"``, ``"single"`` or a list of device IDs.
+    :param backend: The backend to use. Can be one of ``"hf"`` or ``"vllm"``. Defaults to ``"hf"``.
     :param kwargs: Additional keyword arguments to pass to the model.
     """
+
+    if backend == 'vllm':
+        vllm_is_available()
 
     model_name_or_path = model_path or model_name
 
@@ -41,7 +46,7 @@ def create_model(
             device=device,
             precision=precision,
             device_map=device_map,
-            backend='vllm' if vllm_is_available() else 'hf',
+            backend=backend,
             **kwargs,
         )
 
@@ -142,7 +147,7 @@ def create_model(
             device=device,
             precision=precision,
             device_map=device_map,
-            backend='vllm' if vllm_is_available() else 'hf',
+            backend=backend,
             **kwargs,
         )
 

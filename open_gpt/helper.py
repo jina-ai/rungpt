@@ -154,7 +154,5 @@ def vllm_is_available():
     try:
         import vllm
         logger.info(f'using vllm as backend, vllm version: {vllm.__version__}')
-        return True
-    except ImportError:
-        logger.info(f'using huggingface as backend')
-        return False
+    except:
+        raise ImportError(f'vllm is not installed, please install it first')

@@ -16,6 +16,7 @@ class CausualLMExecutor(Executor):
             minibatch_size: int = 1,
             adapter_name_or_path: Optional[str] = None,
             device_map: Optional[Union[str, List[int]]] = None,
+            backend: str = 'hf',
             precision: Optional[str] = None,
             num_workers: int = 4,
             max_length: int = 1024,
@@ -38,6 +39,7 @@ class CausualLMExecutor(Executor):
             precision=precision,
             adapter_name_or_path=adapter_name_or_path,
             device_map=device_map,
+            backend=backend,
             **kwargs,
         )
 
