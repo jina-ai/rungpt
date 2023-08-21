@@ -42,12 +42,6 @@ class ServeCommand(Command):
             default='balanced',
         ),
         option(
-            'backend',
-            'The backend of the model.',
-            flag=False,
-            default='hf',
-        ),
-        option(
             "replicas", "r", "The number of replicas to serve.", flag=False, default=1
         ),
     ]
@@ -71,7 +65,6 @@ class ServeCommand(Command):
                 'precision': self.option('precision'),
                 'adapter_name_or_path': self.option('adapter_name_or_path'),
                 'device_map': self.option('device_map'),
-                'backend': self.option('backend'),
             },
             replicas=self.option('replicas'),
             dockerized=False,

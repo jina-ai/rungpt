@@ -33,7 +33,7 @@ def create_model(
     if not model_name_or_path:
         raise ValueError(f"must specify either `model_name` or `model_path`")
 
-    if os.path.isdir(model_name_or_path) or backend != 'hf':
+    if os.path.isdir(model_name_or_path):
         from .models.modeling import BaseModel
 
         return BaseModel(
@@ -143,6 +143,7 @@ def create_model(
             device=device,
             precision=precision,
             device_map=device_map,
+            backend=backend,
             **kwargs,
         )
 

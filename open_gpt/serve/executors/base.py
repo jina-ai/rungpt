@@ -20,7 +20,6 @@ class CausualLMExecutor(Executor):
             precision: Optional[str] = None,
             num_workers: int = 4,
             max_length: int = 1024,
-            backend: str = 'hf',
             **kwargs,
     ):
         super().__init__(**kwargs)
@@ -34,14 +33,20 @@ class CausualLMExecutor(Executor):
         self._minibatch_size = minibatch_size
         self._thread_pool = ThreadPool(processes=num_workers)
         self._max_length = max_length
-        self._backend = backend
+        try:
+            import vllm
+            self._backend = 'vllm'
+            logger.info('Using vLLM as backend ...')
+        except:
+            self._backend = 'hf'
+            logger.info('Using huggingface as backend ...')
 
         self.model = create_model(
             model_name_or_path,
             precision=precision,
             adapter_name_or_path=adapter_name_or_path,
             device_map=device_map,
-            backend=backend,
+            backend=self._backend,
             **kwargs,
         )
 

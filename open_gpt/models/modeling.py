@@ -1,4 +1,3 @@
-import logging
 from typing import TYPE_CHECKING, List, Optional, Union
 
 import torch
@@ -56,6 +55,7 @@ class BaseModel(nn.Module, GenerationMixin, ChatMixin, EmbeddingMixin):
         )
 
         # turn the eval mode off `eval_mode=False` in training
+        # vllm model doesn't have `eval` mode
         if self._eval_mode and self._backend == 'hf':
             self.model.eval()
 
