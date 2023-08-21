@@ -306,7 +306,8 @@ class GenerationMixin:
             }
         )
 
-        if isinstance(self.model, AutoModelForCausalLM):
+        from transformers.modeling_utils import PreTrainedModel
+        if isinstance(self.model, PreTrainedModel):
             with torch.inference_mode():
                 outputs = self.model.generate(**inputs, **kwargs)[0].tolist()
                 text = self.tokenizer.decode(
