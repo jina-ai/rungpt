@@ -262,7 +262,8 @@ And the output will be streamed back to you (only show 3 iterations here):
   "usage": {"completion_tokens": 3, "total_tokens": 11, "prompt_tokens": 8}}
 ```
 
-We also support chat mode, which is useful for interactive applications:
+We also support chat mode, which is useful for interactive applications. The inputs for `chat` should be a list of 
+dictionaries which contain role and content. For example:
 
 ```python
 import requests
@@ -335,12 +336,12 @@ We have done some benchmarking on different model architectures and different co
 quantization, torch.compile and page attention ...), regards to the latency, throughput (prefill stage && the whole 
 decoding process) and perplexity. 
 
+The script for benchmarking locates at `scripts/benchmark.py`. You can run the scripts to get the benchmarking results.
 
 ### Environment Setting
 We use a single RTX3090 (cuda version is 11.8) for all benchmarking except for Llama-2-13b (2*RTX3090). We use:
 ```
-torch==2.0.1 (without torch.compile)
-torch==2.1.0.dev20230803 (with torch.compile)
+torch==2.0.1 (without torch.compile) / torch==2.1.0.dev20230803 (with torch.compile)
 bitsandbytes==0.41.0
 transformers==4.31.0
 triton==2.0.0
