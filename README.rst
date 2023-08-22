@@ -153,7 +153,7 @@ You can then send requests to the server:
 ```python
 import requests
 
-prompt = "The quick brown fox jumps over the lazy dog."
+prompt = "Once upon a time,"
 
 response = requests.post(
     "http://localhost:51000/generate",
@@ -180,7 +180,7 @@ client = Client()
 # connect to the model server
 model = client.get_model(endpoint='grpc://0.0.0.0:51000')
 
-prompt = "The quick brown fox jumps over the lazy dog."
+prompt = "Once upon a time,"
 
 output = model.generate(
     prompt,
@@ -194,7 +194,116 @@ output = model.generate(
 )
 ```
 
-💡 **Tip**: To display the list of available commands, please use the `list` command.
+The output has the same format as the one from the OpenAI's Python API:
+
+```json
+{ "id": None, 
+  "object": "text_completion", 
+  "created": 1692610173, 
+  "choices": [{"text": "Once upon a time, there was an old man who lived in the forest. He had no children", 
+              "finish_reason": "length", 
+              "index": 0.0}], 
+  "prompt": "Once upon a time,", 
+  "usage": {"completion_tokens": 21, "total_tokens": 27, "prompt_tokens": 6}}
+```
+
+For the streaming output, you can install `sseclient-py` first:
+```bash
+pip install sseclient-py
+```
+
+And send the request to `http://localhost:51000/generate_stream` with the same payload.
+
+```python
+import sseclient
+import requests
+
+prompt = "Once upon a time,"
+
+response = requests.post(
+    "http://localhost:51000/generate_stream",
+    json={
+        "prompt": prompt,
+        "max_length": 100,
+        "temperature": 0.9,
+        "top_k": 50,
+        "top_p": 0.95,
+        "repetition_penalty": 1.2,
+        "do_sample": True,
+        "num_return_sequences": 1,
+    },
+    stream=True,
+)
+client = sseclient.SSEClient(response)
+for event in client.events():
+    print(event.data)
+```
+
+And the output will be streamed back to you (only show 3 iterations here):
+
+```json
+{ "id": None, 
+  "object": "text_completion", 
+  "created": 1692610173, 
+  "choices": [{"text": " there", "finish_reason": None, "index": 0.0}], 
+  "prompt": "Once upon a time,", 
+  "usage": {"completion_tokens": 1, "total_tokens": 7, "prompt_tokens": 6}},
+{ "id": None, 
+  "object": "text_completion", 
+  "created": 1692610173, 
+  "choices": [{"text": "was", "finish_reason": None, "index": 0.0}], 
+  "prompt": None, 
+  "usage": {"completion_tokens": 2, "total_tokens": 9, "prompt_tokens": 7}},
+{ "id": None, 
+  "object": "text_completion", 
+  "created": 1692610173, 
+  "choices": [{"text": "an", "finish_reason": None, "index": 0.0}], 
+  "prompt": None, 
+  "usage": {"completion_tokens": 3, "total_tokens": 11, "prompt_tokens": 8}}
+```
+
+We also support chat mode, which is useful for interactive applications:
+
+```python
+import requests
+
+messages = [
+          {"role": "user", "content": "Hello!"},
+      ]
+
+response = requests.post(
+    "http://localhost:51000/chat",
+    json={
+        "messages": messages,
+        "max_length": 100,
+        "temperature": 0.9,
+        "top_k": 50,
+        "top_p": 0.95,
+        "repetition_penalty": 1.2,
+        "do_sample": True,
+        "num_return_sequences": 1,
+    },
+)
+```
+
+The response will be:
+
+```json
+{"id": None, 
+  "object": "chat.completion", 
+  "created": 1692610173, 
+  "choices": [{"message": {
+                            "role": "assistant",
+                            "content": "\n\nHello there, how may I assist you today?",
+                        }, 
+              "finish_reason": "stop", "index": 0.0}], 
+  "prompt": "Hello there!", 
+  "usage": {"completion_tokens": 12, "total_tokens": 15, "prompt_tokens": 3}}
+```
+
+You can also replace the `chat` with `chat_stream` to get the streaming output.
+
+
 
 ## Cloud-native deployment
 
@@ -219,6 +328,59 @@ grpcs://{random-host-name}-grpc.wolf.jina.ai
 ### AWS
 
 TBD
+
+
+## Benchmark
+We have done some benchmarking on different model architectures and different configurations (whether to use 
+quantization, torch.compile and page attention ...), regards to the latency, throughput (prefill stage && the whole 
+decoding process) and perplexity. 
+
+
+### Environment Setting
+We use a single RTX3090 (cuda version is 11.8) for all benchmarking except for Llama-2-13b (2*RTX3090). We use:
+```
+torch==2.0.1 (without torch.compile)
+torch==2.1.0.dev20230803 (with torch.compile)
+bitsandbytes==0.41.0
+transformers==4.31.0
+triton==2.0.0
+```
+
+### Model Candidates
+|             Model_Name             |
+|:----------------------------------:|
+|      meta-llama/Llama-2-7b-hf      |
+|           mosaicml/mpt-7b          |
+| stabilityai/stablelm-base-alpha-7b |
+|         EleutherAI/gpt-j-6B        |
+
+
+### Benchmarking Results
+
+- **Latency/throughput for different models** (precision: fp16)
+
+|             Model_Name             | average_prefill_latency(ms/token) | average_prefill_throughput(token/s) | average_decode_latency(ms/token) | average_decode_throughput(token/s) |
+|:----------------------------------:|:---------------------------------:|:-----------------------------------:|:--------------------------------:|:----------------------------------:|
+|      meta-llama/Llama-2-7b-hf      |                 49                |                20.619               |               49.4               |               20.054               |
+|      meta-llama/Llama-2-13b-hf     |                175                |                5.727                |              188.27              |                4.836               |
+|           mosaicml/mpt-7b          |                 27                |                37.527               |               28.04              |               35.312               |
+| stabilityai/stablelm-base-alpha-7b |                 50                |                20.09                |               45.73              |               21.878               |
+|         EleutherAI/gpt-j-6B        |                 75                |                13.301               |               76.15              |               11.181               |
+
+
+- **Latency/throughput for different models using torch.compile** (precision: fp16)
+
+|             Model_Name             | average_prefill_latency(ms/token) | average_prefill_throughput(token/s) | average_decode_latency(ms/token) | average_decode_throughput(token/s) |
+|:----------------------------------:|:---------------------------------:|:-----------------------------------:|:--------------------------------:|:----------------------------------:|
+|      meta-llama/Llama-2-7b-hf      |                 25                |                40.644               |               26.54              |                37.75               |
+|      meta-llama/Llama-2-13b-hf     |                 -                 |                  -                  |                 -                |                  -                 |
+|           mosaicml/mpt-7b          |                 -                 |                  -                  |                 -                |                  -                 |
+| stabilityai/stablelm-base-alpha-7b |                 44                |                22.522               |               42.97              |               21.413               |
+|         EleutherAI/gpt-j-6B        |                 32                |                31.488               |               33.89              |               25.105               |
+
+- **Latency/throughput for different models using quantization** (precision: fp16 / bit8 / bit4)
+
+
 
 ## Contributing
 
