@@ -370,6 +370,9 @@ triton==2.0.0
 
 - **Latency/throughput for different models using torch.compile** (precision: fp16)
 
+> **Warning**
+> torch.compile doesn't support Flash-Attention based model like MPT. Also, it cannot be used in multi-GPUs environment.
+
 |             Model_Name             | average_prefill_latency(ms/token) | average_prefill_throughput(token/s) | average_decode_latency(ms/token) | average_decode_throughput(token/s) |
 |:----------------------------------:|:---------------------------------:|:-----------------------------------:|:--------------------------------:|:----------------------------------:|
 |      meta-llama/Llama-2-7b-hf      |                 25                |                40.644               |               26.54              |                37.75               |
@@ -380,129 +383,238 @@ triton==2.0.0
 
 - **Latency/throughput for different models using quantization** (precision: fp16 / bit8 / bit4)
 
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-  overflow:hidden;padding:10px 5px;word-break:normal;}
-.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
-.tg .tg-c3ow{border-color:inherit;text-align:center;vertical-align:top}
-</style>
-<table class="tg">
+<table>
 <thead>
   <tr>
-    <th class="tg-c3ow"></th>
-    <th class="tg-c3ow" colspan="3">prefill latency (ms)</th>
-    <th class="tg-c3ow" colspan="3">prefill throughput (tokens/s)</th>
-    <th class="tg-c3ow" colspan="3">decode latency (ms)</th>
-    <th class="tg-c3ow" colspan="3">decode throughput (tokens/s)</th>
+    <th></th>
+    <th colspan="3">prefill latency (ms/token)</th>
+    <th colspan="3">prefill throughput (tokens/s)</th>
+    <th colspan="3">decode latency (ms/token)</th>
+    <th colspan="3">decode throughput (tokens/s)</th>
   </tr>
 </thead>
 <tbody>
   <tr>
-    <td class="tg-c3ow">precision</td>
-    <td class="tg-c3ow">fp16</td>
-    <td class="tg-c3ow">bit8</td>
-    <td class="tg-c3ow">bit4</td>
-    <td class="tg-c3ow">fp16</td>
-    <td class="tg-c3ow">bit8</td>
-    <td class="tg-c3ow">bit4</td>
-    <td class="tg-c3ow">fp16</td>
-    <td class="tg-c3ow">bit8</td>
-    <td class="tg-c3ow">bit4</td>
-    <td class="tg-c3ow">fp16</td>
-    <td class="tg-c3ow">bit8</td>
-    <td class="tg-c3ow">bit4</td>
+    <td></td>
+    <td>fp16</td>
+    <td>bit8</td>
+    <td>bit4</td>
+    <td>fp16</td>
+    <td>bit8</td>
+    <td>bit4</td>
+    <td>fp16</td>
+    <td>bit8</td>
+    <td>bit4</td>
+    <td>fp16</td>
+    <td>bit8</td>
+    <td>bit4</td>
   </tr>
   <tr>
-    <td class="tg-c3ow">average</td>
-    <td class="tg-c3ow">43</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">23.469</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">2132</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">46.533</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
+    <td>meta-llama/Llama-2-7b-hf</td>
+    <td>49</td>
+    <td>301</td>
+    <td>125</td>
+    <td>20.619</td>
+    <td>3.325</td>
+    <td>8.015</td>
+    <td>49.4</td>
+    <td>256.44</td>
+    <td>112.22</td>
+    <td>20.054</td>
+    <td>3.9</td>
+    <td>8.918</td>
   </tr>
   <tr>
-    <td class="tg-c3ow">lowest</td>
-    <td class="tg-c3ow">40</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">21.934</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">2095</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">30.0499</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
+    <td>meta-llama/Llama-2-13b-hf</td>
+    <td>175</td>
+    <td>974</td>
+    <td>376</td>
+    <td>5.727</td>
+    <td>1.027</td>
+    <td>2.662</td>
+    <td>182.27</td>
+    <td>796.32</td>
+    <td>349.93</td>
+    <td>4.836</td>
+    <td>1.144</td>
+    <td>2.662</td>
   </tr>
   <tr>
-    <td class="tg-c3ow">highest</td>
-    <td class="tg-c3ow">46</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">25.24</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">3295</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">47.246</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
+    <td>mosaicml/mpt-7b</td>
+    <td>27</td>
+    <td>139</td>
+    <td>86</td>
+    <td>37.527</td>
+    <td>7.222</td>
+    <td>11.6</td>
+    <td>28.04</td>
+    <td>141.04</td>
+    <td>94.22</td>
+    <td>35.312</td>
+    <td>7.021</td>
+    <td>10.507</td>
   </tr>
   <tr>
-    <td class="tg-c3ow">p50</td>
-    <td class="tg-c3ow">43</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">22.996</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">2124</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">46.601</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
+    <td>stabilityai/stablelm-base-alpha-7b</td>
+    <td>50</td>
+    <td>164</td>
+    <td>156</td>
+    <td>20.09</td>
+    <td>6.134</td>
+    <td>6.408</td>
+    <td>45.73</td>
+    <td>148.53</td>
+    <td>147.56</td>
+    <td>21.878</td>
+    <td>6.947</td>
+    <td>6.994</td>
   </tr>
   <tr>
-    <td class="tg-c3ow">p90</td>
-    <td class="tg-c3ow">44</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">24.956</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">2129</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">47.053</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
+    <td>EleutherAI/gpt-j-6B</td>
+    <td>75</td>
+    <td>368</td>
+    <td>162</td>
+    <td>13.301</td>
+    <td>2.724</td>
+    <td>6.195</td>
+    <td>76.15</td>
+    <td>365.51</td>
+    <td>138.44</td>
+    <td>11.181</td>
+    <td>2.327</td>
+    <td>5.642</td>
+  </tr>
+</tbody>
+</table>
+
+
+- **Perplexity for different models using quantization** (precision: fp16 / bit8 / bit4)
+
+> **Notice**
+> From this benchmark we see that quantization doesn't affect the perplexity of the model too much.
+
+<table>
+<thead>
+  <tr>
+    <th></th>
+    <th colspan="3">wikitext2</th>
+    <th colspan="3">ptb </th>
+    <th colspan="3">c4</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td></td>
+    <td>fp16</td>
+    <td>bit8</td>
+    <td>bit4</td>
+    <td>fp16</td>
+    <td>bit8</td>
+    <td>bit4</td>
+    <td>fp16</td>
+    <td>bit8</td>
+    <td>bit4</td>
   </tr>
   <tr>
-    <td class="tg-c3ow">p99</td>
-    <td class="tg-c3ow">45</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">25.121</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">2145</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">47.231</td>
-    <td class="tg-c3ow">-</td>
-    <td class="tg-c3ow">-</td>
+    <td>meta-llama/Llama-2-7b-hf</td>
+    <td>5.4721</td>
+    <td>5.506</td>
+    <td>5.6437</td>
+    <td>22.9483</td>
+    <td>23.8797</td>
+    <td>25.0556</td>
+    <td>6.9727</td>
+    <td>7.0098</td>
+    <td>7.1623</td>
+  </tr>
+  <tr>
+    <td>meta-llama/Llama-2-13b-hf</td>
+    <td>4.8837</td>
+    <td>4.9229</td>
+    <td>4.9811</td>
+    <td>27.6802</td>
+    <td>27.9665</td>
+    <td>28.8417</td>
+    <td>6.4677</td>
+    <td>6.4884</td>
+    <td>6.566</td>
+  </tr>
+  <tr>
+    <td>mosaicml/mpt-7b</td>
+    <td>7.6829</td>
+    <td>7.7256</td>
+    <td>7.9869</td>
+    <td>10.6002</td>
+    <td>10.6743</td>
+    <td>10.9486</td>
+    <td>9.6001</td>
+    <td>9.6457</td>
+    <td>9.879</td>
+  </tr>
+  <tr>
+    <td>stabilityai/stablelm-base-alpha-7b</td>
+    <td>14.1886</td>
+    <td>14.268</td>
+    <td>15.9817</td>
+    <td>19.2968</td>
+    <td>19.4904</td>
+    <td>21.3513</td>
+    <td>48.222</td>
+    <td>48.3384</td>
+    <td>57.022</td>
+  </tr>
+  <tr>
+    <td>EleutherAI/gpt-j-6B</td>
+    <td>8.8563</td>
+    <td>8.8786</td>
+    <td>9.0301</td>
+    <td>13.5946</td>
+    <td>13.6137</td>
+    <td>13.784</td>
+    <td>11.7114</td>
+    <td>11.7293</td>
+    <td>11.8929</td>
+  </tr>
+</tbody>
+</table>
+
+- **Latency/throughput for different models using vllm** (precision: fp16)
+
+> **Warning**
+> vllm brings a significant improvement in latency and throughput, but it is not compatible with streaming output, so we don't release it yet.
+
+<table>
+<thead>
+  <tr>
+    <th></th>
+    <th colspan="2">prefill latency (ms/token)</th>
+    <th colspan="2">prefill throughput (tokens/s)</th>
+    <th colspan="2">decode latency (ms/token)</th>
+    <th colspan="2">decode throughput (tokens/s)</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td></td>
+    <td>using vllm</td>
+    <td>baseline</td>
+    <td>using vllm</td>
+    <td>baseline</td>
+    <td>using vllm</td>
+    <td>baseline</td>
+    <td>using vllm</td>
+    <td>baseline</td>
+  </tr>
+  <tr>
+    <td>meta-llama/Llama-2-7b-hf</td>
+    <td>29</td>
+    <td>49</td>
+    <td>34.939</td>
+    <td>20.619</td>
+    <td>20.34</td>
+    <td>49.40</td>
+    <td>48.67</td>
+    <td>20.054</td>
   </tr>
 </tbody>
 </table>
