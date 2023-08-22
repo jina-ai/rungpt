@@ -380,7 +380,132 @@ triton==2.0.0
 
 - **Latency/throughput for different models using quantization** (precision: fp16 / bit8 / bit4)
 
-
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-c3ow{border-color:inherit;text-align:center;vertical-align:top}
+</style>
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-c3ow"></th>
+    <th class="tg-c3ow" colspan="3">prefill latency (ms)</th>
+    <th class="tg-c3ow" colspan="3">prefill throughput (tokens/s)</th>
+    <th class="tg-c3ow" colspan="3">decode latency (ms)</th>
+    <th class="tg-c3ow" colspan="3">decode throughput (tokens/s)</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-c3ow">precision</td>
+    <td class="tg-c3ow">fp16</td>
+    <td class="tg-c3ow">bit8</td>
+    <td class="tg-c3ow">bit4</td>
+    <td class="tg-c3ow">fp16</td>
+    <td class="tg-c3ow">bit8</td>
+    <td class="tg-c3ow">bit4</td>
+    <td class="tg-c3ow">fp16</td>
+    <td class="tg-c3ow">bit8</td>
+    <td class="tg-c3ow">bit4</td>
+    <td class="tg-c3ow">fp16</td>
+    <td class="tg-c3ow">bit8</td>
+    <td class="tg-c3ow">bit4</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">average</td>
+    <td class="tg-c3ow">43</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">23.469</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">2132</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">46.533</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">lowest</td>
+    <td class="tg-c3ow">40</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">21.934</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">2095</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">30.0499</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">highest</td>
+    <td class="tg-c3ow">46</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">25.24</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">3295</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">47.246</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">p50</td>
+    <td class="tg-c3ow">43</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">22.996</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">2124</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">46.601</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">p90</td>
+    <td class="tg-c3ow">44</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">24.956</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">2129</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">47.053</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+  </tr>
+  <tr>
+    <td class="tg-c3ow">p99</td>
+    <td class="tg-c3ow">45</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">25.121</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">2145</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">47.231</td>
+    <td class="tg-c3ow">-</td>
+    <td class="tg-c3ow">-</td>
+  </tr>
+</tbody>
+</table>
 
 ## Contributing
 
