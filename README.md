@@ -196,8 +196,8 @@ output = model.generate(
 
 The output has the same format as the one from the OpenAI's Python API:
 
-```json
-{ "id": None, 
+```
+{ "id": "18d92585-7b66-4b7c-b818-71287c122c50", 
   "object": "text_completion", 
   "created": 1692610173, 
   "choices": [{"text": "Once upon a time, there was an old man who lived in the forest. He had no children", 
@@ -241,20 +241,20 @@ for event in client.events():
 
 And the output will be streamed back to you (only show 3 iterations here):
 
-```json
-{ "id": None, 
+```
+{ "id": "18d92585-7b66-4b7c-b818-71287c122c51", 
   "object": "text_completion", 
   "created": 1692610173, 
   "choices": [{"text": " there", "finish_reason": None, "index": 0.0}], 
   "prompt": "Once upon a time,", 
   "usage": {"completion_tokens": 1, "total_tokens": 7, "prompt_tokens": 6}},
-{ "id": None, 
+{ "id": "18d92585-7b66-4b7c-b818-71287c122c52", 
   "object": "text_completion", 
   "created": 1692610173, 
   "choices": [{"text": "was", "finish_reason": None, "index": 0.0}], 
   "prompt": None, 
   "usage": {"completion_tokens": 2, "total_tokens": 9, "prompt_tokens": 7}},
-{ "id": None, 
+{ "id": "18d92585-7b66-4b7c-b818-71287c122c53", 
   "object": "text_completion", 
   "created": 1692610173, 
   "choices": [{"text": "an", "finish_reason": None, "index": 0.0}], 
@@ -288,8 +288,8 @@ response = requests.post(
 
 The response will be:
 
-```json
-{"id": None, 
+```
+{"id": "18d92585-7b66-4b7c-b818-71287c122c57", 
   "object": "chat.completion", 
   "created": 1692610173, 
   "choices": [{"message": {
