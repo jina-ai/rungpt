@@ -14,15 +14,14 @@
 [![PyPI](https://img.shields.io/pypi/v/run_gpt_torch)](https://pypi.org/project/run_gpt_torch/)
 [![PyPI - License](https://img.shields.io/pypi/l/run_gpt_torch)](https://pypi.org/project/run_gpt_torch/)
 
-**RunGPT** is an open-source _cloud-native_ large-scale **_multimodal models_** (LMMs) serving framework. 
+**RunGPT** is an open-source _cloud-native_ **_large-scale language models_** (LLMs) serving framework. 
 It is designed to simplify the deployment and management of large language models, on a distributed cluster of GPUs.
-We aim to make it a one-stop solution for a centralized and accessible place to gather techniques for optimizing large-scale multimodal models and make them easy to use for everyone.
+We aim to make it a one-stop solution for a centralized and accessible place to gather techniques for optimizing LLM and make them easy to use for everyone.
 
 
 ## Table of contents
 
 - [Features](#features)
-- [Supported models](#supported-models)
 - [Get started](#get-started)
 - [Build a model serving in one line](#build-a-model-serving-in-one-line)
 - [Cloud-native deployment](#cloud-native-deployment)
@@ -30,9 +29,8 @@ We aim to make it a one-stop solution for a centralized and accessible place to 
 
 ## Features
 
-RunGPT provides the following features to make it easy to deploy and serve **large multi-modal models** (LMMs) at scale:
+RunGPT provides the following features to make it easy to deploy and serve **large language models** (LLMs) at scale:
 
-- Support for multi-modal models on top of large language models
 - Scalable architecture for handling high traffic loads
 - Optimized for low-latency inference
 - Automatic model partitioning and distribution across multiple GPUs
@@ -41,35 +39,9 @@ RunGPT provides the following features to make it easy to deploy and serve **lar
 
 ## Updates
 
-- **2023-05-12**: 🎉We have released the first version `v0.0.1` of RunGPT. You can install it with `pip install run_gpt_torch`.
+- **2023-08-22**: The OpenGPT is now renamed to RunGPT. We have also released the first version `v0.1.0` of RunGPT. You can install it with `pip install rungpt`.
+- **2023-05-12**: 🎉We have released the first version `v0.0.1` of OpenGPT. You can install it with `pip install open_gpt_torch`.
 
-## Supported Models
-
-<details>
-
-RunGPT supports the following models out of the box:
-
-- LLM (Large Language Model)
-
-  - [LLaMA](https://ai.facebook.com/blog/large-language-model-llama-meta-ai/): open and efficient foundation language models by Meta
-  - [Pythia](https://github.com/EleutherAI/pythia): a collection of models developed to facilitate interpretability research by EleutherAI
-  - [StableLM](https://github.com/Stability-AI/StableLM): series of large language models by Stability AI
-  - [Vicuna](https://vicuna.lmsys.org/): a chat assistant fine-tuned from LLaMA on user-shared conversations by LMSYS
-  - [MOSS](https://txsun1997.github.io/blogs/moss.html): conversational language model from Fudan University
-
-- LMM (Large Multi-modal Model)
-
-  - [OpenFlamingo](https://github.com/mlfoundations/open_flamingo): an open source version of DeepMind's [Flamingo](https://www.deepmind.com/blog/tackling-multiple-tasks-with-a-single-visual-language-model) model
-  - [MiniGPT-4](https://minigpt-4.github.io/): aligns a frozen visual encoder with a frozen LLM, Vicuna, using just one projection layer. 
-
-For more details about the supported models, please see the [Model Zoo](./MODEL_ZOO.md).
-
-</details>
-
-
-## Roadmap
-
-You can view our roadmap with features that are planned, started, and completed on the [Roadmap discussion](https://github.com/jina-ai/rungpt/discussions/categories/roadmap) category.
 
 ## Get Started
 
@@ -78,7 +50,7 @@ You can view our roadmap with features that are planned, started, and completed 
 Install the package with `pip`:
 
 ```bash
-pip install run_gpt_torch
+pip install rungpt
 ```
 
 ### Quickstart
@@ -269,8 +241,8 @@ dictionaries which contain role and content. For example:
 import requests
 
 messages = [
-          {"role": "user", "content": "Hello!"},
-      ]
+    {"role": "user", "content": "Hello!"},
+]
 
 response = requests.post(
     "http://localhost:51000/chat",
@@ -626,4 +598,4 @@ We welcome contributions from the community! To contribute, please submit a pull
 
 ## License
 
-Rungpt is licensed under the Apache License, Version 2.0. See LICENSE for the full license text.
+RunGPT is licensed under the Apache License, Version 2.0. See LICENSE for the full license text.
