@@ -7,7 +7,7 @@ if sys.version_info < (3, 8, 0):
     raise OSError(f'RunGPT requires Python >=3.8, but yours is {sys.version}')
 
 try:
-    pkg_name = 'run-gpt-torch'
+    pkg_name = 'rungpt'
     libinfo_py = path.join(path.dirname(__file__), 'run_gpt', '__init__.py')
     libinfo_content = open(libinfo_py, 'r', encoding='utf8').readlines()
     version_line = [l.strip() for l in libinfo_content if l.startswith('__version__')][
@@ -84,7 +84,6 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     project_urls={
-        'Documentation': 'https://rungpt.jina.ai',
         'Source': 'https://github.com/jina-ai/rungpt/',
         'Tracker': 'https://github.com/jina-ai/rungpt/issues',
     },
@@ -94,7 +93,6 @@ setup(
         "large-language-model",
         "GPT",
         "LLM",
-        "multi-modality",
         "cloud-native",
         "model-serving",
         "model-inference",
