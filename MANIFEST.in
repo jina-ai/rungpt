@@ -1,1 +1,1 @@
-include run_gpt/resources/*.jinja2
+include run_gpt/resources/*
